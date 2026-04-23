@@ -36,47 +36,47 @@
           "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIs..." }
         }
       },
-      "ExpenseCreate": {
+      "FuelExpenseCreate": {
         "type": "object",
-        "required": ["date", "category"],
+        "required": ["date", "category", "litres", "price_per_litre"],
         "properties": {
           "date": { "type": "string", "format": "date", "example": "2026-04-22" },
-          "category": {
-            "type": "string",
-            "enum": ["Fuel", "Maintenance", "Insurance", "Parking", "Toll", "Tax", "Other"],
-            "example": "Fuel"
-          },
-          "amount": {
-            "type": "number",
-            "description": "Required for non-Fuel categories. Ignored for Fuel (auto-calculated).",
-            "example": 50.0
-          },
-          "litres": {
-            "type": "number",
-            "description": "Required for Fuel category.",
-            "example": 40.0
-          },
-          "price_per_litre": {
-            "type": "number",
-            "description": "Required for Fuel category.",
-            "example": 1.85
-          }
+          "category": { "type": "string", "enum": ["Fuel"], "example": "Fuel" },
+          "litres": { "type": "number", "example": 40.0 },
+          "price_per_litre": { "type": "number", "example": 1.85 }
         }
       },
-      "ExpenseUpdate": {
+      "NonFuelExpenseCreate": {
+        "type": "object",
+        "required": ["date", "category", "amount"],
+        "properties": {
+          "date": { "type": "string", "format": "date", "example": "2026-04-22" },
+          "category": {
+            "type": "string",
+            "enum": ["Maintenance", "Insurance", "Parking", "Toll", "Tax", "Other"],
+            "example": "Maintenance"
+          },
+          "amount": { "type": "number", "example": 50.0 }
+        }
+      },
+      "FuelExpenseUpdate": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "format": "date", "example": "2026-04-22" },
+          "category": { "type": "string", "enum": ["Fuel"] },
+          "litres": { "type": "number", "example": 40.0 },
+          "price_per_litre": { "type": "number", "example": 1.85 }
+        }
+      },
+      "NonFuelExpenseUpdate": {
         "type": "object",
         "properties": {
           "date": { "type": "string", "format": "date", "example": "2026-04-22" },
           "category": {
             "type": "string",
-            "enum": ["Fuel", "Maintenance", "Insurance", "Parking", "Toll", "Tax", "Other"]
+            "enum": ["Maintenance", "Insurance", "Parking", "Toll", "Tax", "Other"]
           },
-          "amount": {
-            "type": "number",
-            "description": "Required for non-Fuel categories. Ignored for Fuel."
-          },
-          "litres": { "type": "number", "description": "Required for Fuel category." },
-          "price_per_litre": { "type": "number", "description": "Required for Fuel category." }
+          "amount": { "type": "number", "example": 50.0 }
         }
       },
       "Expense": {
@@ -238,7 +238,12 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ExpenseCreate" }
+              "schema": {
+                "oneOf": [
+                  { "$ref": "#/components/schemas/FuelExpenseCreate" },
+                  { "$ref": "#/components/schemas/NonFuelExpenseCreate" }
+                ]
+              }
             }
           }
         },
@@ -350,7 +355,12 @@
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ExpenseUpdate" }
+              "schema": {
+                "oneOf": [
+                  { "$ref": "#/components/schemas/FuelExpenseUpdate" },
+                  { "$ref": "#/components/schemas/NonFuelExpenseUpdate" }
+                ]
+              }
             }
           }
         },

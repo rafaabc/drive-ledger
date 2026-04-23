@@ -57,8 +57,9 @@ Auth: `Authorization: Bearer <token>` header. JWT decoded into `req.user` (`{ id
 
 Valid categories: `Fuel`, `Maintenance`, `Insurance`, `Parking`, `Toll`, `Tax`, `Other`.
 
-- **Fuel**: requires `litres` and `price_per_litre` (both positive numbers); `amount` is auto-computed as `litres * price_per_litre` (rounded to 2 decimals). Do not pass `amount`.
+- **Fuel**: requires `litres` and `price_per_litre` (both positive numbers); `amount` is auto-computed as `litres * price_per_litre` (rounded to 2 decimals). Passing `amount` → 400 error.
 - **Non-Fuel**: requires `amount` (positive number). Do not pass `litres` or `price_per_litre`.
+- **PATCH/PUT Fuel**: `amount` is ignored in the merge — only `litres`/`price_per_litre` can change the computed amount.
 - `date` must not be in the future.
 
 `GET /api/expenses` supports `?category=`, `?year=`, `?month=` filters.  

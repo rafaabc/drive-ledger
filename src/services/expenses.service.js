@@ -25,6 +25,7 @@ function validateExpenseFields({ category, amount, litres, price_per_litre, date
   if (!CATEGORIES.includes(category)) throw makeError(400, `category must be one of: ${CATEGORIES.join(', ')}`);
 
   if (category === 'Fuel') {
+    if (amount !== undefined) throw makeError(400, 'amount is not allowed for Fuel; it is computed from litres * price_per_litre');
     if (litres === undefined || litres === null) throw makeError(400, 'litres is required for Fuel category');
     if (price_per_litre === undefined || price_per_litre === null) throw makeError(400, 'price_per_litre is required for Fuel category');
     if (typeof litres !== 'number' || litres <= 0) throw makeError(400, 'litres must be a positive number');
@@ -73,12 +74,15 @@ function updateExpense(userId, id, body) {
   const existing = expenseModel.findById(Number(id));
   if (!existing || existing.userId !== userId) throw makeError(404, 'Expense not found');
 
+  const resolvedCategory = body.category !== undefined ? body.category : existing.category;
   const merged = {
     date: body.date !== undefined ? body.date : existing.date,
-    category: body.category !== undefined ? body.category : existing.category,
-    amount: body.amount !== undefined ? body.amount : existing.amount,
+    category: resolvedCategory,
     litres: body.litres !== undefined ? body.litres : existing.litres,
     price_per_litre: body.price_per_litre !== undefined ? body.price_per_litre : existing.price_per_litre,
+    ...(resolvedCategory !== 'Fuel' && {
+      amount: body.amount !== undefined ? body.amount : existing.amount,
+    }),
   };
 
   validateExpenseFields(merged);
