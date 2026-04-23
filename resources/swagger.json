@@ -1,0 +1,423 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Drive Ledger API",
+    "version": "1.0.0",
+    "description": "Vehicle expense tracking API with JWT authentication."
+  },
+  "servers": [{ "url": "http://localhost:3000" }],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "UserCredentials": {
+        "type": "object",
+        "required": ["username", "password"],
+        "properties": {
+          "username": { "type": "string", "example": "alice" },
+          "password": { "type": "string", "example": "secret123" }
+        }
+      },
+      "RegisterResponse": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "username": { "type": "string", "example": "alice" }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIs..." }
+        }
+      },
+      "FuelExpenseCreate": {
+        "type": "object",
+        "required": ["date", "category", "litres", "price_per_litre"],
+        "properties": {
+          "date": { "type": "string", "format": "date", "example": "2026-04-22" },
+          "category": { "type": "string", "enum": ["Fuel"], "example": "Fuel" },
+          "litres": { "type": "number", "example": 40.0 },
+          "price_per_litre": { "type": "number", "example": 1.85 }
+        }
+      },
+      "NonFuelExpenseCreate": {
+        "type": "object",
+        "required": ["date", "category", "amount"],
+        "properties": {
+          "date": { "type": "string", "format": "date", "example": "2026-04-22" },
+          "category": {
+            "type": "string",
+            "enum": ["Maintenance", "Insurance", "Parking", "Toll", "Tax", "Other"],
+            "example": "Maintenance"
+          },
+          "amount": { "type": "number", "example": 50.0 }
+        }
+      },
+      "FuelExpenseUpdate": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "format": "date", "example": "2026-04-22" },
+          "category": { "type": "string", "enum": ["Fuel"] },
+          "litres": { "type": "number", "example": 40.0 },
+          "price_per_litre": { "type": "number", "example": 1.85 }
+        }
+      },
+      "NonFuelExpenseUpdate": {
+        "type": "object",
+        "properties": {
+          "date": { "type": "string", "format": "date", "example": "2026-04-22" },
+          "category": {
+            "type": "string",
+            "enum": ["Maintenance", "Insurance", "Parking", "Toll", "Tax", "Other"]
+          },
+          "amount": { "type": "number", "example": 50.0 }
+        }
+      },
+      "Expense": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "integer", "example": 1 },
+          "userId": { "type": "integer", "example": 1 },
+          "date": { "type": "string", "format": "date", "example": "2026-04-22" },
+          "category": { "type": "string", "example": "Fuel" },
+          "amount": { "type": "number", "example": 74.0 },
+          "litres": { "type": "number", "example": 40.0 },
+          "price_per_litre": { "type": "number", "example": 1.85 }
+        }
+      },
+      "Summary": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "object",
+            "properties": {
+              "year": { "type": "integer", "example": 2026 },
+              "month": { "type": "integer", "example": 4 }
+            }
+          },
+          "categories": {
+            "type": "object",
+            "example": {
+              "Fuel": 74.0,
+              "Maintenance": 0,
+              "Insurance": 0,
+              "Parking": 0,
+              "Toll": 0,
+              "Tax": 0,
+              "Other": 0
+            }
+          },
+          "total": { "type": "number", "example": 74.0 }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string", "example": "Error description" }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserCredentials" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/RegisterResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "409": {
+            "description": "Username already taken",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login and receive a JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserCredentials" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing credentials",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/api/expenses": {
+      "get": {
+        "tags": ["Expenses"],
+        "summary": "List current user's expenses",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "category", "in": "query", "schema": { "type": "string", "enum": ["Fuel", "Maintenance", "Insurance", "Parking", "Toll", "Tax", "Other"] } },
+          { "name": "year", "in": "query", "schema": { "type": "integer" } },
+          { "name": "month", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 12 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of expenses",
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "$ref": "#/components/schemas/Expense" } }
+              }
+            }
+          },
+          "401": {
+            "description": "Token not provided",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "403": {
+            "description": "Invalid or expired token",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Expenses"],
+        "summary": "Create a new expense",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  { "$ref": "#/components/schemas/FuelExpenseCreate" },
+                  { "$ref": "#/components/schemas/NonFuelExpenseCreate" }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Expense created",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Expense" }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "401": {
+            "description": "Token not provided",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "403": {
+            "description": "Invalid or expired token",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/api/expenses/summary": {
+      "get": {
+        "tags": ["Expenses"],
+        "summary": "Get expense totals by category for a period",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "year", "in": "query", "required": true, "schema": { "type": "integer" }, "example": 2026 },
+          { "name": "month", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 12 }, "example": 4 },
+          { "name": "category", "in": "query", "schema": { "type": "string", "enum": ["Fuel", "Maintenance", "Insurance", "Parking", "Toll", "Tax", "Other"] } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Summary by category",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Summary" }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid query parameters",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "401": {
+            "description": "Token not provided",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "403": {
+            "description": "Invalid or expired token",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    },
+    "/api/expenses/{id}": {
+      "get": {
+        "tags": ["Expenses"],
+        "summary": "Get a single expense by ID",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expense found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Expense" } } }
+          },
+          "401": {
+            "description": "Token not provided",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "403": {
+            "description": "Invalid or expired token",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "404": {
+            "description": "Expense not found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Expenses"],
+        "summary": "Update an expense",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  { "$ref": "#/components/schemas/FuelExpenseUpdate" },
+                  { "$ref": "#/components/schemas/NonFuelExpenseUpdate" }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Expense updated",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Expense" } } }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "401": {
+            "description": "Token not provided",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "403": {
+            "description": "Invalid or expired token",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "404": {
+            "description": "Expense not found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Expenses"],
+        "summary": "Delete an expense",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "responses": {
+          "204": { "description": "Expense deleted" },
+          "401": {
+            "description": "Token not provided",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "403": {
+            "description": "Invalid or expired token",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "404": {
+            "description": "Expense not found",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+          }
+        }
+      }
+    }
+  }
+}
