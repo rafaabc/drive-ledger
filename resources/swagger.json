@@ -281,7 +281,7 @@
         "summary": "Get expense totals by category for a period",
         "security": [{ "bearerAuth": [] }],
         "parameters": [
-          { "name": "year", "in": "query", "required": true, "schema": { "type": "integer" }, "example": 2026 },
+          { "name": "year", "in": "query", "required": true, "description": "Must not be in the future.", "schema": { "type": "integer" }, "example": 2026 },
           { "name": "month", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 12 }, "example": 4 },
           { "name": "category", "in": "query", "schema": { "type": "string", "enum": ["Fuel", "Maintenance", "Insurance", "Parking", "Toll", "Tax", "Other"] } }
         ],

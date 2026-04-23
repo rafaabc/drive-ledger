@@ -100,6 +100,7 @@ function getSummary(userId, query) {
   if (!query.year) throw makeError(400, 'year query parameter is required');
   const year = Number(query.year);
   if (isNaN(year)) throw makeError(400, 'year must be a number');
+  if (year > new Date().getFullYear()) throw makeError(400, 'year cannot be in the future');
 
   const month = query.month ? Number(query.month) : null;
   if (query.month && (isNaN(month) || month < 1 || month > 12))

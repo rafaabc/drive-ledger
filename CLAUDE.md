@@ -63,4 +63,4 @@ Valid categories: `Fuel`, `Maintenance`, `Insurance`, `Parking`, `Toll`, `Tax`, 
 - `date` must not be in the future.
 
 `GET /api/expenses` supports `?category=`, `?year=`, `?month=` filters.  
-`GET /api/expenses/summary` requires `?year=`; optional `?month=` and `?category=`.
+`GET /api/expenses/summary` requires `?year=` (must not be in the future); optional `?month=` and `?category=`.
