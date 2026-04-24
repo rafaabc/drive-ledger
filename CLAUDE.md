@@ -42,6 +42,27 @@ routes → controllers → services → models
 
 Error convention: `makeError(status, message)` in each service creates an `Error` with a `.status` field. Controllers read `err.status || 500`.
 
+## Unit Tests
+
+- Framework: Node.js native Test Runner (`node:test`) + `node:assert`
+- No external test libraries (no Mocha, Jest, Chai, Supertest)
+- Test files live in `test/unit/`, mirroring the source structure
+
+### Test layers covered
+- `services/` — business logic
+- `models/` — data validation and in-memory store
+- `middleware/` — JWT auth logic
+
+### Scripts
+- `npm run test:unit` — run all unit tests
+- `npm run test:unit:coverage` — run tests with c8 code coverage (HTML report in `coverage/`)
+
+### Conventions
+- Pattern: AAA (Arrange, Act, Assert)
+- Test naming: `should <behavior> when <condition>`
+- In-memory store is reset via `_reset()` in `beforeEach` to guarantee test isolation (helper exported from both models)
+- No HTTP/endpoint tests here — those belong to the API test layer
+
 ## API
 
 Swagger UI at `GET /api-docs` (served from `resources/swagger.json`).

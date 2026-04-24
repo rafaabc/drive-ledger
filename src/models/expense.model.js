@@ -22,4 +22,5 @@ module.exports = {
     expenses.splice(index, 1);
     return true;
   },
+  _reset: () => { expenses.length = 0; nextId = 1; },
 };

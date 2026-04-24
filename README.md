@@ -127,6 +127,36 @@ drive-ledger/
 └── CLAUDE.md
 ```
 
+## Testing
+
+### Unit Tests
+
+Unit tests validate isolated functions and business rules in the `services`, `models`, and `middleware` layers using the native Node.js Test Runner — no external libraries required.
+
+### Test Structure
+
+```
+test/
+└── unit/
+    ├── services/   # Business logic tests (auth + expenses)
+    ├── models/     # In-memory store CRUD tests
+    └── middleware/ # JWT auth middleware logic tests
+```
+
+### Running Tests
+
+```bash
+npm run test:unit
+```
+
+### Code Coverage
+
+```bash
+npm run test:unit:coverage
+```
+
+An HTML report will be generated in the `coverage/` directory.
+
 ## Author
 
 [rafaabc](https://github.com/rafaabc)

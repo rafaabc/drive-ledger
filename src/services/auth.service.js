@@ -15,6 +15,7 @@ async function register({ username, password }) {
   if (!USERNAME_REGEX.test(username))
     throw makeError(400, 'username must be 3-50 characters, alphanumeric and underscores only');
   if (password.length < 8) throw makeError(400, 'password must be at least 8 characters');
+  if (password.length > 20) throw makeError(400, 'password must be at most 20 characters');
   if (userModel.findByUsername(username)) throw makeError(409, 'username already taken');
 
   const hash = await bcrypt.hash(password, 10);

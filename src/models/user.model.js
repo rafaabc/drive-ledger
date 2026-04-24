@@ -10,4 +10,5 @@ module.exports = {
     users.push(user);
     return user;
   },
+  _reset: () => { users.length = 0; nextId = 1; },
 };
