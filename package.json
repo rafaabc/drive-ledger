@@ -8,7 +8,10 @@
     "dev": "nodemon src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:unit": "node --test \"test/unit/**/*.test.js\"",
-    "test:unit:coverage": "c8 --reporter=text --reporter=html node --test \"test/unit/**/*.test.js\""
+    "test:unit:coverage": "c8 --reporter=text --reporter=html node --test \"test/unit/**/*.test.js\"",
+    "test:integration": "node --test \"test/integration/**/*.test.js\"",
+    "test:integration:coverage": "c8 --reporter=text --reporter=html node --test \"test/integration/**/*.test.js\"",
+    "test:all": "node --test \"test/unit/**/*.test.js\" \"test/integration/**/*.test.js\""
   },
   "repository": {
     "type": "git",

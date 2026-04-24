@@ -85,3 +85,30 @@ Valid categories: `Fuel`, `Maintenance`, `Insurance`, `Parking`, `Toll`, `Tax`, 
 
 `GET /api/expenses` supports `?category=`, `?year=`, `?month=` filters.  
 `GET /api/expenses/summary` requires `?year=` (must not be in the future); optional `?month=` and `?category=`.
+
+## Integration Tests
+
+- Framework: Node.js native Test Runner (`node:test`) + `node:assert`
+- No mocks, no HTTP calls — real internal collaborators only
+- Test files live in `test/integration/`, organized by flow (not by source layer)
+
+### What integration tests cover
+- Service ↔ model collaboration (real in-memory store)
+- Middleware → service context hand-off (decoded `req.user.id` drives real service calls)
+- Multi-step internal flows: register → login → create expense → summary
+- Cross-layer CRUD state consistency: create → update → delete → verify via read
+
+### What they do NOT cover
+- Isolated function logic — that's unit tests in `test/unit/`
+- HTTP contracts, status codes, response bodies — that's API tests in `test/api/`
+
+### Scripts
+- `npm run test:integration` — run all integration tests
+- `npm run test:integration:coverage` — run with c8 coverage report
+- `npm run test:all` — run unit + integration suites together
+
+### Conventions
+- Pattern: AAA (Arrange, Act, Assert)
+- Files named `<flow>.flow.test.js` under `test/integration/`
+- Both in-memory stores reset via `_reset()` in `beforeEach`
+- No mocking of internal modules — real implementations only

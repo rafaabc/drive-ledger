@@ -157,6 +157,38 @@ npm run test:unit:coverage
 
 An HTML report will be generated in the `coverage/` directory.
 
+### Integration Tests
+
+Integration tests validate how multiple internal layers collaborate — how a service uses the model, how middleware context flows into service logic, and how multi-step operations maintain consistency. They use real implementations with no mocks and no HTTP calls.
+
+#### Test Structure
+
+```
+test/
+└── integration/
+    ├── auth/       # Auth flow: register → login → token validity + no-lockout
+    ├── expenses/   # Expense flow: create → list → update → delete → summary
+    └── middleware/ # Middleware hand-off: token enforcement → req.user → service
+```
+
+#### Running Integration Tests
+
+```bash
+npm run test:integration
+```
+
+#### Code Coverage
+
+```bash
+npm run test:integration:coverage
+```
+
+#### Running All Tests
+
+```bash
+npm run test:all
+```
+
 ## Author
 
 [rafaabc](https://github.com/rafaabc)
