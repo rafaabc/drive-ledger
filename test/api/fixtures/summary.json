@@ -1,0 +1,12 @@
+{
+  "seedExpenses": [
+    { "date": "2025-03-10", "category": "Fuel",        "litres": 40.0, "price_per_litre": 1.85 },
+    { "date": "2025-03-15", "category": "Maintenance", "amount": 150.00 },
+    { "date": "2025-04-05", "category": "Insurance",   "amount": 200.00 }
+  ],
+  "invalidQueryCases": [
+    { "tcId": "TC-04-08", "description": "missing year parameter",   "query": {},                         "expectedStatus": 400, "expectedMessage": "year query parameter is required" },
+    { "tcId": "TC-04-09", "description": "invalid month value (13)", "query": { "year": 2025, "month": 13 }, "expectedStatus": 400, "expectedMessage": "month must be a number between 1 and 12" },
+    { "tcId": "TC-04-10", "description": "future year",              "query": { "year": 9999 },              "expectedStatus": 400, "expectedMessage": "year cannot be in the future" }
+  ]
+}

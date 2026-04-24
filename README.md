@@ -51,6 +51,7 @@ cp .env.example .env
 | `PORT` | Port the server listens on | `3000` |
 | `JWT_SECRET` | Secret key used to sign JWTs | `supersecretkey` |
 | `JWT_EXPIRES_IN` | Token expiry duration | `1h` |
+| `BASE_URL` | Base URL for the API test suite | `http://localhost:3000` |
 
 5. Start the server:
 
@@ -120,9 +121,22 @@ drive-ledger/
 │   │   └── expense.model.js          # In-memory expense store with CRUD helpers
 │   └── middleware/
 │       └── auth.middleware.js        # JWT verification middleware
+├── test/
+│   ├── unit/                         # Native Node.js test runner — isolated function tests
+│   ├── integration/                  # Native Node.js test runner — cross-layer flow tests
+│   └── api/
+│       ├── base/
+│       │   └── api-base.js           # Shared base: request, expect, BASE_URL, authHeader(), createAndLoginUser()
+│       ├── hooks/
+│       │   └── auth.js               # Root before hook — registers and logs in primary user
+│       ├── fixtures/                 # JSON test data (auth, expenses, summary)
+│       ├── auth/                     # US-01 and US-02 API tests
+│       ├── expenses/                 # US-03 API tests
+│       └── summary/                  # US-04 API tests
 ├── resources/
 │   └── swagger.json                  # OpenAPI 3.0 spec for Swagger UI
 ├── .env.example                      # Environment variable template
+├── .mocharc.js                       # Mocha configuration for API tests
 ├── package.json
 └── CLAUDE.md
 ```
@@ -188,6 +202,46 @@ npm run test:integration:coverage
 ```bash
 npm run test:all
 ```
+
+### API Tests
+
+API tests validate HTTP contracts — status codes, response bodies, and header assertions — against a live running server. They use Mocha, Chai, and Supertest, and cover all 53 test conditions from US-01 to US-04.
+
+#### Requirements
+
+The API server must be running before executing the suite:
+
+```bash
+npm run dev
+```
+
+#### Test Structure
+
+```
+test/api/
+├── base/
+│   └── api-base.js   # Shared: request, expect, BASE_URL, CATEGORIES, authHeader(), createAndLoginUser()
+├── hooks/
+│   └── auth.js       # Root before hook — registers and logs in a primary user once for the suite
+├── fixtures/         # JSON test data for data-driven tests
+├── auth/             # US-01 (Registration) + US-02 (Login) tests
+├── expenses/         # US-03 (Expense CRUD) tests
+└── summary/          # US-04 (Summary by period) tests
+```
+
+#### Running API Tests
+
+```bash
+npm run test:api
+```
+
+#### HTML Report
+
+```bash
+npm run test:api:report
+```
+
+Generates an HTML report in the `reports/` directory.
 
 ## Author
 

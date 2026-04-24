@@ -25,6 +25,7 @@ Copy `.env.example` to `.env` and fill in:
 PORT=3000
 JWT_SECRET=your-secret
 JWT_EXPIRES_IN=1h
+BASE_URL=http://localhost:3000
 ```
 
 ## Architecture
@@ -112,3 +113,24 @@ Valid categories: `Fuel`, `Maintenance`, `Insurance`, `Parking`, `Toll`, `Tax`, 
 - Files named `<flow>.flow.test.js` under `test/integration/`
 - Both in-memory stores reset via `_reset()` in `beforeEach`
 - No mocking of internal modules — real implementations only
+
+## API Tests
+
+- Framework: Mocha + Chai + Supertest; HTML reports via Mochawesome
+- **Requires a running server** — start with `npm run dev` before executing the suite
+- Test files live in `test/api/`, organized by feature (auth, expenses, summary)
+
+### Structure
+- `test/api/base/api-base.js` — shared base: exports `request`, `expect`, `BASE_URL`, `CATEGORIES`, `authHeader()`, `createAndLoginUser(prefix)`
+- `test/api/hooks/auth.js` — root `before` hook: registers and logs in a primary user; exports `getToken()`, `getUser()`, `uniqueUsername(prefix)`
+- `test/api/fixtures/` — JSON test data per feature (data-driven testing)
+
+### Scripts
+- `npm run test:api` — run all API tests (spec reporter)
+- `npm run test:api:report` — run tests and generate HTML report in `reports/`
+
+### Conventions
+- Pattern: AAA (Arrange, Act, Assert)
+- Test naming: `[TC-XX-YY] should <behavior> when <condition>`
+- All tests run against a live server; `BASE_URL` read from `.env` (defaults to `http://localhost:3000`)
+- Root hook registers and logs in a primary user once before the suite; tests that need extra users call `createAndLoginUser(prefix)` from the base
