@@ -11,7 +11,9 @@
     "test:unit:coverage": "c8 --reporter=text --reporter=html node --test \"test/unit/**/*.test.js\"",
     "test:integration": "node --test \"test/integration/**/*.test.js\"",
     "test:integration:coverage": "c8 --reporter=text --reporter=html node --test \"test/integration/**/*.test.js\"",
-    "test:all": "node --test \"test/unit/**/*.test.js\" \"test/integration/**/*.test.js\""
+    "test:all": "node --test \"test/unit/**/*.test.js\" \"test/integration/**/*.test.js\"",
+    "test:api": "mocha",
+    "test:api:report": "mocha --reporter mochawesome --reporter-options reportDir=reports,reportFilename=report,overwrite=true"
   },
   "repository": {
     "type": "git",
@@ -34,6 +36,12 @@
   },
   "devDependencies": {
     "c8": "^11.0.0",
-    "nodemon": "^3.1.14"
+    "chai": "^4.5.0",
+    "mocha": "^10.8.2",
+    "mochawesome": "^7.1.3",
+    "mochawesome-merge": "^4.3.0",
+    "mochawesome-report-generator": "^6.2.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^6.3.4"
   }
 }

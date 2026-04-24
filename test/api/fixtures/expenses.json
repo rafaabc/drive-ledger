@@ -1,0 +1,24 @@
+{
+  "validFuel": {
+    "date": "2026-01-15",
+    "category": "Fuel",
+    "litres": 40.0,
+    "price_per_litre": 1.85
+  },
+  "validNonFuel": [
+    { "date": "2026-01-15", "category": "Maintenance", "amount": 150.00 },
+    { "date": "2026-01-15", "category": "Insurance",   "amount": 800.00 },
+    { "date": "2026-01-15", "category": "Parking",     "amount": 5.50  },
+    { "date": "2026-01-15", "category": "Toll",        "amount": 3.20  },
+    { "date": "2026-01-15", "category": "Tax",         "amount": 200.00 },
+    { "date": "2026-01-15", "category": "Other",       "amount": 50.00 }
+  ],
+  "invalidCases": [
+    { "tcId": "TC-03-04", "description": "non-predefined category", "body": { "date": "2026-01-15", "category": "Food", "amount": 20 }, "expectedStatus": 400 },
+    { "tcId": "TC-03-07", "description": "Fuel without price_per_litre", "body": { "date": "2026-01-15", "category": "Fuel", "litres": 40 }, "expectedStatus": 400, "expectedMessage": "price_per_litre is required for Fuel category" },
+    { "tcId": "TC-03-08", "description": "Fuel without litres", "body": { "date": "2026-01-15", "category": "Fuel", "price_per_litre": 1.85 }, "expectedStatus": 400, "expectedMessage": "litres is required for Fuel category" },
+    { "tcId": "TC-03-09", "description": "future date", "body": { "date": "2099-12-31", "category": "Parking", "amount": 5 }, "expectedStatus": 400, "expectedMessage": "date cannot be in the future" },
+    { "tcId": "TC-03-11", "description": "zero amount", "body": { "date": "2026-01-15", "category": "Parking", "amount": 0 }, "expectedStatus": 400, "expectedMessage": "amount must be a positive number" },
+    { "tcId": "TC-03-12", "description": "negative amount", "body": { "date": "2026-01-15", "category": "Parking", "amount": -10 }, "expectedStatus": 400, "expectedMessage": "amount must be a positive number" }
+  ]
+}
