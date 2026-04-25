@@ -1,0 +1,92 @@
+name: QA
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+  integration-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+  api-tests:
+    runs-on: ubuntu-latest
+
+    env:
+      PORT: '3000'
+      BASE_URL: 'http://localhost:3000'
+      JWT_EXPIRES_IN: '1h'
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start API server
+        # The & sends the process to the background so the pipeline continues.
+        # GitHub Actions automatically kills it when the job finishes.
+        run: npm start &
+
+      - name: Wait for server to be ready
+        # /api-docs is the only 2xx route available — there is no /health endpoint.
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/api-docs; then
+              echo "Server ready"
+              exit 0
+            fi
+            echo "Attempt $i/30 — retrying in 2s..."
+            sleep 2
+          done
+          echo "Server did not start in time."
+          exit 1
+
+      - name: Run API tests
+        run: npm run test:api:report
+
+      - name: Upload Mochawesome report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-report
+          path: reports/
+          retention-days: 7
