@@ -1,0 +1,26 @@
+.dl {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: .7rem 1.25rem;
+  margin-bottom: .5rem;
+}
+
+.dl dt {
+  font-size: .69rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-top: .15rem;
+}
+
+.dl dd {
+  font-size: .9rem;
+  color: var(--text);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  color: var(--text-2);
+}

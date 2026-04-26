@@ -1,0 +1,34 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
+}
+
+.filters {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+}
+
+.filterForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: flex-end;
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+  flex: 1;
+  max-width: 200px;
+}
+
+.filterActions {
+  display: flex;
+  gap: .5rem;
+  align-items: flex-end;
+  padding-bottom: 1px;
+}
