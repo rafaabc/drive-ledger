@@ -1,0 +1,44 @@
+.filterForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: flex-end;
+}
+
+.filterField {
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+  max-width: 200px;
+}
+
+.filterActions {
+  display: flex;
+  align-items: flex-end;
+}
+
+.period {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+.totalRow td {
+  border-top: 1px solid var(--border-strong) !important;
+  border-bottom: none !important;
+  background: var(--surface-2) !important;
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: .825rem;
+  font-weight: 600;
+}
+
+.totalRow td:first-child {
+  font-family: var(--font-display);
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
