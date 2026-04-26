@@ -1,8 +1,7 @@
 'use strict';
 
 const jwt = require('jsonwebtoken');
-const { request, expect, BASE_URL } = require('../base/api-base');
-const { getToken, getUser, uniqueUsername } = require('../hooks/auth');
+const { request, expect, BASE_URL, getToken, getUser, uniqueUsername } = require('../base/api-base');
 const fixtures = require('../fixtures/auth.json');
 
 function exactUsername(len) {
