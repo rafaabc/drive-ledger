@@ -243,6 +243,57 @@ npm run test:api:report
 
 Generates an HTML report in the `reports/` directory.
 
+## Frontend
+
+A React single-page application that consumes the Drive Ledger API.
+
+### Stack
+
+| Package | Version | Purpose |
+|---|---|---|
+| react | ^18.3.1 | UI framework |
+| react-dom | ^18.3.1 | DOM renderer |
+| react-router-dom | ^6.26.2 | Client-side routing |
+| vite | ^5.4.8 | Dev server and bundler |
+
+### Setup
+
+> The backend must be running on port 3000 before starting the frontend.
+
+```bash
+# Terminal A — backend
+npm run dev
+
+# Terminal B — frontend
+cd frontend
+npm install
+npm run dev
+```
+
+The UI will be available at **http://localhost:5173**.
+
+Vite proxies all `/api/*` requests to `http://localhost:3000` — no CORS configuration required.
+
+### Environment
+
+Copy `frontend/.env.example` to `frontend/.env` if you need to override the API base URL:
+
+```
+VITE_API_BASE_URL=/api
+```
+
+### Pages
+
+| Route | Description |
+|---|---|
+| `/login` | Sign in with username and password |
+| `/register` | Create a new account |
+| `/expenses` | List all expenses with category/year/month filters; sorted by date descending |
+| `/expenses/new` | Create a new expense |
+| `/expenses/:id` | View a single expense |
+| `/expenses/:id/edit` | Edit an existing expense |
+| `/summary` | View spending totals by category for a given period |
+
 ## Author
 
 [rafaabc](https://github.com/rafaabc)

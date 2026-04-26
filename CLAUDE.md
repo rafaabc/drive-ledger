@@ -134,3 +134,63 @@ Valid categories: `Fuel`, `Maintenance`, `Insurance`, `Parking`, `Toll`, `Tax`, 
 - Test naming: `[TC-XX-YY] should <behavior> when <condition>`
 - All tests run against a live server; `BASE_URL` read from `.env` (defaults to `http://localhost:3000`)
 - Root hook registers and logs in a primary user once before the suite; tests that need extra users call `createAndLoginUser(prefix)` from the base
+
+## Frontend
+
+Location: `frontend/` at the project root.
+
+### Stack
+
+- **React 18** + **Vite 5** — dev server on `:5173`, proxies `/api/*` to backend `:3000` (no CORS package needed)
+- **react-router-dom v6** — client-side routing with `<ProtectedRoute>`
+- **Plain CSS Modules** — scoped per component/page; global base in `src/styles/globals.css`
+
+### Commands
+
+```bash
+cd frontend
+npm install
+npm run dev      # dev server on :5173
+npm run build    # production build to dist/
+npm run preview  # preview production build
+```
+
+### HTTP layer
+
+All HTTP calls go through `src/services/apiService.js` — never call `fetch()` directly in components.
+
+```js
+// Auth
+authApi.register({ username, password })
+authApi.login({ username, password })          // returns { token }
+
+// Expenses
+expensesApi.list({ category, year, month })
+expensesApi.get(id)
+expensesApi.create(data)
+expensesApi.update(id, data)
+expensesApi.remove(id)
+expensesApi.summary({ year, month, category })
+```
+
+To add a new endpoint: export a new function from `apiService.js` that calls the internal `request()` helper. Do not add `fetch()` calls elsewhere.
+
+### Auth
+
+- JWT stored in `localStorage` key `'token'`.
+- `AuthContext` (`src/context/AuthContext.jsx`) exposes `{ token, isAuthed, username, login, logout }`.
+- `username` is decoded from the JWT payload client-side — avoids a separate `/me` endpoint.
+- `ProtectedRoute` (`src/routes/ProtectedRoute.jsx`) redirects to `/login` if `!isAuthed`.
+- 401/403 responses clear the token and dispatch a `window` `'auth:logout'` event; `AuthContext` listens and redirects to `/login` with a "Session expired" banner.
+- Register does not auto-login — on success, navigates to `/login` with `state.justRegistered`.
+
+### Display behavior
+
+- Expenses list (`ExpensesListPage`) sorts by `date` descending (newest first) client-side after each fetch — insertion order from the API is ignored.
+
+### Naming conventions
+
+- Pages: `*Page.jsx` in `src/pages/`
+- Components: PascalCase in `src/components/`
+- Services: `*Api` object exported from `src/services/apiService.js`
+- CSS Modules: `*.module.css` co-located with the component/page
