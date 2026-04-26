@@ -1,7 +1,6 @@
 'use strict';
 
-const { request, expect, BASE_URL, authHeader, createAndLoginUser } = require('../base/api-base');
-const { uniqueUsername } = require('../hooks/auth');
+const { request, expect, BASE_URL, authHeader, createAndLoginUser, uniqueUsername } = require('../base/api-base');
 const fixtures = require('../fixtures/expenses.json');
 
 const today = new Date().toISOString().split('T')[0];
