@@ -135,6 +135,25 @@ Valid categories: `Fuel`, `Maintenance`, `Insurance`, `Parking`, `Toll`, `Tax`, 
 - All tests run against a live server; `BASE_URL` read from `.env` (defaults to `http://localhost:3000`)
 - Root hook registers and logs in a primary user once before the suite; tests that need extra users call `createAndLoginUser(prefix)` from the base
 
+## Frontend Unit Tests
+
+- Framework: Jest + jsdom (`jest-environment-jsdom`), Babel transform for JSX/ESM
+- React testing: `@testing-library/react` + `@testing-library/jest-dom` + `@testing-library/user-event`
+- `import.meta.env` is shimmed to `process.env` via an inline Babel plugin in `babel.config.cjs`
+- CSS Modules stubbed via `identity-obj-proxy`; coverage via `c8`
+- Test files live in `frontend/test/`, mirroring `frontend/src/`
+
+### Scripts (run from `frontend/`)
+- `npm run test:front` — run all unit tests
+- `npm run test:front:watch` — watch mode
+- `npm run test:front:coverage` — c8 coverage (HTML report in `frontend/coverage/`)
+
+### Conventions
+- Pattern: AAA (Arrange, Act, Assert)
+- No real HTTP calls — `global.fetch` is mocked in service tests; `apiService` is mocked at module level in component/page tests
+- `localStorage` cleared in `beforeEach` via `jest.setup.js`
+- Fake timers (`jest.useFakeTimers`) used for date-sensitive tests
+
 ## Frontend
 
 Location: `frontend/` at the project root.

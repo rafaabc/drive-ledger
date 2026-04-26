@@ -294,6 +294,39 @@ VITE_API_BASE_URL=/api
 | `/expenses/:id/edit` | Edit an existing expense |
 | `/summary` | View spending totals by category for a given period |
 
+## Frontend Unit Tests
+
+### Objective
+
+Validate isolated frontend logic — services, utilities, context, components, and pages — without hitting real APIs or starting a server.
+
+### Stack
+
+- **Jest** + **jsdom** — test runner and DOM simulation
+- **@testing-library/react** — component rendering and queries
+- **c8** — code coverage (HTML report)
+
+### Directory Structure
+
+```
+frontend/test/
+├── services/       # apiService fetch/auth/CRUD tests
+├── utils/          # formatDate, decodeJwt, categories
+├── context/        # AuthContext state and event handling
+├── routes/         # ProtectedRoute auth redirect
+├── components/     # AmountField, CategorySelect, DateField, ErrorBanner,
+│                   # ExpenseRow, FuelFields, Loading, Navbar
+└── pages/          # LoginPage, RegisterPage, ExpensesListPage,
+                    # ExpenseDetailPage, ExpenseFormPage, SummaryPage, NotFoundPage
+```
+
+### Running Tests (from `frontend/`)
+
+```bash
+npm run test:front
+npm run test:front:coverage
+```
+
 ## Author
 
 [rafaabc](https://github.com/rafaabc)
