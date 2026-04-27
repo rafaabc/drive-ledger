@@ -93,13 +93,13 @@ export default function ExpenseFormPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Date</label>
-            <DateField value={form.date} onChange={handleChange} />
+            <label htmlFor="field-date">Date</label>
+            <DateField id="field-date" value={form.date} onChange={handleChange} />
           </div>
 
           <div className="form-group">
-            <label>Category</label>
-            <CategorySelect value={form.category} onChange={handleChange} />
+            <label htmlFor="field-category">Category</label>
+            <CategorySelect id="field-category" value={form.category} onChange={handleChange} />
           </div>
 
           {form.category && (

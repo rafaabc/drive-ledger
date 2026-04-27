@@ -15,7 +15,7 @@ test('[TC-03-17] should show error when User B navigates to an expense owned by 
   const userB = await createAndLoginUser(request, 'userb');
 
   await page.addInitScript((t) => localStorage.setItem('token', t), userB.token);
-  await page.goto(`/expenses/${expense.id}`);
+  await page.goto(`/expenses/${expense.id}/edit`);
 
   await expect(page.locator('.alert-error')).toBeVisible();
   await expect(page.locator('.alert-error')).toContainText('Expense not found');

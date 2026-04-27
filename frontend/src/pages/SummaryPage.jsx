@@ -80,13 +80,13 @@ export default function SummaryPage() {
       <div className="card" style={{ marginBottom: '1.5rem' }}>
         <div className={styles.filterForm}>
           <div className={styles.filterField}>
-            <label>Year <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-            <input type="number" name="year" value={filters.year} onChange={handleChange}
+            <label htmlFor="summary-year">Year <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+            <input id="summary-year" type="number" name="year" value={filters.year} onChange={handleChange}
               min="2000" max={currentYear()} />
           </div>
           <div className={styles.filterField}>
-            <label>Category</label>
-            <CategorySelect value={filters.category} onChange={handleChange} includeAll />
+            <label htmlFor="summary-category">Category</label>
+            <CategorySelect id="summary-category" value={filters.category} onChange={handleChange} includeAll />
           </div>
         </div>
       </div>
@@ -101,9 +101,9 @@ export default function SummaryPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Month</th>
-                  {targetCategories.map((cat) => <th key={cat} className="num">{cat}</th>)}
-                  <th className="num">Total</th>
+                  <th scope="col">Month</th>
+                  {targetCategories.map((cat) => <th key={cat} scope="col" className="num">{cat}</th>)}
+                  <th scope="col" className="num">Total</th>
                 </tr>
               </thead>
               <tbody>

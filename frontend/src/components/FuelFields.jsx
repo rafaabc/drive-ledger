@@ -6,8 +6,9 @@ export default function FuelFields({ litres, pricePerLitre, onChange }) {
   return (
     <>
       <div className="form-group">
-        <label>Litres</label>
+        <label htmlFor="field-litres">Litres</label>
         <input
+          id="field-litres"
           type="number"
           name="litres"
           value={litres}
@@ -19,8 +20,9 @@ export default function FuelFields({ litres, pricePerLitre, onChange }) {
         />
       </div>
       <div className="form-group">
-        <label>Price per litre</label>
+        <label htmlFor="field-price-per-litre">Price per litre</label>
         <input
+          id="field-price-per-litre"
           type="number"
           name="price_per_litre"
           value={pricePerLitre}

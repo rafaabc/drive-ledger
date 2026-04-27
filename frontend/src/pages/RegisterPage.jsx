@@ -40,14 +40,14 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Username</label>
-            <input name="username" value={form.username} onChange={handleChange} required autoFocus
+            <label htmlFor="reg-username">Username</label>
+            <input id="reg-username" name="username" value={form.username} onChange={handleChange} required autoFocus
               minLength={3} maxLength={50} pattern="[a-zA-Z0-9_]+"
               title="3–50 characters: letters, numbers, underscore" />
           </div>
           <div className="form-group">
-            <label>Password</label>
-            <input type="password" name="password" value={form.password} onChange={handleChange} required
+            <label htmlFor="reg-password">Password</label>
+            <input id="reg-password" type="password" name="password" value={form.password} onChange={handleChange} required
               minLength={8} maxLength={20} />
           </div>
           <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loading}>

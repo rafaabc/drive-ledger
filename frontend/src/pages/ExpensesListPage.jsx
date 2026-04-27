@@ -68,17 +68,17 @@ export default function ExpensesListPage() {
       <div className={`card ${styles.filters}`}>
         <div className={styles.filterForm}>
           <div className={styles.filterField}>
-            <label>Category</label>
-            <CategorySelect value={filters.category} onChange={handleFilterChange} includeAll />
+            <label htmlFor="filter-category">Category</label>
+            <CategorySelect id="filter-category" value={filters.category} onChange={handleFilterChange} includeAll />
           </div>
           <div className={styles.filterField}>
-            <label>Year</label>
-            <input type="number" name="year" value={filters.year} onChange={handleFilterChange}
+            <label htmlFor="filter-year">Year</label>
+            <input id="filter-year" type="number" name="year" value={filters.year} onChange={handleFilterChange}
               placeholder={String(currentYear())} min="2000" max={currentYear()} />
           </div>
           <div className={styles.filterField}>
-            <label>Month</label>
-            <select name="month" value={filters.month} onChange={handleFilterChange}>
+            <label htmlFor="filter-month">Month</label>
+            <select id="filter-month" name="month" value={filters.month} onChange={handleFilterChange}>
               <option value="">All months</option>
               {MONTHS.slice(1).map((m, i) => (
                 <option key={i + 1} value={i + 1}>{m}</option>
@@ -102,12 +102,12 @@ export default function ExpensesListPage() {
           <table>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Category</th>
-                <th>Amount</th>
-                <th>Litres</th>
-                <th>Price/L</th>
-                <th>Actions</th>
+                <th scope="col">Date</th>
+                <th scope="col">Category</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Litres</th>
+                <th scope="col">Price/L</th>
+                <th scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
