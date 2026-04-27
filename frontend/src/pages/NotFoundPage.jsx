@@ -5,10 +5,10 @@ export default function NotFoundPage() {
   return (
     <div className="page text-center">
       <h2 style={{
-        fontFamily: 'var(--font-display)',
+        fontFamily: 'var(--font-sans)',
         fontSize: '6rem',
-        fontWeight: 800,
-        letterSpacing: '.1em',
+        fontWeight: 700,
+        letterSpacing: '-0.01em',
         color: 'var(--border-strong)',
         marginBottom: '.25rem',
         lineHeight: 1,
