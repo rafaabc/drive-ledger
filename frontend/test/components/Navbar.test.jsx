@@ -13,7 +13,7 @@ jest.mock('react-router-dom', () => ({
 
 function renderNavbar() {
   return render(
-    <MemoryRouter>
+    <MemoryRouter future={{ v7_relativeSplatPath: true }}>
       <Navbar />
     </MemoryRouter>
   );

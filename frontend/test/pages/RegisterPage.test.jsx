@@ -14,7 +14,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 function renderRegisterPage() {
-  return render(<MemoryRouter><RegisterPage /></MemoryRouter>);
+  return render(<MemoryRouter future={{ v7_relativeSplatPath: true }}><RegisterPage /></MemoryRouter>);
 }
 
 describe('RegisterPage', () => {

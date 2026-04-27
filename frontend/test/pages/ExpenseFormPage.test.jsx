@@ -19,7 +19,7 @@ jest.mock('react-router-dom', () => ({
 
 function renderCreatePage() {
   return render(
-    <MemoryRouter initialEntries={['/expenses/new']}>
+    <MemoryRouter future={{ v7_relativeSplatPath: true }} initialEntries={['/expenses/new']}>
       <Routes>
         <Route path="/expenses/new" element={<ExpenseFormPage />} />
       </Routes>
@@ -29,7 +29,7 @@ function renderCreatePage() {
 
 function renderEditPage(id = '42') {
   return render(
-    <MemoryRouter initialEntries={[`/expenses/${id}/edit`]}>
+    <MemoryRouter future={{ v7_relativeSplatPath: true }} initialEntries={[`/expenses/${id}/edit`]}>
       <Routes>
         <Route path="/expenses/:id/edit" element={<ExpenseFormPage />} />
       </Routes>

@@ -27,7 +27,7 @@ const sampleExpense = {
 
 function renderDetailPage(id = '42') {
   return render(
-    <MemoryRouter initialEntries={[`/expenses/${id}`]}>
+    <MemoryRouter future={{ v7_relativeSplatPath: true }} initialEntries={[`/expenses/${id}`]}>
       <Routes>
         <Route path="/expenses/:id" element={<ExpenseDetailPage />} />
         <Route path="/expenses" element={<div>Expenses list</div>} />
