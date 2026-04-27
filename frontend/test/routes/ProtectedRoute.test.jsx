@@ -8,7 +8,7 @@ jest.mock('../../src/context/AuthContext.jsx');
 function renderProtectedRoute(isAuthed) {
   useAuth.mockReturnValue({ isAuthed });
   render(
-    <MemoryRouter initialEntries={['/protected']}>
+    <MemoryRouter future={{ v7_relativeSplatPath: true }} initialEntries={['/protected']}>
       <Routes>
         <Route
           path="/protected"

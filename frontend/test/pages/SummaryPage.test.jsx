@@ -14,7 +14,7 @@ const expenses = [
 ];
 
 function renderPage() {
-  return render(<MemoryRouter><SummaryPage /></MemoryRouter>);
+  return render(<MemoryRouter future={{ v7_relativeSplatPath: true }}><SummaryPage /></MemoryRouter>);
 }
 
 describe('SummaryPage', () => {

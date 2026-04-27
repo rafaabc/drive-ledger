@@ -5,3 +5,5 @@ coverage/
 reports/
 frontend/dist/
 .playwright-mcp/
+frontend/playwright-report/
+frontend/test-results/

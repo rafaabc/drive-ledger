@@ -88,9 +88,7 @@ describe('US-04 - Expenses Summary by Period', () => {
       expect(res.body.categories).to.have.property('Fuel', 74);
     });
 
-    it('[TC-04-06] should correctly filter by each individual category (multi-category pending UI support)', async () => {
-      // The API supports one ?category= value at a time; multi-category selection is pending UI.
-      // Verified here by querying each category separately.
+    it('[TC-04-06] should return correct totals when filtering by a single category', async () => {
       const fuelRes = await request(BASE_URL)
         .get('/api/expenses/summary')
         .set('Authorization', `Bearer ${summaryToken}`)

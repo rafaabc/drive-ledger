@@ -8,7 +8,11 @@
     "preview": "vite preview",
     "test:front": "jest",
     "test:front:watch": "jest --watch",
-    "test:front:coverage": "c8 --reporter=text --reporter=html jest"
+    "test:front:coverage": "c8 --reporter=text --reporter=html jest",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:report": "playwright show-report",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -16,6 +20,7 @@
     "react-router-dom": "^6.26.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.47.0",
     "@babel/core": "^7.25.0",
     "@babel/preset-env": "^7.25.0",
     "@babel/preset-react": "^7.24.0",

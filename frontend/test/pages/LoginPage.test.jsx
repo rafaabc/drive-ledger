@@ -20,7 +20,7 @@ function renderLoginPage({ locationState = null, expiredBanner = false } = {}) {
   const clearExpiredBanner = jest.fn();
   useAuth.mockReturnValue({ login, expiredBanner, clearExpiredBanner });
   const result = render(
-    <MemoryRouter initialEntries={[{ pathname: '/login', state: locationState }]}>
+    <MemoryRouter future={{ v7_relativeSplatPath: true }} initialEntries={[{ pathname: '/login', state: locationState }]}>
       <LoginPage />
     </MemoryRouter>
   );

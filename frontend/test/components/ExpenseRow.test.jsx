@@ -35,7 +35,7 @@ function renderRow(expense, onDeleted = jest.fn()) {
   return {
     onDeleted,
     ...render(
-      <MemoryRouter>
+      <MemoryRouter future={{ v7_relativeSplatPath: true }}>
         <table>
           <tbody>
             <ExpenseRow expense={expense} onDeleted={onDeleted} />

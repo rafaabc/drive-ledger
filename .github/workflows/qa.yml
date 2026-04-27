@@ -110,3 +110,80 @@ jobs:
           name: api-test-report
           path: reports/
           retention-days: 7
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    env:
+      PORT: '3000'
+      JWT_EXPIRES_IN: '1h'
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          # Cache both lockfiles so neither backend nor frontend installs go uncached
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Start backend
+        # & backgrounds the process; GitHub Actions kills it when the job ends
+        run: npm start &
+
+      - name: Wait for backend to be ready
+        # /api-docs is the only guaranteed 2xx route — no /health endpoint exists
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:3000/api-docs; then
+              echo "Backend ready"
+              exit 0
+            fi
+            echo "Attempt $i/30 — retrying in 2s..."
+            sleep 2
+          done
+          echo "Backend did not start in time."
+          exit 1
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install chromium --with-deps
+
+      - name: Start frontend dev server
+        # Vite proxies /api/* → localhost:3000, so no CORS config needed
+        working-directory: frontend
+        run: npm run dev &
+
+      - name: Wait for frontend to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:5173; then
+              echo "Frontend ready"
+              exit 0
+            fi
+            echo "Attempt $i/30 — retrying in 2s..."
+            sleep 2
+          done
+          echo "Frontend did not start in time."
+          exit 1
+
+      - name: Run E2E tests
+        working-directory: frontend
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7

@@ -327,6 +327,83 @@ npm run test:front
 npm run test:front:coverage
 ```
 
+## E2E Tests
+
+End-to-end tests drive a real Chromium browser through the full stack — React frontend (Vite) + Express backend — covering all four user stories (US-01 to US-04).
+
+### Stack
+
+- **Playwright Test** — browser automation and test runner
+- **Page Object Model** — one class per page/feature, no assertions inside POMs
+- **APIRequestContext** — direct API calls for setup (register + seed expenses) without going through the UI
+
+### Requirements
+
+Both servers must be running before executing the suite:
+
+```bash
+# Terminal A — backend (port 3000)
+npm run dev
+
+# Terminal B — frontend (port 5173)
+cd frontend
+npm run dev
+```
+
+### Directory Structure
+
+```
+frontend/e2e/
+├── fixtures/
+│   ├── api.ts          # createAndLoginUser(), createExpenseViaApi() helpers
+│   └── test-data.ts    # CATEGORIES list, date helpers (todayISO, tomorrowISO, currentYear)
+├── pages/
+│   ├── BasePage.ts
+│   ├── LoginPage.ts
+│   ├── RegisterPage.ts
+│   ├── ExpensesListPage.ts
+│   ├── ExpenseFormPage.ts
+│   ├── ExpenseDetailPage.ts
+│   └── SummaryPage.ts
+└── tests/
+    ├── auth/
+    │   ├── register.spec.ts       # US-01: registration happy path + duplicate username error
+    │   ├── login.spec.ts          # US-02: login, wrong credentials, protected routes
+    │   └── logout-session.spec.ts # US-02: logout flow + expired token redirect
+    ├── expenses/
+    │   ├── create-expense.spec.ts     # US-03: Maintenance and Fuel creation, Fuel auto-calc
+    │   ├── view-edit-expense.spec.ts  # US-03: detail view + edit + non-existent ID error
+    │   ├── delete-expense.spec.ts     # US-03: delete with confirm modal
+    │   ├── filter-expenses.spec.ts    # US-03: category/year filters + empty state
+    │   └── cross-user-isolation.spec.ts # US-03: users cannot access each other's expenses
+    └── summary/
+        └── summary.spec.ts        # US-04: totals, monthly rows, category filter, empty states
+```
+
+### Running Tests (from `frontend/`)
+
+```bash
+# Headless (default)
+npm run test:e2e
+
+# Headed — watch the browser
+npm run test:e2e:headed
+
+# Interactive Playwright UI
+npm run test:e2e:ui
+
+# Open the last HTML report
+npm run test:e2e:report
+```
+
+### Design Notes
+
+| Decision | Reason |
+|---|---|
+| `workers: 1`, `fullyParallel: false` | In-memory backend has no isolation between concurrent requests — sequential execution prevents cross-test state corruption |
+| Fresh user per spec file | Each spec calls `createAndLoginUser()` in `beforeAll`; shared user within a file accumulates state, but files never collide |
+| JWT injected via `page.addInitScript()` | Faster than UI login; decouples auth tests from CRUD tests |
+| Vite dev server (not production build) | Dev server's `/api/*` proxy routes requests to the backend — production builds do not include this proxy |
 ## Author
 
 [rafaabc](https://github.com/rafaabc)

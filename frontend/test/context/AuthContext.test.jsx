@@ -30,7 +30,7 @@ function TestConsumer() {
 
 function renderAuth(initialEntries = ['/app']) {
   return render(
-    <MemoryRouter initialEntries={initialEntries}>
+    <MemoryRouter future={{ v7_relativeSplatPath: true }} initialEntries={initialEntries}>
       <AuthProvider>
         <TestConsumer />
         <LocationDisplay />
