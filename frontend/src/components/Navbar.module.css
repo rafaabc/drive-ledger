@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 1.5rem;
-  height: var(--nav-height);
+  height: var(--nav-height, 54px);
   background: rgba(13, 13, 16, 0.88);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
