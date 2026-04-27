@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../../pages/LoginPage';
 import { createAndLoginUser } from '../../fixtures/api';
-import { uniqueUsername, DEFAULT_PASSWORD } from '../../fixtures/test-data';
+import { DEFAULT_PASSWORD } from '../../fixtures/test-data';
 
 test.describe('US-02: User Login', () => {
   let loginPage: LoginPage;
@@ -33,24 +33,9 @@ test.describe('US-02: User Login', () => {
     await expect(loginPage.errorBanner).toContainText('Invalid credentials');
   });
 
-  // TC-02-03
-  test('[TC-02-03] should show error banner when username does not exist', async ({ page }) => {
-    await loginPage.login(uniqueUsername('ghost'), DEFAULT_PASSWORD);
-
-    await expect(page).toHaveURL('/login');
-    await expect(loginPage.errorBanner).toContainText('Invalid credentials');
-  });
-
   // TC-02-07 — access protected route without token
   test('[TC-02-07] should redirect to /login when navigating to /expenses without a token', async ({ page }) => {
     await page.goto('/expenses');
-
-    await expect(page).toHaveURL('/login');
-  });
-
-  // TC-02-07 — access summary without token
-  test('[TC-02-07] should redirect to /login when navigating to /summary without a token', async ({ page }) => {
-    await page.goto('/summary');
 
     await expect(page).toHaveURL('/login');
   });

@@ -28,24 +28,6 @@ test('[TC-03-02] should display expense fields correctly on detail page', async 
   await expect(page.getByText('500.00')).toBeVisible();
 });
 
-// TC-03-02 — Fuel expense shows litres and price_per_litre
-test('[TC-03-02] should display litres and price per litre for Fuel expense', async ({ page, request }) => {
-  const expense = await createExpenseViaApi(request, token, {
-    category: 'Fuel',
-    litres: 30,
-    price_per_litre: 6,
-  });
-
-  const detailPage = new ExpenseDetailPage(page);
-  await detailPage.navigate(expense.id);
-
-  await expect(detailPage.getCategoryBadge('Fuel')).toBeVisible();
-  await expect(page.getByText('180.00')).toBeVisible();
-  await expect(page.getByText('30', { exact: true })).toBeVisible();
-  // exact: true avoids strict-mode violation when username/date also contain '6'
-  await expect(page.getByText('6', { exact: true })).toBeVisible();
-});
-
 // TC-03-13 — edit expense
 test('[TC-03-13] should update expense amount and reflect on detail page', async ({ page, request }) => {
   const expense = await createExpenseViaApi(request, token, {

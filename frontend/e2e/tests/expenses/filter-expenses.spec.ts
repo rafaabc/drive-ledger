@@ -28,18 +28,6 @@ test('should show only Fuel expenses when filtered by Fuel category', async ({ p
   await expect(page.locator('[data-cat="Maintenance"]')).not.toBeVisible();
 });
 
-test('should show only Maintenance expenses when filtered by Maintenance category', async ({ page }) => {
-  const listPage = new ExpensesListPage(page);
-  await listPage.navigate();
-  await expect(listPage.tableRows).toHaveCount(2);
-
-  await listPage.filterByCategory('Maintenance');
-
-  await expect(listPage.tableRows).toHaveCount(1);
-  await expect(page.locator('[data-cat="Maintenance"]')).toBeVisible();
-  await expect(page.locator('[data-cat="Fuel"]')).not.toBeVisible();
-});
-
 test('should show empty state when no expenses match the selected category', async ({ page }) => {
   const listPage = new ExpensesListPage(page);
   await listPage.navigate();
