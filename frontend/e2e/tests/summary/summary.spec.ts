@@ -77,14 +77,6 @@ test('[TC-04-05] should show only the filtered category column', async ({ page, 
   await expect(page.getByRole('columnheader', { name: 'Maintenance' })).not.toBeVisible();
 });
 
-// TC-04-06 — multi-category filter (pending UI)
-test.skip('[TC-04-06] multi-category filter is not implemented in the UI (single <select> only — pending UI implementation)', async () => {
-  // The SummaryPage CategorySelect renders a single <select name="category">.
-  // TC-04-06 ("Summary filtered by multiple categories") is explicitly marked
-  // "E2E (future — pending UI implementation)" in the project wiki.
-  // Enable this test once a multi-select widget is added to SummaryPage.
-});
-
 // TC-04-08/10 — future year: client-side guard keeps expenses empty, shows empty state
 test('[TC-04-08/10] should show empty state message when year is in the future', async ({
   page,

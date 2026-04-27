@@ -404,14 +404,6 @@ npm run test:e2e:report
 | Fresh user per spec file | Each spec calls `createAndLoginUser()` in `beforeAll`; shared user within a file accumulates state, but files never collide |
 | JWT injected via `page.addInitScript()` | Faster than UI login; decouples auth tests from CRUD tests |
 | Vite dev server (not production build) | Dev server's `/api/*` proxy routes requests to the backend — production builds do not include this proxy |
-| TC-04-06 skipped | SummaryPage uses a single `<select>` for category; multi-category filter is not implemented in the UI (wiki marks this "E2E — pending UI implementation") |
-
-### Skipped Scenarios
-
-| TC | Reason |
-|---|---|
-| TC-04-06 | Multi-category summary filter not implemented in the UI — single `<select>` only. Enable once a multi-select widget is added. |
-
 ## Author
 
 [rafaabc](https://github.com/rafaabc)
