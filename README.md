@@ -367,14 +367,14 @@ frontend/e2e/
 │   └── SummaryPage.ts
 └── tests/
     ├── auth/
-    │   ├── register.spec.ts       # US-01: registration happy path + validation
+    │   ├── register.spec.ts       # US-01: registration happy path + duplicate username error
     │   ├── login.spec.ts          # US-02: login, wrong credentials, protected routes
     │   └── logout-session.spec.ts # US-02: logout flow + expired token redirect
     ├── expenses/
-    │   ├── create-expense.spec.ts     # US-03: create (all categories, Fuel auto-calc, validation)
+    │   ├── create-expense.spec.ts     # US-03: Maintenance and Fuel creation, Fuel auto-calc
     │   ├── view-edit-expense.spec.ts  # US-03: detail view + edit + non-existent ID error
     │   ├── delete-expense.spec.ts     # US-03: delete with confirm modal
-    │   ├── filter-expenses.spec.ts    # US-03: category/year/month filters + empty state
+    │   ├── filter-expenses.spec.ts    # US-03: category/year filters + empty state
     │   └── cross-user-isolation.spec.ts # US-03: users cannot access each other's expenses
     └── summary/
         └── summary.spec.ts        # US-04: totals, monthly rows, category filter, empty states
