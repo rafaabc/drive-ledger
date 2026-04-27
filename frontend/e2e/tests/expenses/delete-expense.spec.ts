@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { ExpensesListPage } from '../../pages/ExpensesListPage';
-import { ExpenseDetailPage } from '../../pages/ExpenseDetailPage';
 import { createAndLoginUser, createExpenseViaApi } from '../../fixtures/api';
 
 let token: string;
@@ -26,17 +25,6 @@ test('[TC-03-15] should remove expense from list after deletion', async ({ page,
 
   await expect(listPage.tableRows).toHaveCount(0);
   await expect(listPage.emptyState).toBeVisible();
-});
-
-// TC-03-15 — delete from detail page
-test('[TC-03-15] should redirect to /expenses after deleting from detail page', async ({ page, request }) => {
-  const expense = await createExpenseViaApi(request, token, { category: 'Parking', amount: 20 });
-
-  const detailPage = new ExpenseDetailPage(page);
-  await detailPage.navigate(expense.id);
-  await detailPage.clickDelete();
-
-  await expect(page).toHaveURL('/expenses');
 });
 
 // TC-03-05 — duplicate expenses are independent

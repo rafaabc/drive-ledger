@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { ExpenseDetailPage } from '../../pages/ExpenseDetailPage';
 import { ExpenseFormPage } from '../../pages/ExpenseFormPage';
 import { createAndLoginUser, createExpenseViaApi } from '../../fixtures/api';
 
@@ -14,32 +13,27 @@ test.beforeEach(async ({ page }) => {
 });
 
 // TC-03-02
-test('[TC-03-02] should display expense fields correctly on detail page', async ({ page, request }) => {
+test('[TC-03-02] should display expense fields correctly on edit form', async ({ page, request }) => {
   const expense = await createExpenseViaApi(request, token, {
     category: 'Insurance',
     amount: 500,
   });
 
-  const detailPage = new ExpenseDetailPage(page);
-  await detailPage.navigate(expense.id);
+  await page.goto(`/expenses/${expense.id}/edit`);
 
-  await expect(detailPage.title).toBeVisible();
-  await expect(detailPage.getCategoryBadge('Insurance')).toBeVisible();
-  await expect(page.getByText('500.00')).toBeVisible();
+  const formPage = new ExpenseFormPage(page);
+  await expect(formPage.amountInput).toHaveValue('500');
+  await expect(page.locator('select[name="category"]')).toHaveValue('Insurance');
 });
 
 // TC-03-13 — edit expense
-test('[TC-03-13] should update expense amount and reflect on detail page', async ({ page, request }) => {
+test('[TC-03-13] should update expense amount and redirect to expenses list', async ({ page, request }) => {
   const expense = await createExpenseViaApi(request, token, {
     category: 'Toll',
     amount: 10,
   });
 
-  const detailPage = new ExpenseDetailPage(page);
-  await detailPage.navigate(expense.id);
-  await detailPage.clickEdit();
-
-  await expect(page).toHaveURL(`/expenses/${expense.id}/edit`);
+  await page.goto(`/expenses/${expense.id}/edit`);
 
   const formPage = new ExpenseFormPage(page);
   await formPage.fillAmount('25');
@@ -50,9 +44,9 @@ test('[TC-03-13] should update expense amount and reflect on detail page', async
 
 // TC-03-14 — editing non-existent expense
 test('[TC-03-14] should show error banner when navigating to a non-existent expense', async ({ page }) => {
-  const detailPage = new ExpenseDetailPage(page);
-  await detailPage.navigate(999999);
+  await page.goto('/expenses/999999/edit');
 
-  await expect(detailPage.errorBanner).toBeVisible();
-  await expect(detailPage.errorBanner).toContainText('Expense not found');
+  const formPage = new ExpenseFormPage(page);
+  await expect(formPage.errorBanner).toBeVisible();
+  await expect(formPage.errorBanner).toContainText('Expense not found');
 });

@@ -21,6 +21,12 @@ export default function LoginPage() {
     return () => clearTimeout(t);
   }, [showRegistered]);
 
+  useEffect(() => {
+    if (!expiredBanner) return;
+    const t = setTimeout(clearExpiredBanner, 3000);
+    return () => clearTimeout(t);
+  }, [expiredBanner, clearExpiredBanner]);
+
   function handleChange(e) {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   }
@@ -55,12 +61,12 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Username</label>
-            <input name="username" value={form.username} onChange={handleChange} required autoFocus />
+            <label htmlFor="login-username">Username</label>
+            <input id="login-username" name="username" value={form.username} onChange={handleChange} required autoFocus />
           </div>
           <div className="form-group">
-            <label>Password</label>
-            <input type="password" name="password" value={form.password} onChange={handleChange} required />
+            <label htmlFor="login-password">Password</label>
+            <input id="login-password" type="password" name="password" value={form.password} onChange={handleChange} required />
           </div>
           <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loading}>
             {loading ? 'Signing in…' : 'Sign in'}
