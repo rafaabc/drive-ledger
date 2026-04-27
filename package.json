@@ -11,7 +11,7 @@
     "test:unit:coverage": "c8 --reporter=text --reporter=html node --test \"test/unit/**/*.test.js\"",
     "test:integration": "node --test \"test/integration/**/*.test.js\"",
     "test:integration:coverage": "c8 --reporter=text --reporter=html node --test \"test/integration/**/*.test.js\"",
-    "test:all": "node --test \"test/unit/**/*.test.js\" \"test/integration/**/*.test.js\"",
+    "test:backend": "node --test \"test/unit/**/*.test.js\" \"test/integration/**/*.test.js\"",
     "test:api": "mocha",
     "test:api:report": "mocha --reporter mochawesome --reporter-options reportDir=reports,reportFilename=report,overwrite=true"
   },
@@ -21,7 +21,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/rafaabc/drive-ledger/issues"
