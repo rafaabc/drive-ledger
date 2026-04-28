@@ -11,6 +11,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showRegistered, setShowRegistered] = useState(!!location.state?.justRegistered);
+  const [showLoggedOut, setShowLoggedOut] = useState(!!location.state?.justLoggedOut);
 
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
@@ -21,6 +22,12 @@ export default function LoginPage() {
     const t = setTimeout(() => setShowRegistered(false), 3000);
     return () => clearTimeout(t);
   }, [showRegistered]);
+
+  useEffect(() => {
+    if (!showLoggedOut) return;
+    const t = setTimeout(() => setShowLoggedOut(false), 3000);
+    return () => clearTimeout(t);
+  }, [showLoggedOut]);
 
   useEffect(() => {
     if (!expiredBanner) return;
@@ -40,7 +47,7 @@ export default function LoginPage() {
     try {
       const { token } = await authApi.login(form);
       login(token);
-      navigate('/');
+      navigate('/', { state: { justLoggedIn: true } });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -65,6 +72,7 @@ export default function LoginPage() {
           <h1 className={styles.formHeading}>Sign in</h1>
 
           {expiredBanner && <ErrorBanner message="Your session expired. Please log in again." type="info" />}
+          {showLoggedOut && <ErrorBanner message="Logged out successfully." type="success" />}
           {showRegistered && <ErrorBanner message="Account created — please log in." type="success" />}
           {error && <ErrorBanner message={error} />}
 

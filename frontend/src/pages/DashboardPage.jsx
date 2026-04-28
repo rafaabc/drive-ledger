@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { expensesApi } from '../services/apiService.js';
 import KpiCard from '../components/KpiCard.jsx';
 import MonthlyTrendChart from '../components/charts/MonthlyTrendChart.jsx';
@@ -18,9 +18,17 @@ import {
 import styles from './DashboardPage.module.css';
 
 export default function DashboardPage() {
+  const location = useLocation();
+  const [showWelcome, setShowWelcome] = useState(!!location.state?.justLoggedIn);
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!showWelcome) return;
+    const t = setTimeout(() => setShowWelcome(false), 3000);
+    return () => clearTimeout(t);
+  }, [showWelcome]);
 
   const currentYear = useMemo(() => new Date().getFullYear(), []);
 
@@ -91,6 +99,8 @@ export default function DashboardPage() {
   return (
     <div className={styles.page}>
       <h1 className={styles.pageTitle}>Dashboard</h1>
+
+      {showWelcome && <ErrorBanner message="Logged in successfully. Welcome back!" type="success" />}
 
       {/* KPI row */}
       <div className={styles.kpiRow}>
