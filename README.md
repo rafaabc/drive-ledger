@@ -1,6 +1,12 @@
+[![unit/integration/api/e2e-tests](https://github.com/rafaabc/drive-ledger/actions/workflows/qa.yml/badge.svg)](https://github.com/rafaabc/drive-ledger/actions/workflows/qa.yml)
+
 # Drive Ledger
 
 > Full-stack vehicle expense manager — Node.js/Express REST API with a React SPA, JWT authentication, and spending summaries by period.
+
+> https://github.com/user-attachments/assets/aa83e4c7-adfd-422d-8088-3656878346d4
+
+ 
 
 ## Description
 
