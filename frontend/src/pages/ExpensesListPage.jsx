@@ -147,7 +147,6 @@ export default function ExpensesListPage() {
               <tr>
                 <th scope="col">Date</th>
                 <th scope="col">Category</th>
-                <th scope="col">Description</th>
                 <th scope="col" className="num">Amount</th>
                 <th scope="col"><span className="sr-only">Actions</span></th>
               </tr>

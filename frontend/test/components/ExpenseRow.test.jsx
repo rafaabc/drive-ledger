@@ -61,23 +61,6 @@ describe('ExpenseRow', () => {
     expect(screen.getByText('220.00')).toBeInTheDocument();
   });
 
-  test('should render a dash placeholder when description is absent', () => {
-    // Arrange + Act
-    renderRow(nonFuelExpense);
-    // Assert — nonFuelExpense has no description, so the placeholder dash appears
-    expect(screen.getByText('—')).toBeInTheDocument();
-  });
-
-  test('should render description text when present', () => {
-    // Arrange
-    const expenseWithDesc = { ...fuelExpense, description: 'Full tank' };
-    // Act
-    renderRow(expenseWithDesc);
-    // Assert
-    expect(screen.getByText('Full tank')).toBeInTheDocument();
-    expect(screen.queryByText('—')).not.toBeInTheDocument();
-  });
-
   test('should call expensesApi.remove and onDeleted when delete is confirmed', async () => {
     // Arrange
     const onDeleted = jest.fn();
