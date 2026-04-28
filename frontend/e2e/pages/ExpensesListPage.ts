@@ -19,8 +19,7 @@ export class ExpensesListPage extends BasePage {
   }
 
   async filterByYear(year: string) {
-    await this.page.locator('input[name="year"]').fill(year);
-    await this.page.locator('input[name="year"]').press('Tab');
+    await this.page.locator('select[name="year"]').selectOption(year);
   }
 
   async filterByMonth(monthValue: string) {
@@ -32,7 +31,7 @@ export class ExpensesListPage extends BasePage {
   }
 
   get emptyState(): Locator {
-    return this.page.getByText('No expenses found.');
+    return this.page.getByText(/no expenses/i);
   }
 
   get tableRows(): Locator {
@@ -41,11 +40,11 @@ export class ExpensesListPage extends BasePage {
 
   async deleteFirstRow() {
     this.page.once('dialog', (dialog) => dialog.accept());
-    await this.page.locator('tbody tr').first().getByRole('button', { name: 'Delete' }).click();
+    await this.page.locator('tbody tr').first().getByRole('button', { name: /delete/i }).click();
   }
 
   async clickEditInFirstRow() {
-    await this.page.locator('tbody tr').first().getByRole('button', { name: 'Edit' }).click();
+    await this.page.locator('tbody tr').first().getByRole('button', { name: /edit/i }).click();
   }
 
   waitForTableLoad() {

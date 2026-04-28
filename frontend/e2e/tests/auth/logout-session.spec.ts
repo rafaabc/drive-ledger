@@ -24,11 +24,9 @@ test.describe('Logout and Session Expiry', () => {
     await page.goto('/expenses');
     await expect(page).toHaveURL('/expenses');
 
-    await page.getByRole('button', { name: 'Logout' }).click();
+    await page.getByRole('button', { name: 'Log out' }).click();
 
     await expect(page).toHaveURL('/login');
-    // Scope to nav to avoid matching the "No account? Register" link in the page body
-    await expect(page.getByRole('navigation').getByRole('link', { name: 'Login' })).toBeVisible();
-    await expect(page.getByRole('navigation').getByRole('link', { name: 'Register' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /sign in/i })).toBeVisible();
   });
 });
