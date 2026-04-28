@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { expensesApi } from '../services/apiService.js';
 import KpiCard from '../components/KpiCard.jsx';
@@ -12,32 +12,17 @@ import {
   computeMtd,
   computeYtd,
   computeFuelShare,
+  computeAvgMonthly,
+  computePrevMonthTotal,
 } from '../utils/aggregations.js';
 import styles from './DashboardPage.module.css';
-
-function computeAvgMonthly(monthlyData) {
-  if (!monthlyData.length) return 0;
-  const total = monthlyData.reduce((sum, d) => sum + d.total, 0);
-  return Math.round((total / monthlyData.length) * 100) / 100;
-}
-
-function computePrevMonthTotal(expenses) {
-  const now = new Date();
-  const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const prevYM = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
-  const total = expenses.reduce(
-    (sum, e) => (e.date.startsWith(prevYM) ? sum + e.amount : sum),
-    0,
-  );
-  return Math.round(total * 100) / 100;
-}
 
 export default function DashboardPage() {
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,7 +69,7 @@ export default function DashboardPage() {
   const mtd = computeMtd(curYearExpenses);
   const prevMonthTotal = computePrevMonthTotal(expenses); // uses all (incl prev year if Jan)
   const mtdDelta = prevMonthTotal > 0
-    ? Math.round(((prevMonthTotal - mtd) / prevMonthTotal) * 1000) / 10
+    ? Math.round(((mtd - prevMonthTotal) / prevMonthTotal) * 1000) / 10
     : null;
 
   const ytd = computeYtd(curYearExpenses);
@@ -114,6 +99,7 @@ export default function DashboardPage() {
           value={`€${mtd.toFixed(2)}`}
           delta={mtdDelta}
           sparkData={last6Months}
+          invertColors
         />
         <KpiCard
           label="This Year"
@@ -137,11 +123,11 @@ export default function DashboardPage() {
 
       {/* Charts row */}
       <div className={styles.chartsRow}>
-        <div className={`${styles.chartCard} ${styles.trendCard}`}>
+        <div className={styles.chartCard}>
           <h2 className={styles.sectionTitle}>Monthly Spend {currentYear}</h2>
           <MonthlyTrendChart data={monthlyData} />
         </div>
-        <div className={`${styles.chartCard} ${styles.donutCard}`}>
+        <div className={styles.chartCard}>
           <h2 className={styles.sectionTitle}>By Category</h2>
           <CategoryDonut data={categoryData} />
         </div>
@@ -172,16 +158,16 @@ export default function DashboardPage() {
               <tbody>
                 {recentExpenses.map((exp) => (
                   <tr key={exp.id}>
-                    <td style={{ whiteSpace: 'nowrap', color: 'var(--text-2)', fontSize: '0.8125rem' }}>
+                    <td className={styles.dateCell}>
                       {exp.date}
                     </td>
                     <td>
                       <span className="badge" data-cat={exp.category}>{exp.category}</span>
                     </td>
-                    <td style={{ color: 'var(--text-2)', fontSize: '0.8125rem', maxWidth: 260 }}>
-                      {exp.description || <span style={{ color: 'var(--muted)' }}>—</span>}
+                    <td className={styles.descCell}>
+                      {exp.description || <span className={styles.muted}>—</span>}
                     </td>
-                    <td className="num">€{exp.amount.toFixed(2)}</td>
+                    <td className={`num ${styles.amountCell}`}>€{exp.amount.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>

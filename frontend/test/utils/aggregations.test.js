@@ -4,6 +4,8 @@ import {
   computeMtd,
   computeYtd,
   computeFuelShare,
+  computeAvgMonthly,
+  computePrevMonthTotal,
   monthLabel,
 } from '../../src/utils/aggregations.js';
 
@@ -242,6 +244,94 @@ describe('computeFuelShare', () => {
     ];
     // 1/3 * 100 = 33.333... → 33.3
     expect(computeFuelShare(expenses)).toBe(33.3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeAvgMonthly
+// ---------------------------------------------------------------------------
+
+describe('computeAvgMonthly', () => {
+  test('should return 0 when monthlyData is empty', () => {
+    expect(computeAvgMonthly([])).toBe(0);
+  });
+
+  test('should return the total when there is a single month entry', () => {
+    const monthlyData = [{ month: '2025-03', total: 150.00 }];
+    expect(computeAvgMonthly(monthlyData)).toBe(150.00);
+  });
+
+  test('should return the average across multiple months', () => {
+    const monthlyData = [
+      { month: '2025-01', total: 100.00 },
+      { month: '2025-02', total: 200.00 },
+      { month: '2025-03', total: 300.00 },
+    ];
+    // (100 + 200 + 300) / 3 = 200
+    expect(computeAvgMonthly(monthlyData)).toBe(200.00);
+  });
+
+  test('should round result to 2 decimal places', () => {
+    const monthlyData = [
+      { month: '2025-01', total: 100.00 },
+      { month: '2025-02', total: 200.00 },
+    ];
+    // (100 + 200) / 2 = 150 — clean result; use uneven division for rounding check
+    const monthlyDataUneven = [
+      { month: '2025-01', total: 10.00 },
+      { month: '2025-02', total: 20.00 },
+      { month: '2025-03', total: 30.01 },
+    ];
+    // (60.01) / 3 = 20.003333... → 20.00
+    expect(computeAvgMonthly(monthlyDataUneven)).toBe(20.00);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computePrevMonthTotal
+// ---------------------------------------------------------------------------
+
+describe('computePrevMonthTotal', () => {
+  test('should return 0 when expenses is empty', () => {
+    const now = new Date('2025-04-15T12:00:00');
+    expect(computePrevMonthTotal([], now)).toBe(0);
+  });
+
+  test('should sum only expenses from the previous calendar month', () => {
+    const now = new Date('2025-04-15T12:00:00');
+    const expenses = [
+      { id: '1', category: 'Fuel', amount: 50.00, date: '2025-03-10' },
+      { id: '2', category: 'Fuel', amount: 30.00, date: '2025-03-25' },
+      { id: '3', category: 'Fuel', amount: 45.00, date: '2025-04-05' }, // current month — excluded
+    ];
+    expect(computePrevMonthTotal(expenses, now)).toBe(80.00);
+  });
+
+  test('should return 0 when all expenses are in the current month only', () => {
+    const now = new Date('2025-04-15T12:00:00');
+    const expenses = [
+      { id: '1', category: 'Fuel', amount: 60.00, date: '2025-04-10' },
+    ];
+    expect(computePrevMonthTotal(expenses, now)).toBe(0);
+  });
+
+  test('should handle January→December rollback correctly', () => {
+    // now = January 2026, so prev month = December 2025
+    const now = new Date('2026-01-10T12:00:00');
+    const expenses = [
+      { id: '1', category: 'Fuel', amount: 75.00, date: '2025-12-20' },
+      { id: '2', category: 'Fuel', amount: 25.00, date: '2026-01-05' }, // current month — excluded
+    ];
+    expect(computePrevMonthTotal(expenses, now)).toBe(75.00);
+  });
+
+  test('should round result to 2 decimal places', () => {
+    const now = new Date('2025-04-15T12:00:00');
+    const expenses = [
+      { id: '1', category: 'Fuel', amount: 10.005, date: '2025-03-10' },
+      { id: '2', category: 'Fuel', amount: 10.005, date: '2025-03-20' },
+    ];
+    expect(computePrevMonthTotal(expenses, now)).toBe(20.01);
   });
 });
 

@@ -94,6 +94,33 @@ export function computeFuelShare(expenses) {
 }
 
 /**
+ * Returns the average monthly spend across all entries in monthlyData.
+ * monthlyData is an array of { month, total } objects (output of aggregateByMonth).
+ * Returns 0 if the array is empty. Result rounded to 2 decimals.
+ */
+export function computeAvgMonthly(monthlyData) {
+  if (!monthlyData.length) return 0;
+  const total = monthlyData.reduce((sum, d) => sum + d.total, 0);
+  return Math.round((total / monthlyData.length) * 100) / 100;
+}
+
+/**
+ * Returns the total spend for the previous calendar month.
+ * Uses local calendar time to match computeMtd/computeYtd behaviour.
+ * now defaults to new Date() but is injectable for testing.
+ * Returns 0 if no expenses match. Result rounded to 2 decimals.
+ */
+export function computePrevMonthTotal(expenses, now = new Date()) {
+  const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevYM = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+  const total = expenses.reduce(
+    (sum, e) => (e.date.startsWith(prevYM) ? sum + e.amount : sum),
+    0,
+  );
+  return Math.round(total * 100) / 100;
+}
+
+/**
  * Converts "YYYY-MM" to a short human-readable label, e.g. "2025-03" → "Mar 2025".
  * Uses Intl.DateTimeFormat with UTC to avoid local-timezone month shifts.
  */
