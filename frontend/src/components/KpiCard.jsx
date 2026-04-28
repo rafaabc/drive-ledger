@@ -11,7 +11,7 @@ export default function KpiCard({ label, value, delta, sparkData }) {
         <span className={styles.label}>{label}</span>
         {hasDelta && (
           <span className={delta > 0 ? styles.deltaPos : styles.deltaNeg}>
-            {delta > 0 ? '▲' : '▼'} {Math.abs(delta)}%
+            {delta > 0 ? '▲' : '▼'} {Math.abs(delta).toFixed(1)}%
           </span>
         )}
       </div>

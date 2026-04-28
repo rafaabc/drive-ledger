@@ -1,8 +1,10 @@
+// SVG presentation attributes (fill, stroke) do not resolve CSS custom properties,
+// so recharts axis/grid styles use raw hex values mirroring the globals.css tokens.
 export const CATEGORY_COLORS = {
   Fuel:        '#fbbf24',   // --warning / amber
   Maintenance: '#60a5fa',   // --info / blue
   Insurance:   '#a78bfa',   // violet
-  Parking:     '#4ade80',   // --success / green
+  Parking:     '#34d399',   // --cat-parking / emerald
   Toll:        '#fb923c',   // orange
   Tax:         '#f87171',   // --danger / red
   Other:       '#94a3b8',   // slate

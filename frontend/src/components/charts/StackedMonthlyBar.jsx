@@ -11,7 +11,9 @@ import {
 import { CATEGORY_COLORS, AXIS_STYLE, GRID_STYLE, TOOLTIP_STYLE } from './chartTheme.js';
 import { monthLabel } from '../../utils/aggregations.js';
 
-export default function StackedMonthlyBar({ data, categories }) {
+export default function StackedMonthlyBar({ data = [], categories = [] }) {
+  if (!data.length) return <div style={{ color: 'var(--muted)', textAlign: 'center', padding: '2rem' }}>No data</div>;
+
   const formatted = data.map((d) => ({ ...d, label: monthLabel(d.month) }));
 
   return (
