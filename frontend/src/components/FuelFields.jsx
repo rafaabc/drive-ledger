@@ -39,7 +39,7 @@ export default function FuelFields({ litres, pricePerLitre, onChange }) {
           <div style={{
             padding: '.5rem .8rem',
             background: 'var(--primary-dim)',
-            border: '1px solid rgba(245,158,11,.22)',
+            border: '1px solid var(--primary-glow)',
             borderRadius: 'var(--radius-sm)',
             fontFamily: 'var(--font-mono)',
             fontSize: '.9rem',

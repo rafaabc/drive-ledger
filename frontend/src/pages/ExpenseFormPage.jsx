@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Check, X } from 'lucide-react';
 import { expensesApi } from '../services/apiService.js';
 import CategorySelect from '../components/CategorySelect.jsx';
 import DateField from '../components/DateField.jsx';
@@ -8,6 +9,7 @@ import AmountField from '../components/AmountField.jsx';
 import ErrorBanner from '../components/ErrorBanner.jsx';
 import Loading from '../components/Loading.jsx';
 import { todayISO } from '../utils/formatDate.js';
+import styles from './ExpenseFormPage.module.css';
 
 const EMPTY = { date: todayISO(), category: '', litres: '', price_per_litre: '', amount: '' };
 
@@ -86,8 +88,8 @@ export default function ExpenseFormPage() {
 
   return (
     <div className="page">
-      <div className="card" style={{ maxWidth: 520, margin: '0 auto' }}>
-        <h2 className="page-title" style={{ marginBottom: '1.25rem' }}>{isEdit ? 'Edit expense' : 'New expense'}</h2>
+      <div className={`card ${styles.formCard}`}>
+        <h2 className={`page-title ${styles.heading}`}>{isEdit ? 'Edit expense' : 'New expense'}</h2>
 
         {error && <ErrorBanner message={error} />}
 
@@ -114,11 +116,15 @@ export default function ExpenseFormPage() {
             )
           )}
 
-          <div className="actions mt-2">
+          <div className={`actions ${styles.submitRow}`}>
             <button type="submit" className="btn-primary" disabled={saving || !form.category}>
+              <Check size={15} aria-hidden="true" />
               {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Create expense'}
             </button>
-            <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>Cancel</button>
+            <button type="button" className="btn-secondary" onClick={() => navigate(-1)}>
+              <X size={15} aria-hidden="true" />
+              Cancel
+            </button>
           </div>
         </form>
       </div>
