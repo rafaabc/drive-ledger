@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Gauge } from 'lucide-react';
 import { authApi } from '../services/apiService.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import ErrorBanner from '../components/ErrorBanner.jsx';
-import styles from './AuthPage.module.css';
+import styles from './LoginPage.module.css';
 
 export default function LoginPage() {
   const { login, expiredBanner, clearExpiredBanner } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showRegistered, setShowRegistered] = useState(!!location.state?.justRegistered);
+  const [showLoggedOut, setShowLoggedOut] = useState(!!location.state?.justLoggedOut);
 
   const [form, setForm] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
@@ -20,6 +22,12 @@ export default function LoginPage() {
     const t = setTimeout(() => setShowRegistered(false), 3000);
     return () => clearTimeout(t);
   }, [showRegistered]);
+
+  useEffect(() => {
+    if (!showLoggedOut) return;
+    const t = setTimeout(() => setShowLoggedOut(false), 3000);
+    return () => clearTimeout(t);
+  }, [showLoggedOut]);
 
   useEffect(() => {
     if (!expiredBanner) return;
@@ -39,7 +47,7 @@ export default function LoginPage() {
     try {
       const { token } = await authApi.login(form);
       login(token);
-      navigate('/expenses');
+      navigate('/', { state: { justLoggedIn: true } });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -48,34 +56,45 @@ export default function LoginPage() {
   }
 
   return (
-    <div className={styles.wrapper}>
-      <div className={`card ${styles.card}`}>
-        <div className={styles.logoWrap}>
-          <h1 className={styles.title}>DRIVE<span className={styles.titleAccent}>LEDGER</span></h1>
+    <div className={styles.screen}>
+      {/* Brand panel */}
+      <aside className={styles.brand}>
+        <div className={styles.brandContent}>
+          <Gauge size={64} strokeWidth={1.5} className={styles.brandIcon} />
+          <span className={styles.wordmark}>DRIVELEDGER</span>
+          <p className={styles.tagline}>Track every kilometer.</p>
         </div>
-        <p className={styles.subtitle}>Sign in to your account</p>
+      </aside>
 
-        {expiredBanner && <ErrorBanner message="Your session expired. Please log in again." type="info" />}
-        {showRegistered && <ErrorBanner message="Account created — please log in." type="success" />}
-        {error && <ErrorBanner message={error} />}
+      {/* Form panel */}
+      <main className={styles.formPanel}>
+        <div className={styles.formCard}>
+          <h1 className={styles.formHeading}>Sign in</h1>
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="login-username">Username</label>
-            <input id="login-username" name="username" value={form.username} onChange={handleChange} required autoFocus />
-          </div>
-          <div className="form-group">
-            <label htmlFor="login-password">Password</label>
-            <input id="login-password" type="password" name="password" value={form.password} onChange={handleChange} required />
-          </div>
-          <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
-        <p className={`text-center mt-1 ${styles.switchLink}`}>
-          No account? <Link to="/register">Register</Link>
-        </p>
-      </div>
+          {expiredBanner && <ErrorBanner message="Your session expired. Please log in again." type="info" />}
+          {showLoggedOut && <ErrorBanner message="Logged out successfully." type="success" />}
+          {showRegistered && <ErrorBanner message="Account created — please log in." type="success" />}
+          {error && <ErrorBanner message={error} />}
+
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="login-username">Username</label>
+              <input id="login-username" name="username" value={form.username} onChange={handleChange} required autoFocus />
+            </div>
+            <div className="form-group">
+              <label htmlFor="login-password">Password</label>
+              <input id="login-password" type="password" name="password" value={form.password} onChange={handleChange} required />
+            </div>
+            <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loading}>
+              {loading ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+
+          <p className={styles.switchLink}>
+            Don&apos;t have an account? <Link to="/register">Register</Link>
+          </p>
+        </div>
+      </main>
     </div>
   );
 }

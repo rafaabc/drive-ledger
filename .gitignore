@@ -7,3 +7,4 @@ frontend/dist/
 .playwright-mcp/
 frontend/playwright-report/
 frontend/test-results/
+.worktrees/

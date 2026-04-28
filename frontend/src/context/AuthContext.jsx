@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     setToken(null);
-    navigate('/login');
+    navigate('/login', { state: { justLoggedOut: true } });
   }, [navigate]);
 
   useEffect(() => {

@@ -1,3 +1,14 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+}
+
+.filterCard {
+  margin-bottom: var(--space-6);
+}
+
 .filterForm {
   display: flex;
   flex-wrap: wrap;
@@ -12,17 +23,61 @@
   max-width: 200px;
 }
 
-.filterActions {
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+@media (max-width: 800px) {
+  .chartsGrid { grid-template-columns: 1fr; }
+}
+
+.sectionTitle {
+  font-family: var(--font-sans);
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: var(--space-4);
+}
+
+.pivotSection {
+  padding: var(--space-5);
+}
+
+.pivotSummary {
+  cursor: pointer;
+  list-style: none;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  gap: var(--space-3);
+  user-select: none;
+}
+
+.pivotSummary::marker,
+.pivotSummary::-webkit-details-marker {
+  display: none;
+}
+
+.pivotSummary::before {
+  content: '▸';
+  font-size: .8rem;
+  color: var(--muted);
+  transition: transform .15s;
+}
+
+details[open] .pivotSummary::before {
+  transform: rotate(90deg);
 }
 
 .period {
-  font-family: var(--font-display);
-  font-size: 1.4rem;
-  font-weight: 800;
-  letter-spacing: .08em;
-  margin-bottom: 1rem;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--primary);
 }
 
@@ -37,8 +92,8 @@
 }
 
 .totalRow td:first-child {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-size: .95rem;
   font-weight: 700;
-  letter-spacing: .04em;
+  letter-spacing: -0.01em;
 }

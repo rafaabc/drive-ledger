@@ -1,0 +1,28 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.icon {
+  color: var(--border-strong);
+}
+
+.code {
+  font-family: var(--font-sans);
+  font-size: 6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--border-strong);
+  line-height: 1;
+}
+
+.message {
+  color: var(--muted);
+  font-size: .875rem;
+  letter-spacing: .05em;
+}

@@ -32,7 +32,7 @@ describe('LoginPage', () => {
     jest.clearAllMocks();
   });
 
-  test('should call authApi.login, store token, and navigate to /expenses on success', async () => {
+  test('should call authApi.login, store token, and navigate to / on success', async () => {
     // Arrange
     authApi.login.mockResolvedValue({ token: 'a.b.c' });
     const { login, container } = renderLoginPage();
@@ -44,7 +44,7 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(authApi.login).toHaveBeenCalledWith({ username: 'alice', password: 'secret123' });
       expect(login).toHaveBeenCalledWith('a.b.c');
-      expect(mockNavigate).toHaveBeenCalledWith('/expenses');
+      expect(mockNavigate).toHaveBeenCalledWith('/', { state: { justLoggedIn: true } });
     });
   });
 
