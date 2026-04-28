@@ -96,20 +96,20 @@ export default function DashboardPage() {
       <div className={styles.kpiRow}>
         <KpiCard
           label="This Month"
-          value={`€${mtd.toFixed(2)}`}
+          value={mtd.toFixed(2)}
           delta={mtdDelta}
           sparkData={last6Months}
           invertColors
         />
         <KpiCard
           label="This Year"
-          value={`€${ytd.toFixed(2)}`}
+          value={ytd.toFixed(2)}
           delta={null}
           sparkData={monthlyData}
         />
         <KpiCard
           label="Monthly Avg"
-          value={`€${avgMonthly.toFixed(2)}`}
+          value={avgMonthly.toFixed(2)}
           delta={null}
           sparkData={monthlyData}
         />
@@ -167,7 +167,7 @@ export default function DashboardPage() {
                     <td className={styles.descCell}>
                       {exp.description || <span className={styles.muted}>—</span>}
                     </td>
-                    <td className={`num ${styles.amountCell}`}>€{exp.amount.toFixed(2)}</td>
+                    <td className={`num ${styles.amountCell}`}>{exp.amount.toFixed(2)}</td>
                   </tr>
                 ))}
               </tbody>
