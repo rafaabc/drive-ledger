@@ -40,7 +40,7 @@ export default function LoginPage() {
     try {
       const { token } = await authApi.login(form);
       login(token);
-      navigate('/expenses');
+      navigate('/');
     } catch (err) {
       setError(err.message);
     } finally {
