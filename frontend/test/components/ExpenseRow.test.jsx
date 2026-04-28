@@ -31,14 +31,15 @@ const nonFuelExpense = {
   price_per_litre: null,
 };
 
-function renderRow(expense, onDeleted = jest.fn()) {
+function renderRow(expense, onDeleted = jest.fn(), onError = jest.fn()) {
   return {
     onDeleted,
+    onError,
     ...render(
       <MemoryRouter future={{ v7_relativeSplatPath: true }}>
         <table>
           <tbody>
-            <ExpenseRow expense={expense} onDeleted={onDeleted} />
+            <ExpenseRow expense={expense} onDeleted={onDeleted} onError={onError} />
           </tbody>
         </table>
       </MemoryRouter>
@@ -52,22 +53,29 @@ describe('ExpenseRow', () => {
     expensesApi.remove.mockResolvedValue(null);
   });
 
-  test('should render category, amount, litres, and price_per_litre for a fuel expense', () => {
+  test('should render category and amount for a fuel expense', () => {
     // Arrange + Act
     renderRow(fuelExpense);
     // Assert
     expect(screen.getByText('Fuel')).toBeInTheDocument();
     expect(screen.getByText('220.00')).toBeInTheDocument();
-    expect(screen.getByText('40')).toBeInTheDocument();
-    expect(screen.getByText('5.50')).toBeInTheDocument();
   });
 
-  test('should render dashes for litres and price_per_litre when they are null', () => {
+  test('should render a dash placeholder when description is absent', () => {
     // Arrange + Act
     renderRow(nonFuelExpense);
+    // Assert — nonFuelExpense has no description, so the placeholder dash appears
+    expect(screen.getByText('—')).toBeInTheDocument();
+  });
+
+  test('should render description text when present', () => {
+    // Arrange
+    const expenseWithDesc = { ...fuelExpense, description: 'Full tank' };
+    // Act
+    renderRow(expenseWithDesc);
     // Assert
-    const dashes = screen.getAllByText('—');
-    expect(dashes).toHaveLength(2);
+    expect(screen.getByText('Full tank')).toBeInTheDocument();
+    expect(screen.queryByText('—')).not.toBeInTheDocument();
   });
 
   test('should call expensesApi.remove and onDeleted when delete is confirmed', async () => {

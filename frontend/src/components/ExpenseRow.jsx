@@ -4,25 +4,29 @@ import { expensesApi } from '../services/apiService.js';
 import { formatDate } from '../utils/formatDate.js';
 import styles from './ExpenseRow.module.css';
 
-export default function ExpenseRow({ expense, onDeleted }) {
+export default function ExpenseRow({ expense, onDeleted, onError }) {
   const navigate = useNavigate();
 
   async function handleDelete() {
     if (!window.confirm(`Delete this ${expense.category} expense?`)) return;
-    await expensesApi.remove(expense.id);
-    onDeleted(expense.id);
+    try {
+      await expensesApi.remove(expense.id);
+      onDeleted(expense.id);
+    } catch (err) {
+      onError?.(err.message);
+    }
   }
+
+  const dateLabel = formatDate(expense.date);
 
   return (
     <tr>
-      <td style={{ fontFamily: 'var(--font-mono)', fontSize: '.8rem', color: 'var(--text-2)' }}>
-        {formatDate(expense.date)}
-      </td>
+      <td className={styles.dateCell}>{dateLabel}</td>
       <td>
         <span className="badge" data-cat={expense.category}>{expense.category}</span>
       </td>
-      <td style={{ color: 'var(--text-2)', fontSize: '.875rem' }}>
-        {expense.description || <span style={{ color: 'var(--muted)' }}>—</span>}
+      <td className={styles.descCell}>
+        {expense.description || <span className={styles.descPlaceholder}>—</span>}
       </td>
       <td className="num">{expense.amount?.toFixed(2)}</td>
       <td>
@@ -30,16 +34,16 @@ export default function ExpenseRow({ expense, onDeleted }) {
           <button
             className={styles.iconBtn}
             onClick={() => navigate(`/expenses/${expense.id}/edit`)}
-            title="Edit"
-            aria-label="Edit expense"
+            title={`Edit ${expense.category} expense`}
+            aria-label={`Edit ${expense.category} expense from ${dateLabel}`}
           >
             <Pencil size={15} />
           </button>
           <button
             className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
             onClick={handleDelete}
-            title="Delete"
-            aria-label="Delete expense"
+            title={`Delete ${expense.category} expense`}
+            aria-label={`Delete ${expense.category} expense from ${dateLabel}`}
           >
             <Trash2 size={15} />
           </button>

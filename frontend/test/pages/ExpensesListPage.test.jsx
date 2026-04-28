@@ -66,13 +66,13 @@ describe('ExpensesListPage', () => {
     expect(badges[2]).toHaveAttribute('data-cat', 'Parking');
   });
 
-  test('should show "No expenses found." when API returns empty array', async () => {
+  test('should show "No expenses yet" when API returns empty array with no filters active', async () => {
     // Arrange
     expensesApi.list.mockResolvedValue([]);
     // Act
     renderPage();
     // Assert
-    await screen.findByText('No expenses found.');
+    await screen.findByText('No expenses yet');
   });
 
   test('should show error banner when API rejects', async () => {
@@ -84,17 +84,19 @@ describe('ExpensesListPage', () => {
     await screen.findByText('Network error');
   });
 
-  test('should not re-fetch when year filter is set to an invalid value', async () => {
+  test('should re-fetch when year filter changes to a prior year', async () => {
     // Arrange
     expensesApi.list.mockResolvedValue([]);
     const { container } = renderPage();
     await waitFor(() => expect(expensesApi.list).toHaveBeenCalledTimes(1));
-    // Act — set an invalid year (only 2 digits)
+    // Act — change year select to previous year
     await act(async () => {
-      fireEvent.change(container.querySelector('input[name="year"]'), { target: { value: '19' } });
+      fireEvent.change(container.querySelector('select[name="year"]'), { target: { value: '2025' } });
     });
-    // Assert — still only one call
-    expect(expensesApi.list).toHaveBeenCalledTimes(1);
+    // Assert
+    await waitFor(() => {
+      expect(expensesApi.list).toHaveBeenCalledWith(expect.objectContaining({ year: '2025' }));
+    });
   });
 
   test('should re-fetch with updated filters when a valid filter changes', async () => {
@@ -134,7 +136,7 @@ describe('ExpensesListPage', () => {
     // Arrange
     expensesApi.list.mockResolvedValue([]);
     renderPage();
-    await screen.findByText('No expenses found.');
+    await screen.findByText('No expenses yet');
     // Act
     fireEvent.click(screen.getByRole('button', { name: /new expense/i }));
     // Assert

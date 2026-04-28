@@ -16,13 +16,9 @@ const MONTHS = [
 
 const DEFAULT_YEAR = String(currentYear());
 
-function isValidYear(y) {
-  return y === '' || (y.length === 4 && Number(y) >= 2000 && Number(y) <= currentYear());
-}
-
 function buildYearOptions() {
   const cy = currentYear();
-  return [cy + 2, cy + 1, cy, cy - 1, cy - 2].filter((y) => y >= 2000);
+  return [cy, cy - 1, cy - 2, cy - 3, cy - 4].filter((y) => y >= 2000);
 }
 
 export default function ExpensesListPage() {
@@ -39,7 +35,6 @@ export default function ExpensesListPage() {
   const [error, setError] = useState('');
 
   const fetchExpenses = useCallback(async (f) => {
-    if (!isValidYear(f.year)) return;
     setLoading(true);
     setError('');
     try {
@@ -154,12 +149,12 @@ export default function ExpensesListPage() {
                 <th scope="col">Category</th>
                 <th scope="col">Description</th>
                 <th scope="col" className="num">Amount</th>
-                <th scope="col"></th>
+                <th scope="col"><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody>
               {expenses.map((exp) => (
-                <ExpenseRow key={exp.id} expense={exp} onDeleted={handleDeleted} />
+                <ExpenseRow key={exp.id} expense={exp} onDeleted={handleDeleted} onError={setError} />
               ))}
             </tbody>
           </table>
