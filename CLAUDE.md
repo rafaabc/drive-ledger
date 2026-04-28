@@ -213,3 +213,12 @@ To add a new endpoint: export a new function from `apiService.js` that calls the
 - Components: PascalCase in `src/components/`
 - Services: `*Api` object exported from `src/services/apiService.js`
 - CSS Modules: `*.module.css` co-located with the component/page
+
+## Visual Identity
+
+- Primary accent: `#2DD4BF` (teal) — mapped to `--primary` in `globals.css`
+- Background: `#07101a` (`--bg`) / `#0f1b27` (`--surface`)
+- Wordmark: "DRIVE" in `var(--text)`, "LEDGER" in `var(--primary)`; rendered via JSX in `Sidebar.jsx`, `LoginPage.jsx`, `RegisterPage.jsx`
+- Icon: `lucide-react` `<Gauge>` component used as the logo mark throughout the app
+- Tagline: "Track every kilometer."
+- Favicon: `frontend/public/favicon.svg` — custom speedometer SVG, served at `/favicon.svg`
