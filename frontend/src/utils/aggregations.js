@@ -47,16 +47,12 @@ export function aggregateByCategory(expenses) {
  * Returns 0 if no expenses match. Result rounded to 2 decimals.
  */
 export function computeMtd(expenses, now = new Date()) {
-  const year = now.getUTCFullYear();
-  const month = now.getUTCMonth(); // 0-based
+  const nowYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-  const total = expenses.reduce((sum, expense) => {
-    const d = new Date(expense.date);
-    if (d.getUTCFullYear() === year && d.getUTCMonth() === month) {
-      return sum + expense.amount;
-    }
-    return sum;
-  }, 0);
+  const total = expenses.reduce(
+    (sum, expense) => (expense.date.startsWith(nowYM) ? sum + expense.amount : sum),
+    0,
+  );
 
   return Math.round(total * 100) / 100;
 }
@@ -67,15 +63,12 @@ export function computeMtd(expenses, now = new Date()) {
  * Returns 0 if no expenses match. Result rounded to 2 decimals.
  */
 export function computeYtd(expenses, now = new Date()) {
-  const year = now.getUTCFullYear();
+  const nowYear = String(now.getFullYear());
 
-  const total = expenses.reduce((sum, expense) => {
-    const d = new Date(expense.date);
-    if (d.getUTCFullYear() === year) {
-      return sum + expense.amount;
-    }
-    return sum;
-  }, 0);
+  const total = expenses.reduce(
+    (sum, expense) => (expense.date.startsWith(nowYear) ? sum + expense.amount : sum),
+    0,
+  );
 
   return Math.round(total * 100) / 100;
 }
