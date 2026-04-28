@@ -44,7 +44,7 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(authApi.login).toHaveBeenCalledWith({ username: 'alice', password: 'secret123' });
       expect(login).toHaveBeenCalledWith('a.b.c');
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      expect(mockNavigate).toHaveBeenCalledWith('/', { state: { justLoggedIn: true } });
     });
   });
 

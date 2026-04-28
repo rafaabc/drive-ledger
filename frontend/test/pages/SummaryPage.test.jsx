@@ -58,8 +58,8 @@ describe('SummaryPage', () => {
     expensesApi.list.mockResolvedValue(expenses);
     // Act
     renderPage();
-    // Assert — Fuel column total is 150.00 (100 + 50)
-    await screen.findByText('150.00');
+    // Assert — Fuel column total is 150.00 (100 + 50); also appears in donut legend
+    expect((await screen.findAllByText('150.00')).length).toBeGreaterThanOrEqual(1);
     // Parking column total is 10.00 (appears in row and footer)
     expect(screen.getAllByText('10.00').length).toBeGreaterThanOrEqual(1);
     // January row total is 110.00 (100 + 10)
@@ -85,7 +85,7 @@ describe('SummaryPage', () => {
     // Arrange
     expensesApi.list.mockResolvedValue(expenses);
     const { container } = renderPage();
-    await screen.findByText('150.00');
+    expect((await screen.findAllByText('150.00')).length).toBeGreaterThanOrEqual(1);
     // Act — filter by Fuel only
     expensesApi.list.mockResolvedValue(
       expenses.filter((e) => e.category === 'Fuel')
