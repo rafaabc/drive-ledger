@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { Filter, FileX2 } from 'lucide-react';
 import { expensesApi } from '../services/apiService.js';
 import ExpenseRow from '../components/ExpenseRow.jsx';
-import CategorySelect from '../components/CategorySelect.jsx';
 import ErrorBanner from '../components/ErrorBanner.jsx';
 import Loading from '../components/Loading.jsx';
+import { CATEGORIES } from '../utils/categories.js';
 import { currentYear } from '../utils/formatDate.js';
 import styles from './ExpensesListPage.module.css';
 
@@ -13,8 +14,15 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
+const DEFAULT_YEAR = String(currentYear());
+
 function isValidYear(y) {
   return y === '' || (y.length === 4 && Number(y) >= 2000 && Number(y) <= currentYear());
+}
+
+function buildYearOptions() {
+  const cy = currentYear();
+  return [cy + 2, cy + 1, cy, cy - 1, cy - 2].filter((y) => y >= 2000);
 }
 
 export default function ExpensesListPage() {
@@ -22,7 +30,7 @@ export default function ExpensesListPage() {
 
   const [filters, setFilters] = useState({
     category: '',
-    year: String(currentYear()),
+    year: DEFAULT_YEAR,
     month: '',
   });
 
@@ -51,44 +59,76 @@ export default function ExpensesListPage() {
   }
 
   function clearFilters() {
-    setFilters({ category: '', year: String(currentYear()), month: '' });
+    setFilters({ category: '', year: DEFAULT_YEAR, month: '' });
   }
 
   function handleDeleted(id) {
     setExpenses((prev) => prev.filter((e) => e.id !== id));
   }
 
+  const hasActiveFilters =
+    filters.category !== '' ||
+    filters.year !== DEFAULT_YEAR ||
+    filters.month !== '';
+
   return (
     <div className="page">
+      {/* Header */}
       <div className={styles.header}>
         <h2 className="page-title">Expenses</h2>
-        <button className="btn-primary" onClick={() => navigate('/expenses/new')}>+ New expense</button>
+        <button className="btn-primary" onClick={() => navigate('/expenses/new')}>
+          + New expense
+        </button>
       </div>
 
-      <div className={`card ${styles.filters}`}>
-        <div className={styles.filterForm}>
-          <div className={styles.filterField}>
-            <label htmlFor="filter-category">Category</label>
-            <CategorySelect id="filter-category" value={filters.category} onChange={handleFilterChange} includeAll />
-          </div>
-          <div className={styles.filterField}>
-            <label htmlFor="filter-year">Year</label>
-            <input id="filter-year" type="number" name="year" value={filters.year} onChange={handleFilterChange}
-              placeholder={String(currentYear())} min="2000" max={currentYear()} />
-          </div>
-          <div className={styles.filterField}>
-            <label htmlFor="filter-month">Month</label>
-            <select id="filter-month" name="month" value={filters.month} onChange={handleFilterChange}>
-              <option value="">All months</option>
-              {MONTHS.slice(1).map((m, i) => (
-                <option key={i + 1} value={i + 1}>{m}</option>
-              ))}
-            </select>
-          </div>
-          <div className={styles.filterActions}>
-            <button type="button" className="btn-secondary" onClick={clearFilters}>Clear</button>
-          </div>
-        </div>
+      {/* Filter toolbar */}
+      <div className={styles.toolbar}>
+        <Filter size={16} className={styles.toolbarIcon} aria-hidden="true" />
+
+        <select
+          name="category"
+          value={filters.category}
+          onChange={handleFilterChange}
+          className={styles.toolbarSelect}
+          aria-label="Filter by category"
+        >
+          <option value="">Category</option>
+          {CATEGORIES.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+
+        <select
+          name="year"
+          value={filters.year}
+          onChange={handleFilterChange}
+          className={styles.toolbarSelect}
+          aria-label="Filter by year"
+        >
+          <option value="">Year</option>
+          {buildYearOptions().map((y) => (
+            <option key={y} value={String(y)}>{y}</option>
+          ))}
+        </select>
+
+        <select
+          name="month"
+          value={filters.month}
+          onChange={handleFilterChange}
+          className={styles.toolbarSelect}
+          aria-label="Filter by month"
+        >
+          <option value="">Month</option>
+          {MONTHS.slice(1).map((m, i) => (
+            <option key={i + 1} value={i + 1}>{m}</option>
+          ))}
+        </select>
+
+        {hasActiveFilters && (
+          <button type="button" className={styles.clearBtn} onClick={clearFilters}>
+            Clear filters
+          </button>
+        )}
       </div>
 
       {error && <ErrorBanner message={error} />}
@@ -96,7 +136,15 @@ export default function ExpensesListPage() {
       {loading ? (
         <Loading />
       ) : expenses.length === 0 ? (
-        <p className="text-muted text-center mt-2">No expenses found.</p>
+        <div className={styles.emptyState}>
+          <FileX2 size={48} className={styles.emptyIcon} aria-hidden="true" />
+          <p className={styles.emptyText}>
+            {hasActiveFilters ? 'No expenses match your filters' : 'No expenses yet'}
+          </p>
+          <Link to="/expenses/new" className="btn-primary" style={{ textDecoration: 'none', display: 'inline-block' }}>
+            + New expense
+          </Link>
+        </div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <table>
@@ -104,10 +152,9 @@ export default function ExpensesListPage() {
               <tr>
                 <th scope="col">Date</th>
                 <th scope="col">Category</th>
-                <th scope="col">Amount</th>
-                <th scope="col">Litres</th>
-                <th scope="col">Price/L</th>
-                <th scope="col">Actions</th>
+                <th scope="col">Description</th>
+                <th scope="col" className="num">Amount</th>
+                <th scope="col"></th>
               </tr>
             </thead>
             <tbody>
