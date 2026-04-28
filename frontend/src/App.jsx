@@ -1,5 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import { Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext.jsx';
 import ProtectedRoute from './routes/ProtectedRoute.jsx';
 import AppShell from './components/AppShell.jsx';
 import LoginPage from './pages/LoginPage.jsx';
@@ -9,11 +9,6 @@ import ExpensesListPage from './pages/ExpensesListPage.jsx';
 import ExpenseFormPage from './pages/ExpenseFormPage.jsx';
 import SummaryPage from './pages/SummaryPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
-
-function GuestRedirect() {
-  const { isAuthed } = useAuth();
-  return isAuthed ? null : <Navigate to="/login" replace />;
-}
 
 export default function App() {
   return (

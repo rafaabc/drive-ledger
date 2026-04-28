@@ -38,7 +38,7 @@ export default function Sidebar() {
       </nav>
 
       <div className={styles.footer}>
-        <span className={styles.username}>{username}</span>
+        <span className={styles.username}>{username ?? '—'}</span>
         <button
           className={styles.logoutBtn}
           onClick={logout}
