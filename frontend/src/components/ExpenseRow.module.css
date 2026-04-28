@@ -5,15 +5,6 @@
   color: var(--text-2);
 }
 
-.descCell {
-  color: var(--text-2);
-  font-size: .875rem;
-}
-
-.descPlaceholder {
-  color: var(--muted);
-}
-
 /* ── Icon action buttons ──────────────────────── */
 .iconBtn {
   display: inline-flex;

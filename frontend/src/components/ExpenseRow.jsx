@@ -25,9 +25,6 @@ export default function ExpenseRow({ expense, onDeleted, onError }) {
       <td>
         <span className="badge" data-cat={expense.category}>{expense.category}</span>
       </td>
-      <td className={styles.descCell}>
-        {expense.description || <span className={styles.descPlaceholder}>—</span>}
-      </td>
       <td className="num">{expense.amount?.toFixed(2)}</td>
       <td>
         <div className="actions">
