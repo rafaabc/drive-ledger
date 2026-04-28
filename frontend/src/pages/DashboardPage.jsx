@@ -156,26 +156,20 @@ export default function DashboardPage() {
           </p>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table>
+            <table className={styles.recentTable}>
               <thead>
                 <tr>
-                  <th scope="col">Date</th>
-                  <th scope="col">Category</th>
-                  <th scope="col">Description</th>
-                  <th scope="col" className="num">Amount</th>
+                  <th scope="col" className={styles.thDate}>Date</th>
+                  <th scope="col" className={styles.thCategory}>Category</th>
+                  <th scope="col" className={`num ${styles.thAmount}`}>Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {recentExpenses.map((exp) => (
                   <tr key={exp.id}>
-                    <td className={styles.dateCell}>
-                      {exp.date}
-                    </td>
+                    <td className={styles.dateCell}>{exp.date}</td>
                     <td>
                       <span className="badge" data-cat={exp.category}>{exp.category}</span>
-                    </td>
-                    <td className={styles.descCell}>
-                      {exp.description || <span className={styles.muted}>—</span>}
                     </td>
                     <td className={`num ${styles.amountCell}`}>{exp.amount.toFixed(2)}</td>
                   </tr>

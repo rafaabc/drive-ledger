@@ -142,13 +142,13 @@ export default function ExpensesListPage() {
         </div>
       ) : (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <table>
+          <table className={styles.expenseTable}>
             <thead>
               <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Category</th>
-                <th scope="col" className="num">Amount</th>
-                <th scope="col"><span className="sr-only">Actions</span></th>
+                <th scope="col" className={styles.thDate}>Date</th>
+                <th scope="col" className={styles.thCategory}>Category</th>
+                <th scope="col" className={`num ${styles.thAmount}`}>Amount</th>
+                <th scope="col" className={styles.thActions}><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody>

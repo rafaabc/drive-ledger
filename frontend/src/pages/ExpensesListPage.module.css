@@ -54,6 +54,19 @@
   background: transparent;
 }
 
+/* ── Expense table ───────────────────────────── */
+.expenseTable {
+  table-layout: fixed;
+}
+.expenseTable th,
+.expenseTable td {
+  padding: .5rem .75rem;
+}
+.thDate     { width: 130px; }
+.thCategory { width: 150px; }
+.thAmount   { width: 120px; }
+.thActions  { width: 80px; }
+
 /* ── Empty state ─────────────────────────────── */
 .emptyState {
   display: flex;

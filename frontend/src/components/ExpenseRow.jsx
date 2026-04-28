@@ -25,7 +25,7 @@ export default function ExpenseRow({ expense, onDeleted, onError }) {
       <td>
         <span className="badge" data-cat={expense.category}>{expense.category}</span>
       </td>
-      <td className="num">{expense.amount?.toFixed(2)}</td>
+      <td className={`num ${styles.amountCell}`}>{expense.amount?.toFixed(2)}</td>
       <td>
         <div className="actions">
           <button
