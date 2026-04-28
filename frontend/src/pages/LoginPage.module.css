@@ -1,0 +1,102 @@
+/* ── Split-screen shell ─────────────────────────────────── */
+.screen {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Brand panel (left ~45%) ────────────────────────────── */
+.brand {
+  position: relative;
+  flex: 0 0 45%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: linear-gradient(160deg, var(--bg) 0%, var(--surface-2) 100%);
+  overflow: hidden;
+}
+
+/* Teal radial halo behind the brand content */
+.brand::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(45, 212, 191, 0.14) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.brandContent {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1;
+}
+
+.brandIcon {
+  color: var(--primary);
+}
+
+.wordmark {
+  font-family: var(--font-sans);
+  font-size: 2.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  line-height: 1;
+}
+
+.tagline {
+  font-size: 1rem;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+
+/* ── Form panel (right ~55%) ────────────────────────────── */
+.formPanel {
+  flex: 0 0 55%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  padding: 2rem 1.5rem;
+}
+
+.formCard {
+  width: 100%;
+  max-width: 420px;
+}
+
+.formHeading {
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 1.75rem;
+}
+
+.switchLink {
+  font-size: 0.875rem;
+  margin-top: 1rem;
+  text-align: center;
+  color: var(--text-2);
+}
+
+/* ── Responsive: stack vertically on narrow viewports ────── */
+@media (max-width: 680px) {
+  .screen {
+    flex-direction: column;
+  }
+
+  .brand {
+    flex: none;
+    padding: 2.5rem 1rem;
+  }
+
+  .formPanel {
+    flex: 1;
+    padding: 2rem 1rem;
+  }
+}
