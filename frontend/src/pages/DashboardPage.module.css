@@ -109,19 +109,23 @@
   text-decoration: underline;
 }
 
+/* Recent expenses table */
+.recentTable {
+  table-layout: fixed;
+}
+.recentTable th,
+.recentTable td {
+  padding: .5rem .75rem;
+}
+.thDate     { width: 130px; }
+.thCategory { width: 150px; }
+.thAmount   { width: 120px; }
+
 /* Recent expenses table cells */
 .dateCell {
   white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 0.8125rem;
-  color: var(--text-2);
-}
-
-.descCell {
-  max-width: 220px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   color: var(--text-2);
 }
 
@@ -131,6 +135,3 @@
   white-space: nowrap;
 }
 
-.muted {
-  color: var(--muted);
-}
