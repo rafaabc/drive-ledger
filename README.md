@@ -1,4 +1,4 @@
-[![unit/integration/api/e2e-tests](https://github.com/rafaabc/drive-ledger/actions/workflows/qa.yml/badge.svg)](https://github.com/rafaabc/drive-ledger/actions/workflows/qa.yml)
+[![Full Test Suite](https://github.com/rafaabc/drive-ledger/actions/workflows/ci-cd-pipeline.yml/badge.svg)](https://github.com/rafaabc/drive-ledger/actions/workflows/ci-cd-pipeline.yml)
 
 # Drive Ledger
 
