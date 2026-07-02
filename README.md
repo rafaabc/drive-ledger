@@ -98,4 +98,4 @@ lint → audit → test-unit → test-integration → test-api → e2e
 
 ## License
 
-MIT
+Proprietary. All rights reserved — see [LICENSE](LICENSE).
