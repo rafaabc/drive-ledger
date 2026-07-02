@@ -17,8 +17,16 @@ import styles from './SettingsPage.module.css';
 export default function SettingsPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { username, currency, updateCurrency, language, updateLanguage, emailVerified, logout } =
-    useAuth();
+  const {
+    username,
+    currency,
+    updateCurrency,
+    language,
+    updateLanguage,
+    emailVerified,
+    logout,
+    plan,
+  } = useAuth();
   const [selected, setSelected] = useState(currency);
   const [selectedLang, setSelectedLang] = useState(language);
 
@@ -296,6 +304,23 @@ export default function SettingsPage() {
       <Link href="/income" className={styles.settingsLink}>
         <DollarSign size={16} />
         {t('nav.income')}
+        {plan !== 'pro' && (
+          <span
+            style={{
+              background: 'var(--primary-dim)',
+              border: '1px solid var(--primary-glow)',
+              color: 'var(--primary)',
+              borderRadius: '999px',
+              fontFamily: 'var(--font-display)',
+              fontSize: '0.62rem',
+              fontWeight: 700,
+              letterSpacing: '0.06em',
+              padding: '0.08rem 0.4rem',
+            }}
+          >
+            {t('common.pro')}
+          </span>
+        )}
       </Link>
 
       <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
