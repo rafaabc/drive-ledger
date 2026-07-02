@@ -15,6 +15,7 @@
     "recurring": "Recorrentes",
     "summary": "Resumo",
     "reminders": "Lembretes",
+    "vehicles": "Veículos",
     "settings": "Configurações",
     "changePassword": "Alterar senha",
     "logout": "Sair"
@@ -220,7 +221,10 @@
     "accountDeleted": "Conta não encontrada.",
     "consentRequired": "Você deve aceitar a política de privacidade e os termos para se cadastrar.",
     "recurringRuleNotFound": "Regra de recorrência não encontrada.",
-    "fuelNotRecurring": "Despesas de combustível não podem ser recorrentes."
+    "fuelNotRecurring": "Despesas de combustível não podem ser recorrentes.",
+    "vehicleNotFound": "Veículo não encontrado.",
+    "vehicleLimitReached": "O plano gratuito permite apenas 1 veículo. Faça upgrade para o Pro para adicionar mais.",
+    "vehicleNameRequired": "O nome do veículo é obrigatório."
   },
   "pwa": {
     "updateAvailable": "Nova versão disponível.",
@@ -273,6 +277,29 @@
     "currentKm": "Quilometragem atual (km)",
     "currentKmHint": "Atualiza automaticamente quando você registra um abastecimento com hodômetro.",
     "saveSuccess": "Hodômetro atualizado."
+  },
+  "vehicles": {
+    "heading": "Veículos",
+    "noVehicles": "Nenhum veículo cadastrado.",
+    "addNew": "Adicionar veículo",
+    "editVehicle": "Editar veículo",
+    "currentKm": "{{km}} km",
+    "fields": {
+      "name": "Nome",
+      "namePlaceholder": "ex.: Meu Civic",
+      "make": "Marca (opcional)",
+      "model": "Modelo (opcional)"
+    },
+    "actions": {
+      "confirmDelete": "Excluir este veículo? As despesas e lembretes são mantidos, porém desvinculados.",
+      "deleteSuccess": "Veículo excluído.",
+      "createSuccess": "Veículo adicionado.",
+      "updateSuccess": "Veículo atualizado."
+    },
+    "upgrade": {
+      "heading": "O plano gratuito permite apenas 1 veículo",
+      "body": "Faça upgrade para o Pro para acompanhar veículos ilimitados, receita e relatórios prontos para o imposto de renda."
+    }
   },
   "mobile": {
     "newAction": "O que deseja criar?",

@@ -105,6 +105,14 @@ export const recurringApi = {
   catchUp: () => request('/recurring/catch-up', { method: 'POST' }),
 };
 
+export const vehiclesApi = {
+  list: () => request('/vehicles'),
+  get: (id) => request(`/vehicles/${id}`),
+  create: (data) => request('/vehicles', { method: 'POST', body: data }),
+  update: (id, data) => request(`/vehicles/${id}`, { method: 'PATCH', body: data }),
+  remove: (id) => request(`/vehicles/${id}`, { method: 'DELETE' }),
+};
+
 export const remindersApi = {
   list: ({ status } = {}, signal = null) => {
     const params = new URLSearchParams();

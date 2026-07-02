@@ -9,6 +9,7 @@ import {
   Settings,
   Bell,
   RefreshCw,
+  Car,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext.jsx';
@@ -24,6 +25,7 @@ export default function Sidebar({ badgeCount = 0 }) {
     { to: '/expenses', icon: Receipt, label: t('nav.expenses') },
     { to: '/recurring', icon: RefreshCw, label: t('nav.recurring') },
     { to: '/reminders', icon: Bell, label: t('nav.reminders'), badge: badgeCount },
+    { to: '/vehicles', icon: Car, label: t('nav.vehicles') },
     { to: '/summary', icon: BarChart3, label: t('nav.summary') },
     { to: '/change-password', icon: KeyRound, label: t('nav.changePassword') },
     { to: '/settings', icon: Settings, label: t('nav.settings') },

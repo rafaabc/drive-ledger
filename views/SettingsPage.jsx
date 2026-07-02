@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { KeyRound } from 'lucide-react';
+import { KeyRound, Car } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { useAsyncAction } from '@/hooks/useAsyncAction.js';
@@ -283,6 +283,13 @@ export default function SettingsPage() {
           </button>
         </>
       )}
+
+      <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
+
+      <Link href="/vehicles" className={styles.settingsLink}>
+        <Car size={16} />
+        {t('nav.vehicles')}
+      </Link>
 
       <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
 

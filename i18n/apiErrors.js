@@ -21,4 +21,7 @@ export const API_ERROR_MAP = {
   'consent policyVersion does not match current policy': 'errors.consentRequired',
   'Recurring rule not found': 'errors.recurringRuleNotFound',
   'Fuel cannot be recurring': 'errors.fuelNotRecurring',
+  'Vehicle not found': 'errors.vehicleNotFound',
+  vehicle_limit_reached: 'errors.vehicleLimitReached',
+  'name is required': 'errors.vehicleNameRequired',
 };
