@@ -24,4 +24,6 @@ export const API_ERROR_MAP = {
   'Vehicle not found': 'errors.vehicleNotFound',
   vehicle_limit_reached: 'errors.vehicleLimitReached',
   'name is required': 'errors.vehicleNameRequired',
+  'Income not found': 'errors.incomeNotFound',
+  income_feature_locked: 'errors.incomeFeatureLocked',
 };

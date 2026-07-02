@@ -16,6 +16,7 @@
     "summary": "Resumo",
     "reminders": "Lembretes",
     "vehicles": "Veículos",
+    "income": "Receita",
     "settings": "Configurações",
     "changePassword": "Alterar senha",
     "logout": "Sair"
@@ -224,7 +225,9 @@
     "fuelNotRecurring": "Despesas de combustível não podem ser recorrentes.",
     "vehicleNotFound": "Veículo não encontrado.",
     "vehicleLimitReached": "O plano gratuito permite apenas 1 veículo. Faça upgrade para o Pro para adicionar mais.",
-    "vehicleNameRequired": "O nome do veículo é obrigatório."
+    "vehicleNameRequired": "O nome do veículo é obrigatório.",
+    "incomeNotFound": "Registro de receita não encontrado.",
+    "incomeFeatureLocked": "O controle de receita é um recurso Pro. Faça upgrade para desbloquear."
   },
   "pwa": {
     "updateAvailable": "Nova versão disponível.",
@@ -299,6 +302,40 @@
     "upgrade": {
       "heading": "O plano gratuito permite apenas 1 veículo",
       "body": "Faça upgrade para o Pro para acompanhar veículos ilimitados, receita e relatórios prontos para o imposto de renda."
+    }
+  },
+  "income": {
+    "heading": "Receita",
+    "noIncome": "Nenhuma receita cadastrada.",
+    "addNew": "Adicionar receita",
+    "editIncome": "Editar receita",
+    "fields": {
+      "date": "Data",
+      "amount": "Valor",
+      "source": "Origem",
+      "note": "Observação (opcional)"
+    },
+    "sources": {
+      "Other": "Outro"
+    },
+    "summary": {
+      "heading": "Resumo de lucro",
+      "totalIncome": "Receita",
+      "totalExpenses": "Despesas",
+      "profit": "Lucro",
+      "profitPerKm": "Lucro / km",
+      "profitPerDay": "Lucro / dia",
+      "noKmData": "Registre pelo menos 2 abastecimentos com hodômetro para ver o lucro por km."
+    },
+    "actions": {
+      "confirmDelete": "Excluir esta receita?",
+      "deleteSuccess": "Receita excluída.",
+      "createSuccess": "Receita adicionada.",
+      "updateSuccess": "Receita atualizada."
+    },
+    "upgrade": {
+      "heading": "O controle de receita é um recurso Pro",
+      "body": "Faça upgrade para o Pro para registrar receitas e ver lucro por km e por dia."
     }
   },
   "mobile": {

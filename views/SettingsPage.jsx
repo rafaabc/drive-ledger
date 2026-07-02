@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { KeyRound, Car } from 'lucide-react';
+import { KeyRound, Car, DollarSign } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { useAsyncAction } from '@/hooks/useAsyncAction.js';
@@ -289,6 +289,13 @@ export default function SettingsPage() {
       <Link href="/vehicles" className={styles.settingsLink}>
         <Car size={16} />
         {t('nav.vehicles')}
+      </Link>
+
+      <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
+
+      <Link href="/income" className={styles.settingsLink}>
+        <DollarSign size={16} />
+        {t('nav.income')}
       </Link>
 
       <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
