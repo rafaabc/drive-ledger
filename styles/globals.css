@@ -262,7 +262,7 @@ label {
   max-width: 960px;
   margin: 2.5rem auto;
   padding: 0 1.5rem;
-  animation: fadeUp 0.3s ease both;
+  animation: fadeUp 0.3s ease;
 }
 
 @keyframes fadeUp {
