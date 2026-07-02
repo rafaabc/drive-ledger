@@ -354,6 +354,27 @@ describe('authService.login()', () => {
     );
   });
 
+  // NoSQL operator injection — a query-operator object must never reach the DB filter
+  it('should throw 400 (not select an arbitrary user) when username is a query operator object', async () => {
+    await assert.rejects(
+      () => authService.login({ username: { $gt: '' }, password: 'password1' }),
+      (err) => {
+        assert.strictEqual(err.status, 400);
+        return true;
+      },
+    );
+  });
+
+  it('should throw 400 when password is a query operator object', async () => {
+    await assert.rejects(
+      () => authService.login({ username: 'alice', password: { $ne: null } }),
+      (err) => {
+        assert.strictEqual(err.status, 400);
+        return true;
+      },
+    );
+  });
+
   it('should default JWT expiry to 1 hour when JWT_EXPIRES_IN env is not set', async () => {
     const original = process.env.JWT_EXPIRES_IN;
     delete process.env.JWT_EXPIRES_IN;
@@ -720,6 +741,22 @@ describe('authService.forgotPassword()', () => {
       },
     );
   });
+
+  // NoSQL operator injection — an object like { $ne: null } must not select an arbitrary user
+  it('should throw 400 and not send an email when email is a query operator object', async () => {
+    let sendCalled = false;
+    const mockSend = async () => {
+      sendCalled = true;
+    };
+    await assert.rejects(
+      () => authService.forgotPassword({ email: { $ne: null } }, mockSend),
+      (err) => {
+        assert.strictEqual(err.status, 400);
+        return true;
+      },
+    );
+    assert.strictEqual(sendCalled, false, 'no reset email should be sent for a non-string email');
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -1051,6 +1088,26 @@ describe('authService.verifyEmail()', () => {
         return true;
       },
     );
+  });
+
+  // NoSQL operator injection (account takeover) — { $ne: null } must not match "any user
+  // with a verification token" and must not return a session JWT
+  it('should throw 400 and not issue a token when token is a query operator object', async () => {
+    await authService.register({
+      username: 'takeover_target',
+      password: 'password1',
+      email: 'takeover@x.com',
+      ...VALID_CONSENT,
+    });
+    await assert.rejects(
+      () => authService.verifyEmail({ token: { $ne: null } }),
+      (err) => {
+        assert.strictEqual(err.status, 400);
+        return true;
+      },
+    );
+    const target = await userModel.findByUsername('takeover_target');
+    assert.strictEqual(target.emailVerified, false, 'target account must remain unverified');
   });
 
   it('should throw 400 when token is expired', async () => {

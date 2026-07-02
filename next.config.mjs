@@ -26,6 +26,9 @@ const securityHeaders = [
       "worker-src 'self' blob:",
       "connect-src 'self' accounts.google.com *.sentry.io eu.i.posthog.com eu-assets.i.posthog.com",
       'frame-src accounts.google.com',
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
     ].join('; '),
   },
 ];
