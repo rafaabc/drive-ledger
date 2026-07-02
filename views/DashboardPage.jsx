@@ -92,7 +92,7 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.pageTitle}>{t('dashboard.heading')}</h1>
+      <h1 className={`page-title ${styles.pageTitle}`}>{t('dashboard.heading')}</h1>
 
       <div className={styles.kpiRow}>
         <div className={styles.gaugeCard}>

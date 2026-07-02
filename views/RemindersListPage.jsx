@@ -65,7 +65,7 @@ export default function RemindersListPage() {
   return (
     <div className="page">
       <div className={styles.header}>
-        <h1>{t('reminders.heading')}</h1>
+        <h1 className="page-title">{t('reminders.heading')}</h1>
         <Link href="/reminders/new" className="btn-primary">
           + {t('common.new')}
         </Link>
