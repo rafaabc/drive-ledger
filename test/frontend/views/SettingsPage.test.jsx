@@ -36,7 +36,6 @@ vi.mock('@/context/AuthContext.jsx', () => ({
 
 const mockGetProviders = vi.fn();
 const mockUnlinkGoogle = vi.fn();
-const mockUpdateOdometer = vi.fn();
 const mockExportData = vi.fn();
 const mockDeleteAccount = vi.fn();
 const mockResendVerification = vi.fn();
@@ -44,7 +43,6 @@ vi.mock('@/services/apiService.js', () => ({
   authApi: {
     getProviders: () => mockGetProviders(),
     unlinkGoogle: () => mockUnlinkGoogle(),
-    updateOdometer: () => mockUpdateOdometer(),
     exportData: () => mockExportData(),
     deleteAccount: (...args) => mockDeleteAccount(...args),
     resendVerification: () => mockResendVerification(),
@@ -69,7 +67,6 @@ describe('SettingsPage', () => {
     mockUpdateCurrency.mockResolvedValue({});
     mockUpdateLanguage.mockResolvedValue({});
     mockUnlinkGoogle.mockResolvedValue({});
-    mockUpdateOdometer.mockResolvedValue({});
     mockGetProviders.mockResolvedValue({ authProviders: ['google'], hasPassword: true });
     mockExportData.mockResolvedValue({ user: {}, expenses: [] });
     mockDeleteAccount.mockResolvedValue({});
@@ -107,16 +104,6 @@ describe('SettingsPage', () => {
       fireEvent.submit(forms[1]);
     });
     expect(mockUpdateLanguage).toHaveBeenCalledWith('pt-BR');
-  });
-
-  it('should call updateOdometer on odo form submit', async () => {
-    await renderPage();
-    fireEvent.change(screen.getByLabelText('vehicle.currentKm'), { target: { value: '15000' } });
-    const forms = document.querySelectorAll('form');
-    await act(async () => {
-      fireEvent.submit(forms[2]);
-    });
-    expect(mockUpdateOdometer).toHaveBeenCalledOnce();
   });
 
   it('should show disconnect button when google is linked', async () => {

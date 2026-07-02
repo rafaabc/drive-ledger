@@ -276,12 +276,6 @@
       "confirmDeleteHistory2": "Confirm permanent deletion?"
     }
   },
-  "vehicle": {
-    "heading": "Vehicle",
-    "currentKm": "Current odometer (km)",
-    "currentKmHint": "Updates automatically when you log Fuel with an odometer reading.",
-    "saveSuccess": "Odometer updated."
-  },
   "vehicles": {
     "heading": "Vehicles",
     "noVehicles": "No vehicles yet.",
@@ -290,7 +284,9 @@
     "currentKm": "{{km}} km",
     "fields": {
       "name": "Name",
-      "namePlaceholder": "e.g. My Civic"
+      "namePlaceholder": "e.g. My Civic",
+      "currentKm": "Current odometer (km)",
+      "currentKmHint": "Updates automatically when you log Fuel with an odometer reading. Edit here to correct it manually."
     },
     "actions": {
       "confirmDelete": "Delete this vehicle? Its expenses and reminders are kept but unassigned.",

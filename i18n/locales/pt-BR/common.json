@@ -276,12 +276,6 @@
       "confirmDeleteHistory2": "Confirmar exclusão definitiva?"
     }
   },
-  "vehicle": {
-    "heading": "Veículo",
-    "currentKm": "Quilometragem atual (km)",
-    "currentKmHint": "Atualiza automaticamente quando você registra um abastecimento com hodômetro.",
-    "saveSuccess": "Hodômetro atualizado."
-  },
   "vehicles": {
     "heading": "Veículos",
     "noVehicles": "Nenhum veículo cadastrado.",
@@ -290,7 +284,9 @@
     "currentKm": "{{km}} km",
     "fields": {
       "name": "Nome",
-      "namePlaceholder": "ex.: Meu Civic"
+      "namePlaceholder": "ex.: Meu Civic",
+      "currentKm": "Quilometragem atual (km)",
+      "currentKmHint": "Atualiza automaticamente ao registrar um abastecimento com hodômetro. Edite aqui para corrigir manualmente."
     },
     "actions": {
       "confirmDelete": "Excluir este veículo? As despesas e lembretes são mantidos, porém desvinculados.",

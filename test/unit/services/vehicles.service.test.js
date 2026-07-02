@@ -108,6 +108,29 @@ describe('vehiclesService.updateOdometer()', () => {
   });
 });
 
+describe('vehiclesService — manual currentKm override', () => {
+  it('createVehicle accepts an initial currentKm', async () => {
+    const u = USER_ID();
+    const vehicle = await vehiclesService.createVehicle(u, { name: 'Civic', currentKm: 5000 });
+    assert.strictEqual(vehicle.currentKm, 5000);
+  });
+
+  it('updateVehicle allows manually setting currentKm to a lower value', async () => {
+    const u = USER_ID();
+    const vehicle = await vehiclesService.createVehicle(u, { name: 'Civic', currentKm: 5000 });
+    const updated = await vehiclesService.updateVehicle(u, vehicle.id, { currentKm: 1000 });
+    assert.strictEqual(updated.currentKm, 1000);
+  });
+
+  it('rejects a negative currentKm', async () => {
+    const u = USER_ID();
+    await assert.rejects(
+      () => vehiclesService.createVehicle(u, { name: 'Civic', currentKm: -5 }),
+      (err) => err.status === 400,
+    );
+  });
+});
+
 describe('vehiclesService.deleteAllByUser()', () => {
   it('deletes all vehicles for the given userId', async () => {
     const u = USER_ID();

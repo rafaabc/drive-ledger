@@ -66,7 +66,6 @@ export const authApi = {
   linkGoogle: (data) => request('/auth/google/link', { method: 'POST', body: data, auth: true }),
   unlinkGoogle: () => request('/auth/google/link', { method: 'DELETE', auth: true }),
   getProviders: () => request('/auth/providers', { auth: true }),
-  updateOdometer: (data) => request('/auth/odometer', { method: 'PATCH', body: data, auth: true }),
   verifyEmail: (data) => request('/auth/verify-email', { method: 'POST', body: data, auth: false }),
   resendVerification: () => request('/auth/resend-verification', { method: 'POST', auth: true }),
   exportData: () => request('/auth/me/export', { auth: true }),

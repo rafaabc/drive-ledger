@@ -13,6 +13,7 @@ import styles from './VehiclesListPage.module.css';
 function VehicleFormModal({ open, initial, onSubmit, onCancel, error, loading }) {
   const { t } = useTranslation();
   const [name, setName] = useState(initial?.name || '');
+  const [currentKm, setCurrentKm] = useState(initial?.currentKm ?? 0);
   const [prevOpen, setPrevOpen] = useState(open);
 
   // Derived-state reset: re-seed fields whenever the modal is (re)opened.
@@ -20,6 +21,7 @@ function VehicleFormModal({ open, initial, onSubmit, onCancel, error, loading })
     setPrevOpen(open);
     if (open) {
       setName(initial?.name || '');
+      setCurrentKm(initial?.currentKm ?? 0);
     }
   }
 
@@ -27,7 +29,7 @@ function VehicleFormModal({ open, initial, onSubmit, onCancel, error, loading })
 
   function handleSubmit(e) {
     e.preventDefault();
-    onSubmit({ name });
+    onSubmit({ name, currentKm: Number(currentKm) });
   }
 
   return (
@@ -51,6 +53,18 @@ function VehicleFormModal({ open, initial, onSubmit, onCancel, error, loading })
               placeholder={t('vehicles.fields.namePlaceholder')}
               required
             />
+          </div>
+          <div className="form-group">
+            <label htmlFor="vehicle-current-km">{t('vehicles.fields.currentKm')}</label>
+            <input
+              id="vehicle-current-km"
+              type="number"
+              min="0"
+              step="1"
+              value={currentKm}
+              onChange={(e) => setCurrentKm(e.target.value)}
+            />
+            <small>{t('vehicles.fields.currentKmHint')}</small>
           </div>
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={onCancel}>
