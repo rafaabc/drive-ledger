@@ -65,4 +65,12 @@ describe('withAuth', () => {
     const body = await res.json();
     assert.match(body.message, /invalid or expired/i);
   });
+
+  // Algorithm confusion — a token must be rejected unless it was signed with HS256,
+  // regardless of what algorithm its own header claims.
+  it('should return 401 for a token signed with alg "none"', async () => {
+    const token = jwt.sign({ id: 'attacker' }, undefined, { algorithm: 'none' });
+    const res = await withAuth(makeHandler())(makeReq(`Bearer ${token}`), {});
+    assert.strictEqual(res.status, 401);
+  });
 });
