@@ -7,6 +7,7 @@ import { recurringApi } from '@/services/apiService.js';
 import { useAuth } from '@/context/AuthContext.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import Loading from '@/components/Loading.jsx';
+import PageTitle from '@/components/PageTitle.jsx';
 import PropTypes from 'prop-types';
 import { formatCurrency } from '@/utils/formatCurrency.js';
 import styles from './RecurringListPage.module.css';
@@ -200,7 +201,7 @@ export default function RecurringListPage() {
   return (
     <div className="page">
       <div className={styles.header}>
-        <h2 className="page-title">{t('recurring.heading')}</h2>
+        <PageTitle>{t('recurring.heading')}</PageTitle>
         <button className="btn-primary" onClick={() => router.push('/recurring/new')}>
           + {t('common.new')}
         </button>

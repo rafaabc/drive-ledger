@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext.jsx';
 import CategorySelect from '@/components/CategorySelect.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import Loading from '@/components/Loading.jsx';
+import PageTitle from '@/components/PageTitle.jsx';
 import StackedMonthlyBar from '@/components/charts/StackedMonthlyBar.jsx';
 import CategoryDonut from '@/components/charts/CategoryDonut.jsx';
 import { currentYear } from '@/utils/formatDate.js';
@@ -126,7 +127,7 @@ export default function SummaryPage() {
   return (
     <div className="page">
       <div className={styles.header}>
-        <h2 className="page-title">{t('summary.heading')}</h2>
+        <PageTitle>{t('summary.heading')}</PageTitle>
       </div>
 
       <div className={`card ${styles.filterCard}`}>

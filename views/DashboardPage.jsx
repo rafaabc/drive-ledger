@@ -9,6 +9,7 @@ import MonthlyTrendChart from '@/components/charts/MonthlyTrendChart.jsx';
 import CategoryDonut from '@/components/charts/CategoryDonut.jsx';
 import Loading from '@/components/Loading.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
+import PageTitle from '@/components/PageTitle.jsx';
 import {
   aggregateByMonth,
   aggregateByCategory,
@@ -92,7 +93,7 @@ export default function DashboardPage() {
 
   return (
     <div className={styles.page}>
-      <h1 className={`page-title ${styles.pageTitle}`}>{t('dashboard.heading')}</h1>
+      <PageTitle className={styles.pageTitle}>{t('dashboard.heading')}</PageTitle>
 
       <div className={styles.kpiRow}>
         <div className={styles.gaugeCard}>

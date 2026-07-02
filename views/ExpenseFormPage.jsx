@@ -11,6 +11,7 @@ import AmountField from '@/components/AmountField.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import FieldLabelWithHint from '@/components/FieldLabelWithHint.jsx';
 import Loading from '@/components/Loading.jsx';
+import PageTitle from '@/components/PageTitle.jsx';
 import { todayISO } from '@/utils/formatDate.js';
 import styles from './ExpenseFormPage.module.css';
 
@@ -104,9 +105,9 @@ export default function ExpenseFormPage() {
   return (
     <div className="page">
       <div className={`card ${styles.formCard}`}>
-        <h2 className={`page-title ${styles.heading}`}>
+        <PageTitle className={styles.heading}>
           {isEdit ? t('expenses.editExpense') : t('expenses.newExpense')}
-        </h2>
+        </PageTitle>
 
         {error && <ErrorBanner message={error} />}
 

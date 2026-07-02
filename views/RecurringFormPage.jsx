@@ -7,6 +7,7 @@ import { recurringApi } from '@/services/apiService.js';
 import AmountField from '@/components/AmountField.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import Loading from '@/components/Loading.jsx';
+import PageTitle from '@/components/PageTitle.jsx';
 import { todayISO } from '@/utils/formatDate.js';
 import styles from './RecurringFormPage.module.css';
 
@@ -90,9 +91,9 @@ export default function RecurringFormPage() {
   return (
     <div className="page">
       <div className={`card ${styles.formCard}`}>
-        <h2 className={`page-title ${styles.heading}`}>
+        <PageTitle className={styles.heading}>
           {isEdit ? t('recurring.editRule') : t('recurring.newRule')}
-        </h2>
+        </PageTitle>
 
         {error && <ErrorBanner message={error} />}
 

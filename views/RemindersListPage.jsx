@@ -11,6 +11,7 @@ import ReminderStatusBadge from '@/components/ReminderStatusBadge.jsx';
 import CompleteReminderDialog from '@/components/CompleteReminderDialog.jsx';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
+import PageTitle from '@/components/PageTitle.jsx';
 import styles from './RemindersListPage.module.css';
 
 export default function RemindersListPage() {
@@ -65,7 +66,7 @@ export default function RemindersListPage() {
   return (
     <div className="page">
       <div className={styles.header}>
-        <h1 className="page-title">{t('reminders.heading')}</h1>
+        <PageTitle>{t('reminders.heading')}</PageTitle>
         <Link href="/reminders/new" className="btn-primary">
           + {t('common.new')}
         </Link>

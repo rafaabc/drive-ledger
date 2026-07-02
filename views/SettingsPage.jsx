@@ -9,6 +9,7 @@ import { useAsyncAction } from '@/hooks/useAsyncAction.js';
 import { useAutoClear } from '@/hooks/useAutoClear.js';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import GoogleSignInButton from '@/components/GoogleSignInButton.jsx';
+import PageTitle from '@/components/PageTitle.jsx';
 import { authApi } from '@/services/apiService.js';
 import { SUPPORTED_CURRENCIES } from '@/constants/currencies.js';
 import styles from './SettingsPage.module.css';
@@ -121,7 +122,7 @@ export default function SettingsPage() {
 
   return (
     <div className="page">
-      <h1 style={{ marginBottom: '1.5rem' }}>{t('settings.heading')}</h1>
+      <PageTitle style={{ marginBottom: '1.5rem' }}>{t('settings.heading')}</PageTitle>
       <p style={{ marginBottom: '1.5rem', color: 'var(--muted)' }}>
         {t('settings.loggedInAs')} <strong style={{ color: 'var(--text)' }}>{username}</strong>
       </p>
