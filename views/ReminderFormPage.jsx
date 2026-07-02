@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import ReminderTypeSelect from '@/components/ReminderTypeSelect.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import FieldLabelWithHint from '@/components/FieldLabelWithHint.jsx';
+import PageTitle from '@/components/PageTitle.jsx';
 import { remindersApi } from '@/services/apiService.js';
 import { useAsyncAction } from '@/hooks/useAsyncAction.js';
 import { todayISO } from '@/utils/formatDate.js';
@@ -74,7 +75,7 @@ export default function ReminderFormPage() {
 
   return (
     <div className="page">
-      <h1>{isEdit ? t('reminders.editReminder') : t('reminders.newReminder')}</h1>
+      <PageTitle>{isEdit ? t('reminders.editReminder') : t('reminders.newReminder')}</PageTitle>
       {loadError && <ErrorBanner message={loadError} />}
       {action.error && <ErrorBanner message={action.error} />}
       <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>

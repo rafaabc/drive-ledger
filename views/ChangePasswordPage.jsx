@@ -7,6 +7,7 @@ import { bindField } from '@/utils/form.js';
 import { useAsyncAction } from '@/hooks/useAsyncAction.js';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import FieldLabelWithHint from '@/components/FieldLabelWithHint.jsx';
+import PageTitle from '@/components/PageTitle.jsx';
 
 export default function ChangePasswordPage() {
   const { t } = useTranslation();
@@ -33,7 +34,7 @@ export default function ChangePasswordPage() {
 
   return (
     <div className="page">
-      <h1 style={{ marginBottom: '1.5rem' }}>{t('auth.changePassword.heading')}</h1>
+      <PageTitle style={{ marginBottom: '1.5rem' }}>{t('auth.changePassword.heading')}</PageTitle>
       <p style={{ marginBottom: '1.5rem', color: 'var(--muted)' }}>
         {t('settings.loggedInAs')} <strong style={{ color: 'var(--text)' }}>{username}</strong>
       </p>

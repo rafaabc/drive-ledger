@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext.jsx';
 import ExpenseRow from '@/components/ExpenseRow.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import Loading from '@/components/Loading.jsx';
+import PageTitle from '@/components/PageTitle.jsx';
 import { CATEGORIES, categoryLabel } from '@/utils/categories.js';
 import { currentYear, formatDate } from '@/utils/formatDate.js';
 import { formatCurrency } from '@/utils/formatCurrency.js';
@@ -148,7 +149,7 @@ export default function ExpensesListPage() {
   return (
     <div className="page">
       <div className={styles.header}>
-        <h2 className="page-title">{t('expenses.heading')}</h2>
+        <PageTitle>{t('expenses.heading')}</PageTitle>
         <button className="btn-primary" onClick={() => router.push('/expenses/new')}>
           + {t('common.new')}
         </button>
