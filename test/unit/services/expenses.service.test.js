@@ -10,6 +10,7 @@ const assert = require('node:assert/strict');
 const { startMongo, stopMongo, resetMongo } = require('../../helpers/mongo');
 const expensesService = require('../../../lib/services/expenses.service');
 const userModel = require('../../../lib/models/user.model');
+const vehiclesService = require('../../../lib/services/vehicles.service');
 
 before(async () => await startMongo());
 after(async () => await stopMongo());
@@ -728,40 +729,49 @@ describe('expensesService.getSummary()', () => {
 // Fuel odometer side effect
 // ---------------------------------------------------------------------------
 describe('expensesService — Fuel odometer side effect', () => {
-  it('should raise user.currentKm when Fuel has odometer greater than current', async () => {
+  it('should raise the vehicle currentKm when Fuel has odometer greater than current', async () => {
     const user = await userModel.create({
       username: 'odoTest1',
       password: 'x',
       email: 'odot1@test.com',
       currentKm: 1000,
     });
-    await expensesService.createExpense(user._id.toString(), {
+    const uid = user._id.toString();
+    await expensesService.createExpense(uid, {
       date: TODAY,
       category: 'Fuel',
       litres: 40,
       price_per_litre: 1.5,
       odometer: 2000,
     });
-    const after = await userModel.findById(user._id);
-    assert.strictEqual(after.currentKm, 2000);
+    const [vehicle] = await vehiclesService.listVehicles(uid);
+    assert.strictEqual(vehicle.currentKm, 2000);
   });
 
-  it('should NOT lower user.currentKm when Fuel odometer is older reading', async () => {
+  it('should NOT lower the vehicle currentKm when Fuel odometer is older reading', async () => {
     const user = await userModel.create({
       username: 'odoTest2',
       password: 'x',
       email: 'odot2@test.com',
       currentKm: 5000,
     });
-    await expensesService.createExpense(user._id.toString(), {
+    const uid = user._id.toString();
+    await expensesService.createExpense(uid, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 40,
+      price_per_litre: 1.5,
+      odometer: 6000,
+    });
+    await expensesService.createExpense(uid, {
       date: TODAY,
       category: 'Fuel',
       litres: 40,
       price_per_litre: 1.5,
       odometer: 3000,
     });
-    const after = await userModel.findById(user._id);
-    assert.strictEqual(after.currentKm, 5000);
+    const [vehicle] = await vehiclesService.listVehicles(uid);
+    assert.strictEqual(vehicle.currentKm, 6000);
   });
 
   it('should throw 400 when odometer is supplied for non-Fuel category', async () => {

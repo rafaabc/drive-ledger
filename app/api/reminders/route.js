@@ -10,6 +10,7 @@ export const GET = withAuth(async (req, _ctx, user) => {
   try {
     const result = await remindersService.listReminders(user.id, {
       status: searchParams.get('status'),
+      vehicleId: searchParams.get('vehicleId'),
     });
     return NextResponse.json(result);
   } catch (err) {
