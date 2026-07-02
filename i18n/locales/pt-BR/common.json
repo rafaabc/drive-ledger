@@ -289,9 +289,7 @@
     "currentKm": "{{km}} km",
     "fields": {
       "name": "Nome",
-      "namePlaceholder": "ex.: Meu Civic",
-      "make": "Marca (opcional)",
-      "model": "Modelo (opcional)"
+      "namePlaceholder": "ex.: Meu Civic"
     },
     "actions": {
       "confirmDelete": "Excluir este veículo? As despesas e lembretes são mantidos, porém desvinculados.",

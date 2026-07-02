@@ -13,8 +13,6 @@ import styles from './VehiclesListPage.module.css';
 function VehicleFormModal({ open, initial, onSubmit, onCancel, error, loading }) {
   const { t } = useTranslation();
   const [name, setName] = useState(initial?.name || '');
-  const [make, setMake] = useState(initial?.make || '');
-  const [model, setModel] = useState(initial?.model || '');
   const [prevOpen, setPrevOpen] = useState(open);
 
   // Derived-state reset: re-seed fields whenever the modal is (re)opened.
@@ -22,8 +20,6 @@ function VehicleFormModal({ open, initial, onSubmit, onCancel, error, loading })
     setPrevOpen(open);
     if (open) {
       setName(initial?.name || '');
-      setMake(initial?.make || '');
-      setModel(initial?.model || '');
     }
   }
 
@@ -31,7 +27,7 @@ function VehicleFormModal({ open, initial, onSubmit, onCancel, error, loading })
 
   function handleSubmit(e) {
     e.preventDefault();
-    onSubmit({ name, make: make || undefined, model: model || undefined });
+    onSubmit({ name });
   }
 
   return (
@@ -55,14 +51,6 @@ function VehicleFormModal({ open, initial, onSubmit, onCancel, error, loading })
               placeholder={t('vehicles.fields.namePlaceholder')}
               required
             />
-          </div>
-          <div className="form-group">
-            <label htmlFor="vehicle-make">{t('vehicles.fields.make')}</label>
-            <input id="vehicle-make" value={make} onChange={(e) => setMake(e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label htmlFor="vehicle-model">{t('vehicles.fields.model')}</label>
-            <input id="vehicle-model" value={model} onChange={(e) => setModel(e.target.value)} />
           </div>
           <div className="modal-actions">
             <button type="button" className="btn-secondary" onClick={onCancel}>
@@ -185,11 +173,6 @@ export default function VehiclesListPage() {
                   <Car size={16} aria-hidden="true" />
                   <strong>{v.name}</strong>
                 </span>
-                {(v.make || v.model) && (
-                  <div className={styles.subtitle}>
-                    {[v.make, v.model].filter(Boolean).join(' ')}
-                  </div>
-                )}
                 <div className={styles.meta}>
                   {t('vehicles.currentKm', { km: v.currentKm ?? 0 })}
                 </div>

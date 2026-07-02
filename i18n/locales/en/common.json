@@ -289,9 +289,7 @@
     "currentKm": "{{km}} km",
     "fields": {
       "name": "Name",
-      "namePlaceholder": "e.g. My Civic",
-      "make": "Make (optional)",
-      "model": "Model (optional)"
+      "namePlaceholder": "e.g. My Civic"
     },
     "actions": {
       "confirmDelete": "Delete this vehicle? Its expenses and reminders are kept but unassigned.",

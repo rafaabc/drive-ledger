@@ -29,11 +29,6 @@
   min-width: 0;
 }
 
-.subtitle {
-  color: var(--muted);
-  font-size: 0.875rem;
-}
-
 .meta {
   font-size: 0.8rem;
   color: var(--muted);
