@@ -27,4 +27,5 @@ export const API_ERROR_MAP = {
   'Income not found': 'errors.incomeNotFound',
   income_feature_locked: 'errors.incomeFeatureLocked',
   reports_feature_locked: 'errors.reportsFeatureLocked',
+  billing_not_configured: 'errors.billingNotConfigured',
 };

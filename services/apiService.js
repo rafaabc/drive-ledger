@@ -103,6 +103,7 @@ export const authApi = {
   exportData: () => request('/auth/me/export', { auth: true }),
   deleteAccount: (data) => request('/auth/me', { method: 'DELETE', body: data, auth: true }),
   getAccessInfo: () => request('/auth/me/access', { auth: true }),
+  refreshToken: () => request('/auth/refresh-token', { method: 'POST' }),
 };
 
 export const expensesApi = {
@@ -176,6 +177,11 @@ export const reportsApi = {
     if (format) params.set('format', format);
     return downloadFile(`/reports?${params.toString()}`);
   },
+};
+
+export const billingApi = {
+  checkout: ({ interval }) => request('/billing/checkout', { method: 'POST', body: { interval } }),
+  portal: () => request('/billing/portal', { method: 'POST' }),
 };
 
 export const remindersApi = {

@@ -89,6 +89,12 @@ export function AuthProvider({ children }) {
     setToken(newToken);
   }, []);
 
+  const refreshPlan = useCallback(async () => {
+    const { token: newToken } = await authApi.refreshToken();
+    localStorage.setItem('token', newToken);
+    setToken(newToken);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -104,6 +110,7 @@ export function AuthProvider({ children }) {
         updateCurrency,
         updateLanguage,
         updateNotificationPrefs,
+        refreshPlan,
         login,
         logout,
         expiredBanner,
