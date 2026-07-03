@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { KeyRound, Car, DollarSign, FileText } from 'lucide-react';
@@ -33,6 +34,10 @@ function ProBadge({ t }) {
     </span>
   );
 }
+
+ProBadge.propTypes = {
+  t: PropTypes.func.isRequired,
+};
 
 export default function SettingsPage() {
   const { t } = useTranslation();

@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { Car, Pencil, Trash2 } from 'lucide-react';
 import { vehiclesApi } from '@/services/apiService.js';
@@ -7,6 +8,7 @@ import { useAutoClear } from '@/hooks/useAutoClear.js';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import Loading from '@/components/Loading.jsx';
 import PageTitle from '@/components/PageTitle.jsx';
+import Modal from '@/components/Modal.jsx';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.jsx';
 import styles from './VehiclesListPage.module.css';
 
@@ -33,52 +35,53 @@ function VehicleFormModal({ open, initial, onSubmit, onCancel, error, loading })
   }
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onCancel}>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        <h3>{initial ? t('vehicles.editVehicle') : t('vehicles.addNew')}</h3>
-        {error && <ErrorBanner message={error} />}
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="vehicle-name">{t('vehicles.fields.name')}</label>
-            <input
-              id="vehicle-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('vehicles.fields.namePlaceholder')}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="vehicle-current-km">{t('vehicles.fields.currentKm')}</label>
-            <input
-              id="vehicle-current-km"
-              type="number"
-              min="0"
-              step="1"
-              value={currentKm}
-              onChange={(e) => setCurrentKm(e.target.value)}
-            />
-            <small>{t('vehicles.fields.currentKmHint')}</small>
-          </div>
-          <div className="modal-actions">
-            <button type="button" className="btn-secondary" onClick={onCancel}>
-              {t('common.cancel')}
-            </button>
-            <button type="submit" className="btn-primary" disabled={loading || !name.trim()}>
-              {loading ? t('common.saving') : t('common.save')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <Modal open={open} labelledBy="vehicle-modal-title">
+      <h3 id="vehicle-modal-title">{initial ? t('vehicles.editVehicle') : t('vehicles.addNew')}</h3>
+      {error && <ErrorBanner message={error} />}
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="vehicle-name">{t('vehicles.fields.name')}</label>
+          <input
+            id="vehicle-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t('vehicles.fields.namePlaceholder')}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="vehicle-current-km">{t('vehicles.fields.currentKm')}</label>
+          <input
+            id="vehicle-current-km"
+            type="number"
+            min="0"
+            step="1"
+            value={currentKm}
+            onChange={(e) => setCurrentKm(e.target.value)}
+          />
+          <small>{t('vehicles.fields.currentKmHint')}</small>
+        </div>
+        <div className="modal-actions">
+          <button type="button" className="btn-secondary" onClick={onCancel}>
+            {t('common.cancel')}
+          </button>
+          <button type="submit" className="btn-primary" disabled={loading || !name.trim()}>
+            {loading ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }
+
+VehicleFormModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  initial: PropTypes.object,
+  onSubmit: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  error: PropTypes.string,
+  loading: PropTypes.bool,
+};
 
 export default function VehiclesListPage() {
   const { t } = useTranslation();
@@ -148,6 +151,49 @@ export default function VehiclesListPage() {
     }
   }
 
+  function renderVehicleList() {
+    if (loading) return <Loading />;
+    if (vehicles.length === 0) {
+      return <p style={{ color: 'var(--muted)' }}>{t('vehicles.noVehicles')}</p>;
+    }
+    return (
+      <ul className={styles.list}>
+        {vehicles.map((v) => (
+          <li key={v.id} className={styles.row}>
+            <div className={styles.info}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Car size={16} aria-hidden="true" />
+                <strong>{v.name}</strong>
+              </span>
+              <div className={styles.meta}>{t('vehicles.currentKm', { km: v.currentKm ?? 0 })}</div>
+            </div>
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => {
+                  setFormError('');
+                  setEditing(v);
+                }}
+                aria-label={t('common.edit')}
+              >
+                <Pencil size={14} />
+              </button>
+              <button
+                type="button"
+                className="btn-danger"
+                onClick={() => setDeleting(v)}
+                aria-label={t('common.delete')}
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
   return (
     <div className="page">
       <div className={styles.header}>
@@ -174,48 +220,7 @@ export default function VehiclesListPage() {
       {successMsg && <ErrorBanner type="success" message={successMsg} />}
       {error && <ErrorBanner message={error} />}
 
-      {loading ? (
-        <Loading />
-      ) : vehicles.length === 0 ? (
-        <p style={{ color: 'var(--muted)' }}>{t('vehicles.noVehicles')}</p>
-      ) : (
-        <ul className={styles.list}>
-          {vehicles.map((v) => (
-            <li key={v.id} className={styles.row}>
-              <div className={styles.info}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Car size={16} aria-hidden="true" />
-                  <strong>{v.name}</strong>
-                </span>
-                <div className={styles.meta}>
-                  {t('vehicles.currentKm', { km: v.currentKm ?? 0 })}
-                </div>
-              </div>
-              <div className={styles.actions}>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => {
-                    setFormError('');
-                    setEditing(v);
-                  }}
-                  aria-label={t('common.edit')}
-                >
-                  <Pencil size={14} />
-                </button>
-                <button
-                  type="button"
-                  className="btn-danger"
-                  onClick={() => setDeleting(v)}
-                  aria-label={t('common.delete')}
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+      {renderVehicleList()}
 
       <VehicleFormModal
         open={!!editing}

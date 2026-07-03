@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2 } from 'lucide-react';
 import { incomeApi } from '@/services/apiService.js';
@@ -8,6 +9,7 @@ import { useAutoClear } from '@/hooks/useAutoClear.js';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import Loading from '@/components/Loading.jsx';
 import PageTitle from '@/components/PageTitle.jsx';
+import Modal from '@/components/Modal.jsx';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.jsx';
 import { formatDate, currentYear, todayISO } from '@/utils/formatDate.js';
 import { formatCurrency } from '@/utils/formatCurrency.js';
@@ -46,67 +48,68 @@ function IncomeFormModal({ open, initial, onSubmit, onCancel, error, loading }) 
   }
 
   return (
-    <div className="modal-backdrop" role="presentation" onClick={onCancel}>
-      <div
-        className="modal"
-        role="dialog"
-        aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
-      >
-        <h3>{initial ? t('income.editIncome') : t('income.addNew')}</h3>
-        {error && <ErrorBanner message={error} />}
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="income-date">{t('income.fields.date')}</label>
-            <input
-              id="income-date"
-              type="date"
-              value={date}
-              max={todayISO()}
-              onChange={(e) => setDate(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="income-amount">{t('income.fields.amount')}</label>
-            <input
-              id="income-amount"
-              type="number"
-              min="0.01"
-              step="0.01"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="income-source">{t('income.fields.source')}</label>
-            <select id="income-source" value={source} onChange={(e) => setSource(e.target.value)}>
-              {SOURCES.map((s) => (
-                <option key={s} value={s}>
-                  {sourceLabel(s, t)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label htmlFor="income-note">{t('income.fields.note')}</label>
-            <input id="income-note" value={note} onChange={(e) => setNote(e.target.value)} />
-          </div>
-          <div className="modal-actions">
-            <button type="button" className="btn-secondary" onClick={onCancel}>
-              {t('common.cancel')}
-            </button>
-            <button type="submit" className="btn-primary" disabled={loading || !amount}>
-              {loading ? t('common.saving') : t('common.save')}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <Modal open={open} labelledBy="income-modal-title">
+      <h3 id="income-modal-title">{initial ? t('income.editIncome') : t('income.addNew')}</h3>
+      {error && <ErrorBanner message={error} />}
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="income-date">{t('income.fields.date')}</label>
+          <input
+            id="income-date"
+            type="date"
+            value={date}
+            max={todayISO()}
+            onChange={(e) => setDate(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="income-amount">{t('income.fields.amount')}</label>
+          <input
+            id="income-amount"
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="income-source">{t('income.fields.source')}</label>
+          <select id="income-source" value={source} onChange={(e) => setSource(e.target.value)}>
+            {SOURCES.map((s) => (
+              <option key={s} value={s}>
+                {sourceLabel(s, t)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="income-note">{t('income.fields.note')}</label>
+          <input id="income-note" value={note} onChange={(e) => setNote(e.target.value)} />
+        </div>
+        <div className="modal-actions">
+          <button type="button" className="btn-secondary" onClick={onCancel}>
+            {t('common.cancel')}
+          </button>
+          <button type="submit" className="btn-primary" disabled={loading || !amount}>
+            {loading ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
+      </form>
+    </Modal>
   );
 }
+
+IncomeFormModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  initial: PropTypes.object,
+  onSubmit: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  error: PropTypes.string,
+  loading: PropTypes.bool,
+};
 
 function ProfitSummaryCard({ summary, currency, t }) {
   if (!summary) return null;
@@ -142,15 +145,21 @@ function ProfitSummaryCard({ summary, currency, t }) {
         <div className={styles.summaryItem}>
           <span className={styles.summaryLabel}>{t('income.summary.profitPerKm')}</span>
           <span className={styles.summaryValue}>
-            {summary.profitPerKm != null
-              ? formatCurrency(summary.profitPerKm, currency)
-              : t('income.summary.noKmData')}
+            {summary.profitPerKm == null
+              ? t('income.summary.noKmData')
+              : formatCurrency(summary.profitPerKm, currency)}
           </span>
         </div>
       </div>
     </div>
   );
 }
+
+ProfitSummaryCard.propTypes = {
+  summary: PropTypes.object,
+  currency: PropTypes.string,
+  t: PropTypes.func.isRequired,
+};
 
 function UpgradePrompt({ t }) {
   return (
@@ -160,6 +169,10 @@ function UpgradePrompt({ t }) {
     </div>
   );
 }
+
+UpgradePrompt.propTypes = {
+  t: PropTypes.func.isRequired,
+};
 
 export default function IncomeListPage() {
   const { t } = useTranslation();

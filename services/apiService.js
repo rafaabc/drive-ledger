@@ -3,6 +3,7 @@ import i18n from '@/i18n/index.js';
 import { API_ERROR_MAP } from '@/i18n/apiErrors.js';
 
 const BASE = '/api';
+const FILENAME_RE = /filename="?([^"]+)"?/;
 
 function getToken() {
   return localStorage.getItem('token');
@@ -61,7 +62,7 @@ async function downloadFile(path) {
 
   if (res.status === 401) {
     localStorage.removeItem('token');
-    window.dispatchEvent(new CustomEvent('auth:logout', { detail: { expired: true } }));
+    globalThis.dispatchEvent(new CustomEvent('auth:logout', { detail: { expired: true } }));
     const err = new Error(i18n.t('errors.sessionExpired'));
     err.status = res.status;
     throw err;
@@ -77,7 +78,7 @@ async function downloadFile(path) {
   }
 
   const disposition = res.headers.get('Content-Disposition') || '';
-  const match = disposition.match(/filename="?([^"]+)"?/);
+  const match = FILENAME_RE.exec(disposition);
   return { blob: await res.blob(), filename: match ? match[1] : 'download' };
 }
 
@@ -150,7 +151,8 @@ export const incomeApi = {
     if (month) params.set('month', month);
     if (vehicleId) params.set('vehicleId', vehicleId);
     const qs = params.toString();
-    return request(`/income${qs ? `?${qs}` : ''}`, { signal });
+    const suffix = qs ? `?${qs}` : '';
+    return request(`/income${suffix}`, { signal });
   },
   get: (id) => request(`/income/${id}`),
   create: (data) => request('/income', { method: 'POST', body: data }),

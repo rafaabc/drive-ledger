@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { reportsApi } from '@/services/apiService.js';
 import { useAuth } from '@/context/AuthContext.jsx';
@@ -20,7 +21,7 @@ function triggerDownload(blob, filename) {
   a.download = filename;
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
+  a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
@@ -32,6 +33,10 @@ function UpgradePrompt({ t }) {
     </div>
   );
 }
+
+UpgradePrompt.propTypes = {
+  t: PropTypes.func.isRequired,
+};
 
 export default function ReportsPage() {
   const { t } = useTranslation();
