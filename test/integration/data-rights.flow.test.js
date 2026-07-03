@@ -13,6 +13,9 @@ require('../helpers/email-mock');
 const authService = require('../../lib/services/auth.service');
 const userModel = require('../../lib/models/user.model');
 const expensesService = require('../../lib/services/expenses.service');
+const vehiclesService = require('../../lib/services/vehicles.service');
+const vehicleModel = require('../../lib/models/vehicle.model');
+const incomeModel = require('../../lib/models/income.model');
 
 before(async () => await startMongo());
 after(async () => await stopMongo());
@@ -56,11 +59,22 @@ describe('data rights flow', () => {
     assert.ok(!exported.user.password); // must not leak password
     assert.ok(exported.user.emailVerificationToken === undefined); // must not leak token
 
+    const [vehicle] = await vehiclesService.listVehicles(userId);
+    await incomeModel.create({
+      userId,
+      vehicleId: vehicle.id,
+      date: new Date(),
+      amount: 100,
+      source: 'Uber',
+    });
+
     // Delete account
     await authService.deleteAccount({ userId, password: 'password1' });
 
-    // User should no longer exist
+    // User and all owned records should no longer exist
     const deletedUser = await userModel.findById(userId);
     assert.strictEqual(deletedUser, null);
+    assert.strictEqual((await vehicleModel.findByUserId(userId)).length, 0);
+    assert.strictEqual((await incomeModel.findByUserId(userId)).length, 0);
   });
 });
