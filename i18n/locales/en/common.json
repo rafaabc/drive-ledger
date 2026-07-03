@@ -7,7 +7,8 @@
     "edit": "Edit",
     "delete": "Delete",
     "or": "or",
-    "new": "New"
+    "new": "New",
+    "pro": "PRO"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -15,6 +16,9 @@
     "recurring": "Recurring",
     "summary": "Summary",
     "reminders": "Reminders",
+    "vehicles": "Vehicles",
+    "income": "Income",
+    "reports": "Reports",
     "settings": "Settings",
     "changePassword": "Change password",
     "logout": "Log out"
@@ -105,6 +109,11 @@
     "language": {
       "label": "Language",
       "success": "Language updated successfully."
+    },
+    "notifications": {
+      "heading": "Notifications",
+      "reminderEmails": "Email me a digest of overdue and due-soon reminders",
+      "success": "Notification preferences updated."
     },
     "linkedAccounts": "Linked accounts",
     "googleConnected": "Google account connected",
@@ -220,7 +229,13 @@
     "accountDeleted": "Account not found.",
     "consentRequired": "You must accept the privacy policy and terms to register.",
     "recurringRuleNotFound": "Recurring rule not found.",
-    "fuelNotRecurring": "Fuel expenses cannot be set as recurring."
+    "fuelNotRecurring": "Fuel expenses cannot be set as recurring.",
+    "vehicleNotFound": "Vehicle not found.",
+    "vehicleLimitReached": "Free plan is limited to 1 vehicle. Upgrade to Pro to add more.",
+    "vehicleNameRequired": "Vehicle name is required.",
+    "incomeNotFound": "Income entry not found.",
+    "incomeFeatureLocked": "Income tracking is a Pro feature. Upgrade to unlock it.",
+    "reportsFeatureLocked": "Tax-ready reports are a Pro feature. Upgrade to unlock them."
   },
   "pwa": {
     "updateAvailable": "New version available.",
@@ -268,11 +283,74 @@
       "confirmDeleteHistory2": "Confirm permanent deletion?"
     }
   },
-  "vehicle": {
-    "heading": "Vehicle",
-    "currentKm": "Current odometer (km)",
-    "currentKmHint": "Updates automatically when you log Fuel with an odometer reading.",
-    "saveSuccess": "Odometer updated."
+  "vehicles": {
+    "heading": "Vehicles",
+    "noVehicles": "No vehicles yet.",
+    "addNew": "Add vehicle",
+    "editVehicle": "Edit vehicle",
+    "currentKm": "{{km}} km",
+    "fields": {
+      "name": "Name",
+      "namePlaceholder": "e.g. My Civic",
+      "currentKm": "Current odometer (km)",
+      "currentKmHint": "Updates automatically when you log Fuel with an odometer reading. Edit here to correct it manually."
+    },
+    "actions": {
+      "confirmDelete": "Delete this vehicle? Its expenses and reminders are kept but unassigned.",
+      "deleteSuccess": "Vehicle deleted.",
+      "createSuccess": "Vehicle added.",
+      "updateSuccess": "Vehicle updated."
+    },
+    "upgrade": {
+      "heading": "Free plan is limited to 1 vehicle",
+      "body": "Upgrade to Pro to track unlimited vehicles, income, and tax-ready reports."
+    }
+  },
+  "income": {
+    "heading": "Income",
+    "noIncome": "No income entries yet.",
+    "addNew": "Add income",
+    "editIncome": "Edit income",
+    "fields": {
+      "date": "Date",
+      "amount": "Amount",
+      "source": "Source",
+      "note": "Note (optional)"
+    },
+    "sources": {
+      "Other": "Other"
+    },
+    "summary": {
+      "heading": "Profit summary",
+      "totalIncome": "Income",
+      "totalExpenses": "Expenses",
+      "profit": "Profit",
+      "profitPerKm": "Profit / km",
+      "profitPerDay": "Profit / day",
+      "noKmData": "Log at least 2 Fuel entries with odometer to see profit per km."
+    },
+    "actions": {
+      "confirmDelete": "Delete this income entry?",
+      "deleteSuccess": "Income entry deleted.",
+      "createSuccess": "Income added.",
+      "updateSuccess": "Income updated."
+    },
+    "upgrade": {
+      "heading": "Income tracking is a Pro feature",
+      "body": "Upgrade to Pro to log income and see profit-per-km and profit-per-day."
+    }
+  },
+  "reports": {
+    "heading": "Reports",
+    "description": "Download a tax-ready summary of income, expenses, and profit for a given year.",
+    "year": "Year",
+    "downloadCsv": "Download CSV",
+    "downloadPdf": "Download PDF",
+    "downloading": "Preparing…",
+    "upgrade": {
+      "heading": "Tax-ready reports are a Pro feature",
+      "body": "Upgrade to Pro to download income-tax-ready CSV and PDF reports."
+    }
   },
   "mobile": {
     "newAction": "What do you want to add?",

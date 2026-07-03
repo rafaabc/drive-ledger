@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { KeyRound } from 'lucide-react';
+import { KeyRound, Car, DollarSign, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { useAsyncAction } from '@/hooks/useAsyncAction.js';
@@ -14,25 +15,57 @@ import { authApi } from '@/services/apiService.js';
 import { SUPPORTED_CURRENCIES } from '@/constants/currencies.js';
 import styles from './SettingsPage.module.css';
 
+function ProBadge({ t }) {
+  return (
+    <span
+      style={{
+        background: 'var(--primary-dim)',
+        border: '1px solid var(--primary-glow)',
+        color: 'var(--primary)',
+        borderRadius: '999px',
+        fontFamily: 'var(--font-display)',
+        fontSize: '0.62rem',
+        fontWeight: 700,
+        letterSpacing: '0.06em',
+        padding: '0.08rem 0.4rem',
+      }}
+    >
+      {t('common.pro')}
+    </span>
+  );
+}
+
+ProBadge.propTypes = {
+  t: PropTypes.func.isRequired,
+};
+
 export default function SettingsPage() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { username, currency, updateCurrency, language, updateLanguage, emailVerified, logout } =
-    useAuth();
+  const {
+    username,
+    currency,
+    updateCurrency,
+    language,
+    updateLanguage,
+    emailVerified,
+    logout,
+    plan,
+    reminderEmailsEnabled,
+    updateNotificationPrefs,
+  } = useAuth();
   const [selected, setSelected] = useState(currency);
   const [selectedLang, setSelectedLang] = useState(language);
 
   const currencyAction = useAsyncAction();
   const langAction = useAsyncAction();
-  const odoAction = useAsyncAction();
+  const notificationsAction = useAsyncAction();
   const resendAction = useAsyncAction();
 
   useAutoClear(currencyAction.success, currencyAction.setSuccess);
   useAutoClear(langAction.success, langAction.setSuccess);
-  useAutoClear(odoAction.success, odoAction.setSuccess);
+  useAutoClear(notificationsAction.success, notificationsAction.setSuccess);
   useAutoClear(resendAction.success, resendAction.setSuccess);
-
-  const [odoKm, setOdoKm] = useState('');
 
   const [providers, setProviders] = useState(null);
   const [linkError, setLinkError] = useState('');
@@ -62,9 +95,8 @@ export default function SettingsPage() {
     await langAction.run(() => updateLanguage(selectedLang));
   }
 
-  async function handleOdoSubmit(e) {
-    e.preventDefault();
-    await odoAction.run(() => authApi.updateOdometer({ currentKm: Number(odoKm) }));
+  async function handleReminderEmailsToggle(e) {
+    await notificationsAction.run(() => updateNotificationPrefs(e.target.checked));
   }
 
   async function handleUnlink() {
@@ -193,28 +225,31 @@ export default function SettingsPage() {
 
       <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
 
-      <form onSubmit={handleOdoSubmit} style={{ maxWidth: '400px' }}>
-        <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>
-          {t('vehicle.heading')}
-        </h2>
-        {odoAction.success && <ErrorBanner type="success" message={t('vehicle.saveSuccess')} />}
-        {odoAction.error && <ErrorBanner message={odoAction.error} />}
-        <div className="form-group">
-          <label htmlFor="settings-odo">{t('vehicle.currentKm')}</label>
-          <input
-            id="settings-odo"
-            type="number"
-            min="0"
-            step="1"
-            value={odoKm}
-            onChange={(e) => setOdoKm(e.target.value)}
-          />
-          <small>{t('vehicle.currentKmHint')}</small>
-        </div>
-        <button type="submit" className="btn-primary" disabled={odoAction.loading || !odoKm}>
-          {odoAction.loading ? t('common.saving') : t('common.save')}
-        </button>
-      </form>
+      <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>
+        {t('settings.notifications.heading')}
+      </h2>
+      {notificationsAction.success && (
+        <ErrorBanner message={t('settings.notifications.success')} type="success" />
+      )}
+      {notificationsAction.error && <ErrorBanner message={notificationsAction.error} />}
+      <label
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.6rem',
+          cursor: 'pointer',
+          maxWidth: '400px',
+        }}
+      >
+        <input
+          type="checkbox"
+          style={{ width: 'auto' }}
+          checked={reminderEmailsEnabled}
+          disabled={notificationsAction.loading}
+          onChange={handleReminderEmailsToggle}
+        />
+        {t('settings.notifications.reminderEmails')}
+      </label>
 
       <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
 
@@ -283,6 +318,29 @@ export default function SettingsPage() {
           </button>
         </>
       )}
+
+      <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
+
+      <Link href="/vehicles" className={styles.settingsLink}>
+        <Car size={16} />
+        {t('nav.vehicles')}
+      </Link>
+
+      <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
+
+      <Link href="/income" className={styles.settingsLink}>
+        <DollarSign size={16} />
+        {t('nav.income')}
+        {plan !== 'pro' && <ProBadge t={t} />}
+      </Link>
+
+      <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
+
+      <Link href="/reports" className={styles.settingsLink}>
+        <FileText size={16} />
+        {t('nav.reports')}
+        {plan !== 'pro' && <ProBadge t={t} />}
+      </Link>
 
       <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
 

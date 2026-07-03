@@ -29,7 +29,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/rafaabc/norevify/issues"
@@ -46,6 +46,7 @@
     "lucide-react": "^1.16.0",
     "mongoose": "^9.7.2",
     "next": "16.2.9",
+    "pdfkit": "^0.19.1",
     "pino": "^10.3.1",
     "posthog-js": "^1.374.3",
     "prop-types": "^15.8.1",

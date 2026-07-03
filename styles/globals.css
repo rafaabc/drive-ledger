@@ -262,7 +262,7 @@ label {
   max-width: 960px;
   margin: 2.5rem auto;
   padding: 0 1.5rem;
-  animation: fadeUp 0.3s ease both;
+  animation: fadeUp 0.3s ease;
 }
 
 @keyframes fadeUp {
@@ -512,6 +512,14 @@ tbody tr:hover td {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+/* Native <dialog>-based .modal (see components/Modal.jsx): reset UA dialog
+   defaults so it lays out identically to the div-based .modal above. */
+dialog.modal {
+  position: static;
+  margin: 0;
+  color: inherit;
 }
 
 .modal-actions {

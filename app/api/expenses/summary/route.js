@@ -12,6 +12,7 @@ export const GET = withAuth(async (req, _ctx, user) => {
       year: searchParams.get('year'),
       month: searchParams.get('month'),
       category: searchParams.get('category'),
+      vehicleId: searchParams.get('vehicleId'),
     });
     return NextResponse.json(result);
   } catch (err) {

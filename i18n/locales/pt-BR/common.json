@@ -7,7 +7,8 @@
     "edit": "Editar",
     "delete": "Excluir",
     "or": "ou",
-    "new": "Novo"
+    "new": "Novo",
+    "pro": "PRO"
   },
   "nav": {
     "dashboard": "Painel",
@@ -15,6 +16,9 @@
     "recurring": "Recorrentes",
     "summary": "Resumo",
     "reminders": "Lembretes",
+    "vehicles": "Veículos",
+    "income": "Receita",
+    "reports": "Relatórios",
     "settings": "Configurações",
     "changePassword": "Alterar senha",
     "logout": "Sair"
@@ -105,6 +109,11 @@
     "language": {
       "label": "Idioma",
       "success": "Idioma atualizado com sucesso."
+    },
+    "notifications": {
+      "heading": "Notificações",
+      "reminderEmails": "Enviar por email um resumo de lembretes atrasados e vencendo em breve",
+      "success": "Preferências de notificação atualizadas."
     },
     "linkedAccounts": "Contas vinculadas",
     "googleConnected": "Conta Google vinculada",
@@ -220,7 +229,13 @@
     "accountDeleted": "Conta não encontrada.",
     "consentRequired": "Você deve aceitar a política de privacidade e os termos para se cadastrar.",
     "recurringRuleNotFound": "Regra de recorrência não encontrada.",
-    "fuelNotRecurring": "Despesas de combustível não podem ser recorrentes."
+    "fuelNotRecurring": "Despesas de combustível não podem ser recorrentes.",
+    "vehicleNotFound": "Veículo não encontrado.",
+    "vehicleLimitReached": "O plano gratuito permite apenas 1 veículo. Faça upgrade para o Pro para adicionar mais.",
+    "vehicleNameRequired": "O nome do veículo é obrigatório.",
+    "incomeNotFound": "Registro de receita não encontrado.",
+    "incomeFeatureLocked": "O controle de receita é um recurso Pro. Faça upgrade para desbloquear.",
+    "reportsFeatureLocked": "Relatórios prontos para o imposto de renda são um recurso Pro. Faça upgrade para desbloquear."
   },
   "pwa": {
     "updateAvailable": "Nova versão disponível.",
@@ -268,11 +283,74 @@
       "confirmDeleteHistory2": "Confirmar exclusão definitiva?"
     }
   },
-  "vehicle": {
-    "heading": "Veículo",
-    "currentKm": "Quilometragem atual (km)",
-    "currentKmHint": "Atualiza automaticamente quando você registra um abastecimento com hodômetro.",
-    "saveSuccess": "Hodômetro atualizado."
+  "vehicles": {
+    "heading": "Veículos",
+    "noVehicles": "Nenhum veículo cadastrado.",
+    "addNew": "Adicionar veículo",
+    "editVehicle": "Editar veículo",
+    "currentKm": "{{km}} km",
+    "fields": {
+      "name": "Nome",
+      "namePlaceholder": "ex.: Meu Civic",
+      "currentKm": "Quilometragem atual (km)",
+      "currentKmHint": "Atualiza automaticamente ao registrar um abastecimento com hodômetro. Edite aqui para corrigir manualmente."
+    },
+    "actions": {
+      "confirmDelete": "Excluir este veículo? As despesas e lembretes são mantidos, porém desvinculados.",
+      "deleteSuccess": "Veículo excluído.",
+      "createSuccess": "Veículo adicionado.",
+      "updateSuccess": "Veículo atualizado."
+    },
+    "upgrade": {
+      "heading": "O plano gratuito permite apenas 1 veículo",
+      "body": "Faça upgrade para o Pro para acompanhar veículos ilimitados, receita e relatórios prontos para o imposto de renda."
+    }
+  },
+  "income": {
+    "heading": "Receita",
+    "noIncome": "Nenhuma receita cadastrada.",
+    "addNew": "Adicionar receita",
+    "editIncome": "Editar receita",
+    "fields": {
+      "date": "Data",
+      "amount": "Valor",
+      "source": "Origem",
+      "note": "Observação (opcional)"
+    },
+    "sources": {
+      "Other": "Outro"
+    },
+    "summary": {
+      "heading": "Resumo de lucro",
+      "totalIncome": "Receita",
+      "totalExpenses": "Despesas",
+      "profit": "Lucro",
+      "profitPerKm": "Lucro / km",
+      "profitPerDay": "Lucro / dia",
+      "noKmData": "Registre pelo menos 2 abastecimentos com hodômetro para ver o lucro por km."
+    },
+    "actions": {
+      "confirmDelete": "Excluir esta receita?",
+      "deleteSuccess": "Receita excluída.",
+      "createSuccess": "Receita adicionada.",
+      "updateSuccess": "Receita atualizada."
+    },
+    "upgrade": {
+      "heading": "O controle de receita é um recurso Pro",
+      "body": "Faça upgrade para o Pro para registrar receitas e ver lucro por km e por dia."
+    }
+  },
+  "reports": {
+    "heading": "Relatórios",
+    "description": "Baixe um resumo pronto para o imposto de renda com receita, despesas e lucro de um ano específico.",
+    "year": "Ano",
+    "downloadCsv": "Baixar CSV",
+    "downloadPdf": "Baixar PDF",
+    "downloading": "Preparando…",
+    "upgrade": {
+      "heading": "Relatórios prontos para o imposto de renda são um recurso Pro",
+      "body": "Faça upgrade para o Pro para baixar relatórios em CSV e PDF prontos para o imposto de renda."
+    }
   },
   "mobile": {
     "newAction": "O que deseja criar?",

@@ -9,6 +9,9 @@ import {
   Settings,
   Bell,
   RefreshCw,
+  Car,
+  DollarSign,
+  FileText,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext.jsx';
@@ -16,7 +19,7 @@ import NavLink from './NavLink.jsx';
 import styles from './Sidebar.module.css';
 
 export default function Sidebar({ badgeCount = 0 }) {
-  const { username, logout } = useAuth();
+  const { username, logout, plan } = useAuth();
   const { t } = useTranslation();
 
   const NAV_ITEMS = [
@@ -24,6 +27,9 @@ export default function Sidebar({ badgeCount = 0 }) {
     { to: '/expenses', icon: Receipt, label: t('nav.expenses') },
     { to: '/recurring', icon: RefreshCw, label: t('nav.recurring') },
     { to: '/reminders', icon: Bell, label: t('nav.reminders'), badge: badgeCount },
+    { to: '/vehicles', icon: Car, label: t('nav.vehicles') },
+    { to: '/income', icon: DollarSign, label: t('nav.income'), pro: plan !== 'pro' },
+    { to: '/reports', icon: FileText, label: t('nav.reports'), pro: plan !== 'pro' },
     { to: '/summary', icon: BarChart3, label: t('nav.summary') },
     { to: '/change-password', icon: KeyRound, label: t('nav.changePassword') },
     { to: '/settings', icon: Settings, label: t('nav.settings') },
@@ -39,7 +45,7 @@ export default function Sidebar({ badgeCount = 0 }) {
       </div>
 
       <nav className={styles.nav}>
-        {NAV_ITEMS.map(({ to, icon: Icon, label, end, badge }) => (
+        {NAV_ITEMS.map(({ to, icon: Icon, label, end, badge, pro }) => (
           <NavLink
             key={to}
             href={to}
@@ -51,6 +57,7 @@ export default function Sidebar({ badgeCount = 0 }) {
             <Icon size={16} className={styles.navIcon} />
             {label}
             {badge > 0 && <span className={styles.navBadge}>{badge}</span>}
+            {pro && <span className={styles.proBadge}>{t('common.pro')}</span>}
           </NavLink>
         ))}
       </nav>

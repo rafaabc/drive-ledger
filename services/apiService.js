@@ -3,6 +3,7 @@ import i18n from '@/i18n/index.js';
 import { API_ERROR_MAP } from '@/i18n/apiErrors.js';
 
 const BASE = '/api';
+const FILENAME_RE = /filename="?([^"]+)"?/;
 
 function getToken() {
   return localStorage.getItem('token');
@@ -52,12 +53,43 @@ async function request(path, { method = 'GET', body = null, auth = true, signal 
   return res.json().catch(() => null);
 }
 
+async function downloadFile(path) {
+  const headers = {};
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE}${path}`, { headers });
+
+  if (res.status === 401) {
+    localStorage.removeItem('token');
+    globalThis.dispatchEvent(new CustomEvent('auth:logout', { detail: { expired: true } }));
+    const err = new Error(i18n.t('errors.sessionExpired'));
+    err.status = res.status;
+    throw err;
+  }
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    const rawMessage = data.message || `Request failed: ${res.status}`;
+    const i18nKey = API_ERROR_MAP[rawMessage];
+    const err = new Error(i18nKey ? i18n.t(i18nKey) : i18n.t('errors.generic'));
+    err.status = res.status;
+    throw err;
+  }
+
+  const disposition = res.headers.get('Content-Disposition') || '';
+  const match = FILENAME_RE.exec(disposition);
+  return { blob: await res.blob(), filename: match ? match[1] : 'download' };
+}
+
 export const authApi = {
   register: (data) => request('/auth/register', { method: 'POST', body: data, auth: false }),
   login: (data) => request('/auth/login', { method: 'POST', body: data, auth: false }),
   changePassword: (data) => request('/auth/password', { method: 'PATCH', body: data, auth: true }),
   updateCurrency: (data) => request('/auth/currency', { method: 'PATCH', body: data, auth: true }),
   updateLanguage: (data) => request('/auth/language', { method: 'PATCH', body: data, auth: true }),
+  updateNotificationPrefs: (data) =>
+    request('/auth/notifications', { method: 'PATCH', body: data, auth: true }),
   forgotPassword: (data) =>
     request('/auth/forgot-password', { method: 'POST', body: data, auth: false }),
   resetPassword: (data) =>
@@ -66,7 +98,6 @@ export const authApi = {
   linkGoogle: (data) => request('/auth/google/link', { method: 'POST', body: data, auth: true }),
   unlinkGoogle: () => request('/auth/google/link', { method: 'DELETE', auth: true }),
   getProviders: () => request('/auth/providers', { auth: true }),
-  updateOdometer: (data) => request('/auth/odometer', { method: 'PATCH', body: data, auth: true }),
   verifyEmail: (data) => request('/auth/verify-email', { method: 'POST', body: data, auth: false }),
   resendVerification: () => request('/auth/resend-verification', { method: 'POST', auth: true }),
   exportData: () => request('/auth/me/export', { auth: true }),
@@ -103,6 +134,48 @@ export const recurringApi = {
   update: (id, data) => request(`/recurring/${id}`, { method: 'PUT', body: data }),
   remove: (id) => request(`/recurring/${id}`, { method: 'DELETE' }),
   catchUp: () => request('/recurring/catch-up', { method: 'POST' }),
+};
+
+export const vehiclesApi = {
+  list: () => request('/vehicles'),
+  get: (id) => request(`/vehicles/${id}`),
+  create: (data) => request('/vehicles', { method: 'POST', body: data }),
+  update: (id, data) => request(`/vehicles/${id}`, { method: 'PATCH', body: data }),
+  remove: (id) => request(`/vehicles/${id}`, { method: 'DELETE' }),
+};
+
+export const incomeApi = {
+  list: ({ year, month, vehicleId } = {}, signal = null) => {
+    const params = new URLSearchParams();
+    if (year) params.set('year', year);
+    if (month) params.set('month', month);
+    if (vehicleId) params.set('vehicleId', vehicleId);
+    const qs = params.toString();
+    const suffix = qs ? `?${qs}` : '';
+    return request(`/income${suffix}`, { signal });
+  },
+  get: (id) => request(`/income/${id}`),
+  create: (data) => request('/income', { method: 'POST', body: data }),
+  update: (id, data) => request(`/income/${id}`, { method: 'PUT', body: data }),
+  remove: (id) => request(`/income/${id}`, { method: 'DELETE' }),
+  summary: ({ year, month, vehicleId } = {}) => {
+    const params = new URLSearchParams();
+    if (year) params.set('year', year);
+    if (month) params.set('month', month);
+    if (vehicleId) params.set('vehicleId', vehicleId);
+    return request(`/income/summary?${params.toString()}`);
+  },
+};
+
+export const reportsApi = {
+  download: ({ year, month, vehicleId, format }) => {
+    const params = new URLSearchParams();
+    if (year) params.set('year', year);
+    if (month) params.set('month', month);
+    if (vehicleId) params.set('vehicleId', vehicleId);
+    if (format) params.set('format', format);
+    return downloadFile(`/reports?${params.toString()}`);
+  },
 };
 
 export const remindersApi = {
