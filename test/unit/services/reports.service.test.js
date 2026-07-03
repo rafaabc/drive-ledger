@@ -20,7 +20,7 @@ beforeEach(async () => await resetMongo());
 const TODAY = new Date().toISOString().slice(0, 10);
 const YEAR = new Date().getUTCFullYear();
 
-async function proUser(username) {
+async function proUser(username, currency) {
   const u = new mongoose.Types.ObjectId().toString();
   await userModel.create({
     _id: u,
@@ -28,6 +28,7 @@ async function proUser(username) {
     password: 'x',
     email: `${username}@test.com`,
     plan: 'pro',
+    ...(currency && { currency }),
   });
   return u;
 }
@@ -67,9 +68,19 @@ describe('reportsService.generateReport()', () => {
     const result = await reportsService.generateReport(u, { year: String(YEAR) }, 'csv');
     assert.strictEqual(result.contentType, 'text/csv');
     assert.match(result.filename, /\.csv$/);
-    assert.match(result.body, /Total Income,1000\.00/);
-    assert.match(result.body, /Parking,300\.00/);
-    assert.match(result.body, /Net Profit,700\.00/);
+    assert.match(result.body, /Currency,BRL/);
+    assert.match(result.body, /Total Income,1000\.00 BRL/);
+    assert.match(result.body, /Parking,300\.00 BRL/);
+    assert.match(result.body, /Net Profit,700\.00 BRL/);
+  });
+
+  it('uses the requesting users own currency in the report', async () => {
+    const u = await proUser('proreport5', 'USD');
+    await incomeService.createIncome(u, { date: TODAY, amount: 1000, source: 'Uber' });
+
+    const result = await reportsService.generateReport(u, { year: String(YEAR) }, 'csv');
+    assert.match(result.body, /Currency,USD/);
+    assert.match(result.body, /Total Income,1000\.00 USD/);
   });
 
   it('includes the vehicle name when vehicleId is provided', async () => {
