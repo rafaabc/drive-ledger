@@ -53,7 +53,12 @@ describe('billingService.createCheckoutSession()', () => {
 
     let customersCreateCalled = false;
     mock.method(stripeLib, 'getStripe', () => ({
-      customers: { create: async () => { customersCreateCalled = true; return { id: 'cus_should_not_be_used' }; } },
+      customers: {
+        create: async () => {
+          customersCreateCalled = true;
+          return { id: 'cus_should_not_be_used' };
+        },
+      },
       checkout: {
         sessions: {
           create: async (opts) => {
@@ -75,7 +80,8 @@ describe('billingService.createCheckoutSession()', () => {
       email: 'checkoutuser3@test.com',
     });
     await assert.rejects(
-      () => billingService.createCheckoutSession({ userId: user._id.toString(), interval: 'weekly' }),
+      () =>
+        billingService.createCheckoutSession({ userId: user._id.toString(), interval: 'weekly' }),
       (err) => err.status === 400,
     );
   });
@@ -220,6 +226,38 @@ describe('billingService.handleWebhookEvent()', () => {
     const updated = await userModel.findByStripeCustomerId('cus_wh6');
     assert.strictEqual(updated.plan, 'pro');
     assert.strictEqual(updated.stripeSubscriptionStatus, 'past_due');
+  });
+
+  it('does not reprocess a stale retried event delivered after a later event already changed state', async () => {
+    // Reproduces the concrete Stripe redelivery race: checkout.session.completed (evt_a)
+    // fails transiently and gets queued for retry; meanwhile the subscription is
+    // cancelled and customer.subscription.deleted (evt_b) lands and succeeds first.
+    // When Stripe retries evt_a afterward, it must still be recognized as already
+    // processed and NOT re-apply plan:'pro' over the cancellation.
+    await makeStripeUser({ stripeCustomerId: 'cus_wh_race' });
+    const evtA = {
+      id: 'evt_race_a',
+      type: 'checkout.session.completed',
+      data: { object: { customer: 'cus_wh_race', subscription: 'sub_race' } },
+    };
+    const evtB = {
+      id: 'evt_race_b',
+      type: 'customer.subscription.deleted',
+      data: { object: { customer: 'cus_wh_race', id: 'sub_race' } },
+    };
+
+    await billingService.handleWebhookEvent(evtA);
+    let updated = await userModel.findByStripeCustomerId('cus_wh_race');
+    assert.strictEqual(updated.plan, 'pro');
+
+    await billingService.handleWebhookEvent(evtB);
+    updated = await userModel.findByStripeCustomerId('cus_wh_race');
+    assert.strictEqual(updated.plan, 'free');
+
+    // Stripe redelivers evt_a (the stale, previously-processed event) after evt_b.
+    await billingService.handleWebhookEvent(evtA);
+    updated = await userModel.findByStripeCustomerId('cus_wh_race');
+    assert.strictEqual(updated.plan, 'free', 'stale retried event must not resurrect plan=pro');
   });
 
   it('silently ignores an event for an unknown customer id', async () => {
