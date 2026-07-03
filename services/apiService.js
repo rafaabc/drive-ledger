@@ -87,6 +87,8 @@ export const authApi = {
   changePassword: (data) => request('/auth/password', { method: 'PATCH', body: data, auth: true }),
   updateCurrency: (data) => request('/auth/currency', { method: 'PATCH', body: data, auth: true }),
   updateLanguage: (data) => request('/auth/language', { method: 'PATCH', body: data, auth: true }),
+  updateNotificationPrefs: (data) =>
+    request('/auth/notifications', { method: 'PATCH', body: data, auth: true }),
   forgotPassword: (data) =>
     request('/auth/forgot-password', { method: 'POST', body: data, auth: false }),
   resetPassword: (data) =>

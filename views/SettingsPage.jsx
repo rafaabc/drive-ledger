@@ -46,16 +46,20 @@ export default function SettingsPage() {
     emailVerified,
     logout,
     plan,
+    reminderEmailsEnabled,
+    updateNotificationPrefs,
   } = useAuth();
   const [selected, setSelected] = useState(currency);
   const [selectedLang, setSelectedLang] = useState(language);
 
   const currencyAction = useAsyncAction();
   const langAction = useAsyncAction();
+  const notificationsAction = useAsyncAction();
   const resendAction = useAsyncAction();
 
   useAutoClear(currencyAction.success, currencyAction.setSuccess);
   useAutoClear(langAction.success, langAction.setSuccess);
+  useAutoClear(notificationsAction.success, notificationsAction.setSuccess);
   useAutoClear(resendAction.success, resendAction.setSuccess);
 
   const [providers, setProviders] = useState(null);
@@ -84,6 +88,10 @@ export default function SettingsPage() {
   async function handleLangSubmit(e) {
     e.preventDefault();
     await langAction.run(() => updateLanguage(selectedLang));
+  }
+
+  async function handleReminderEmailsToggle(e) {
+    await notificationsAction.run(() => updateNotificationPrefs(e.target.checked));
   }
 
   async function handleUnlink() {
@@ -209,6 +217,34 @@ export default function SettingsPage() {
           {langAction.loading ? t('common.saving') : t('common.save')}
         </button>
       </form>
+
+      <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
+
+      <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>
+        {t('settings.notifications.heading')}
+      </h2>
+      {notificationsAction.success && (
+        <ErrorBanner message={t('settings.notifications.success')} type="success" />
+      )}
+      {notificationsAction.error && <ErrorBanner message={notificationsAction.error} />}
+      <label
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.6rem',
+          cursor: 'pointer',
+          maxWidth: '400px',
+        }}
+      >
+        <input
+          type="checkbox"
+          style={{ width: 'auto' }}
+          checked={reminderEmailsEnabled}
+          disabled={notificationsAction.loading}
+          onChange={handleReminderEmailsToggle}
+        />
+        {t('settings.notifications.reminderEmails')}
+      </label>
 
       <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
 

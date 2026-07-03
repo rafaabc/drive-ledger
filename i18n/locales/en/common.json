@@ -110,6 +110,11 @@
       "label": "Language",
       "success": "Language updated successfully."
     },
+    "notifications": {
+      "heading": "Notifications",
+      "reminderEmails": "Email me a digest of overdue and due-soon reminders",
+      "success": "Notification preferences updated."
+    },
     "linkedAccounts": "Linked accounts",
     "googleConnected": "Google account connected",
     "googleDisconnected": "Google account disconnected.",

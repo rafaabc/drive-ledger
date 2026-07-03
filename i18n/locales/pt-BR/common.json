@@ -110,6 +110,11 @@
       "label": "Idioma",
       "success": "Idioma atualizado com sucesso."
     },
+    "notifications": {
+      "heading": "Notificações",
+      "reminderEmails": "Enviar por email um resumo de lembretes atrasados e vencendo em breve",
+      "success": "Preferências de notificação atualizadas."
+    },
     "linkedAccounts": "Contas vinculadas",
     "googleConnected": "Conta Google vinculada",
     "googleDisconnected": "Conta Google desvinculada.",

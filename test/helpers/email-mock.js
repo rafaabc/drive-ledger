@@ -5,5 +5,6 @@
 const emailService = require('../../lib/services/email.service');
 emailService.sendVerificationEmail = async () => {};
 emailService.sendPasswordResetEmail = async () => {};
+emailService.sendReminderDigest = async () => {};
 
 module.exports = emailService;
