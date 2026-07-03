@@ -14,7 +14,14 @@ export default function I18nProvider({ children }) {
   useEffect(() => {
     const saved = localStorage.getItem('i18nextLng');
     if (saved && saved !== i18n.language) {
-      i18n.changeLanguage(saved);
+      // Deferred to a macrotask: pages using useSearchParams are wrapped in their
+      // own <Suspense> boundary, which can hydrate in a separate pass after this
+      // effect runs. Calling changeLanguage() synchronously here mutates the
+      // shared i18n store before that boundary hydrates, so its client render
+      // diverges from the 'pt-BR' text baked into its SSR HTML — a hydration
+      // mismatch. Deferring past the current task lets all boundaries finish
+      // hydrating against the SSR-matching language first.
+      setTimeout(() => i18n.changeLanguage(saved), 0);
     }
   }, []);
   return children;

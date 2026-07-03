@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import i18n from '@/i18n/index.js';
 import I18nProvider from '@/components/I18nProvider';
@@ -11,6 +11,12 @@ describe('I18nProvider', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
   });
 
   it('should render children', () => {
@@ -31,6 +37,11 @@ describe('I18nProvider', () => {
         </I18nProvider>,
       );
     });
+    // The apply is deferred to a macrotask (see I18nProvider.jsx) so it doesn't
+    // race Suspense-boundary hydration elsewhere in the tree.
+    act(() => {
+      vi.runAllTimers();
+    });
     expect(i18n.changeLanguage).toHaveBeenCalledWith('en');
   });
 
@@ -43,6 +54,9 @@ describe('I18nProvider', () => {
         </I18nProvider>,
       );
     });
+    act(() => {
+      vi.runAllTimers();
+    });
     expect(i18n.changeLanguage).not.toHaveBeenCalled();
   });
 
@@ -53,6 +67,9 @@ describe('I18nProvider', () => {
           <span>x</span>
         </I18nProvider>,
       );
+    });
+    act(() => {
+      vi.runAllTimers();
     });
     expect(i18n.changeLanguage).not.toHaveBeenCalled();
   });
