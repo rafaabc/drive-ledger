@@ -17,11 +17,14 @@ describe('lib/stripe.js getStripe()', () => {
   it('throws billing_not_configured when STRIPE_SECRET_KEY is missing', () => {
     delete process.env.STRIPE_SECRET_KEY;
     const { getStripe } = require('../../lib/stripe.js');
-    assert.throws(() => getStripe(), (err) => {
-      assert.strictEqual(err.status, 500);
-      assert.strictEqual(err.message, 'billing_not_configured');
-      return true;
-    });
+    assert.throws(
+      () => getStripe(),
+      (err) => {
+        assert.strictEqual(err.status, 500);
+        assert.strictEqual(err.message, 'billing_not_configured');
+        return true;
+      },
+    );
   });
 
   it('returns a Stripe client instance when the key is set', () => {
