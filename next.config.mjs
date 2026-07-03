@@ -35,7 +35,7 @@ const securityHeaders = [
 
 const nextConfig = {
   devIndicators: false,
-  serverExternalPackages: ['@sentry/nextjs', 'require-in-the-middle'],
+  serverExternalPackages: ['@sentry/nextjs', 'require-in-the-middle', 'pdfkit'],
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },

@@ -18,6 +18,7 @@
     "reminders": "Reminders",
     "vehicles": "Vehicles",
     "income": "Income",
+    "reports": "Reports",
     "settings": "Settings",
     "changePassword": "Change password",
     "logout": "Log out"
@@ -228,7 +229,8 @@
     "vehicleLimitReached": "Free plan is limited to 1 vehicle. Upgrade to Pro to add more.",
     "vehicleNameRequired": "Vehicle name is required.",
     "incomeNotFound": "Income entry not found.",
-    "incomeFeatureLocked": "Income tracking is a Pro feature. Upgrade to unlock it."
+    "incomeFeatureLocked": "Income tracking is a Pro feature. Upgrade to unlock it.",
+    "reportsFeatureLocked": "Tax-ready reports are a Pro feature. Upgrade to unlock them."
   },
   "pwa": {
     "updateAvailable": "New version available.",
@@ -331,6 +333,18 @@
     "upgrade": {
       "heading": "Income tracking is a Pro feature",
       "body": "Upgrade to Pro to log income and see profit-per-km and profit-per-day."
+    }
+  },
+  "reports": {
+    "heading": "Reports",
+    "description": "Download a tax-ready summary of income, expenses, and profit for a given year.",
+    "year": "Year",
+    "downloadCsv": "Download CSV",
+    "downloadPdf": "Download PDF",
+    "downloading": "Preparing…",
+    "upgrade": {
+      "heading": "Tax-ready reports are a Pro feature",
+      "body": "Upgrade to Pro to download income-tax-ready CSV and PDF reports."
     }
   },
   "mobile": {

@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Car,
   DollarSign,
+  FileText,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext.jsx';
@@ -28,6 +29,7 @@ export default function Sidebar({ badgeCount = 0 }) {
     { to: '/reminders', icon: Bell, label: t('nav.reminders'), badge: badgeCount },
     { to: '/vehicles', icon: Car, label: t('nav.vehicles') },
     { to: '/income', icon: DollarSign, label: t('nav.income'), pro: plan !== 'pro' },
+    { to: '/reports', icon: FileText, label: t('nav.reports'), pro: plan !== 'pro' },
     { to: '/summary', icon: BarChart3, label: t('nav.summary') },
     { to: '/change-password', icon: KeyRound, label: t('nav.changePassword') },
     { to: '/settings', icon: Settings, label: t('nav.settings') },

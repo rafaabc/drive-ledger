@@ -3,7 +3,7 @@ node_modules/
 .next/
 .claude/
 coverage/
-reports/
+/reports/
 frontend/dist/
 .playwright-mcp/
 frontend/playwright-report/

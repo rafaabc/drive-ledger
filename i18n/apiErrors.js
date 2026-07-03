@@ -26,4 +26,5 @@ export const API_ERROR_MAP = {
   'name is required': 'errors.vehicleNameRequired',
   'Income not found': 'errors.incomeNotFound',
   income_feature_locked: 'errors.incomeFeatureLocked',
+  reports_feature_locked: 'errors.reportsFeatureLocked',
 };

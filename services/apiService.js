@@ -52,6 +52,35 @@ async function request(path, { method = 'GET', body = null, auth = true, signal 
   return res.json().catch(() => null);
 }
 
+async function downloadFile(path) {
+  const headers = {};
+  const token = getToken();
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE}${path}`, { headers });
+
+  if (res.status === 401) {
+    localStorage.removeItem('token');
+    window.dispatchEvent(new CustomEvent('auth:logout', { detail: { expired: true } }));
+    const err = new Error(i18n.t('errors.sessionExpired'));
+    err.status = res.status;
+    throw err;
+  }
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    const rawMessage = data.message || `Request failed: ${res.status}`;
+    const i18nKey = API_ERROR_MAP[rawMessage];
+    const err = new Error(i18nKey ? i18n.t(i18nKey) : i18n.t('errors.generic'));
+    err.status = res.status;
+    throw err;
+  }
+
+  const disposition = res.headers.get('Content-Disposition') || '';
+  const match = disposition.match(/filename="?([^"]+)"?/);
+  return { blob: await res.blob(), filename: match ? match[1] : 'download' };
+}
+
 export const authApi = {
   register: (data) => request('/auth/register', { method: 'POST', body: data, auth: false }),
   login: (data) => request('/auth/login', { method: 'POST', body: data, auth: false }),
@@ -131,6 +160,17 @@ export const incomeApi = {
     if (month) params.set('month', month);
     if (vehicleId) params.set('vehicleId', vehicleId);
     return request(`/income/summary?${params.toString()}`);
+  },
+};
+
+export const reportsApi = {
+  download: ({ year, month, vehicleId, format }) => {
+    const params = new URLSearchParams();
+    if (year) params.set('year', year);
+    if (month) params.set('month', month);
+    if (vehicleId) params.set('vehicleId', vehicleId);
+    if (format) params.set('format', format);
+    return downloadFile(`/reports?${params.toString()}`);
   },
 };
 

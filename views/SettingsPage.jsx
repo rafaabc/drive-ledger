@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { KeyRound, Car, DollarSign } from 'lucide-react';
+import { KeyRound, Car, DollarSign, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { useAsyncAction } from '@/hooks/useAsyncAction.js';
@@ -13,6 +13,26 @@ import PageTitle from '@/components/PageTitle.jsx';
 import { authApi } from '@/services/apiService.js';
 import { SUPPORTED_CURRENCIES } from '@/constants/currencies.js';
 import styles from './SettingsPage.module.css';
+
+function ProBadge({ t }) {
+  return (
+    <span
+      style={{
+        background: 'var(--primary-dim)',
+        border: '1px solid var(--primary-glow)',
+        color: 'var(--primary)',
+        borderRadius: '999px',
+        fontFamily: 'var(--font-display)',
+        fontSize: '0.62rem',
+        fontWeight: 700,
+        letterSpacing: '0.06em',
+        padding: '0.08rem 0.4rem',
+      }}
+    >
+      {t('common.pro')}
+    </span>
+  );
+}
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -270,23 +290,15 @@ export default function SettingsPage() {
       <Link href="/income" className={styles.settingsLink}>
         <DollarSign size={16} />
         {t('nav.income')}
-        {plan !== 'pro' && (
-          <span
-            style={{
-              background: 'var(--primary-dim)',
-              border: '1px solid var(--primary-glow)',
-              color: 'var(--primary)',
-              borderRadius: '999px',
-              fontFamily: 'var(--font-display)',
-              fontSize: '0.62rem',
-              fontWeight: 700,
-              letterSpacing: '0.06em',
-              padding: '0.08rem 0.4rem',
-            }}
-          >
-            {t('common.pro')}
-          </span>
-        )}
+        {plan !== 'pro' && <ProBadge t={t} />}
+      </Link>
+
+      <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
+
+      <Link href="/reports" className={styles.settingsLink}>
+        <FileText size={16} />
+        {t('nav.reports')}
+        {plan !== 'pro' && <ProBadge t={t} />}
       </Link>
 
       <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />

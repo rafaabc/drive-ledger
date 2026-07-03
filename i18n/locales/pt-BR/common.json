@@ -18,6 +18,7 @@
     "reminders": "Lembretes",
     "vehicles": "Veículos",
     "income": "Receita",
+    "reports": "Relatórios",
     "settings": "Configurações",
     "changePassword": "Alterar senha",
     "logout": "Sair"
@@ -228,7 +229,8 @@
     "vehicleLimitReached": "O plano gratuito permite apenas 1 veículo. Faça upgrade para o Pro para adicionar mais.",
     "vehicleNameRequired": "O nome do veículo é obrigatório.",
     "incomeNotFound": "Registro de receita não encontrado.",
-    "incomeFeatureLocked": "O controle de receita é um recurso Pro. Faça upgrade para desbloquear."
+    "incomeFeatureLocked": "O controle de receita é um recurso Pro. Faça upgrade para desbloquear.",
+    "reportsFeatureLocked": "Relatórios prontos para o imposto de renda são um recurso Pro. Faça upgrade para desbloquear."
   },
   "pwa": {
     "updateAvailable": "Nova versão disponível.",
@@ -331,6 +333,18 @@
     "upgrade": {
       "heading": "O controle de receita é um recurso Pro",
       "body": "Faça upgrade para o Pro para registrar receitas e ver lucro por km e por dia."
+    }
+  },
+  "reports": {
+    "heading": "Relatórios",
+    "description": "Baixe um resumo pronto para o imposto de renda com receita, despesas e lucro de um ano específico.",
+    "year": "Ano",
+    "downloadCsv": "Baixar CSV",
+    "downloadPdf": "Baixar PDF",
+    "downloading": "Preparando…",
+    "upgrade": {
+      "heading": "Relatórios prontos para o imposto de renda são um recurso Pro",
+      "body": "Faça upgrade para o Pro para baixar relatórios em CSV e PDF prontos para o imposto de renda."
     }
   },
   "mobile": {
