@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db.mjs';
 import stripeLib from '@/lib/stripe.js';
 import billingService from '@/lib/services/billing.service';
-import { reportHandlerError } from '@/lib/sentry.mjs';
+import { reportHandlerError, reportWebhookConfigError } from '@/lib/sentry.mjs';
 
 export const runtime = 'nodejs';
 
@@ -15,6 +15,10 @@ export async function POST(req) {
     const stripe = stripeLib.getStripe();
     event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
+    reportWebhookConfigError(err, {
+      webhookSecretConfigured: !!process.env.STRIPE_WEBHOOK_SECRET,
+      context: { route: '/api/billing/webhook', method: 'POST' },
+    });
     return NextResponse.json({ message: 'Invalid webhook signature' }, { status: 400 });
   }
 
