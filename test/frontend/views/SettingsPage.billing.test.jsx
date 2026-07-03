@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { useSearchParams } from 'next/navigation';
 import SettingsPage from '@/views/SettingsPage.jsx';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
+  usePathname: () => '/',
+  useSearchParams: vi.fn(() => new URLSearchParams()),
+}));
 
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k) => k }) }));
 vi.mock('@/i18n/index.js', () => ({
@@ -32,6 +39,7 @@ describe('SettingsPage — billing section', () => {
       reminderEmailsEnabled: true,
       updateNotificationPrefs: vi.fn(),
     });
+    useSearchParams.mockReturnValue(new URLSearchParams());
     vi.stubGlobal('location', { href: '' });
   });
 
@@ -63,5 +71,26 @@ describe('SettingsPage — billing section', () => {
     const manageBtn = await screen.findByRole('button', { name: 'settings.billing.manage' });
     fireEvent.click(manageBtn);
     await waitFor(() => expect(window.location.href).toBe('https://billing.stripe.com/fake'));
+  });
+
+  it('calls refreshPlan once when redirected back from a successful checkout', async () => {
+    useSearchParams.mockReturnValue(new URLSearchParams('?checkout=success'));
+    const refreshPlan = vi.fn().mockResolvedValue();
+    mockUseAuth.mockReturnValue({
+      username: 'freeuser',
+      currency: 'USD',
+      language: 'en',
+      updateCurrency: vi.fn(),
+      updateLanguage: vi.fn(),
+      emailVerified: true,
+      logout: vi.fn(),
+      plan: 'free',
+      reminderEmailsEnabled: true,
+      updateNotificationPrefs: vi.fn(),
+      refreshPlan,
+    });
+
+    render(<SettingsPage />);
+    await waitFor(() => expect(refreshPlan).toHaveBeenCalledTimes(1));
   });
 });

@@ -9,7 +9,10 @@ vi.mock('@/components/GoogleSignInButton.jsx', () => ({
 }));
 
 const mockPush = vi.fn();
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }));
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockPush }),
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 const mockUpdateCurrency = vi.fn();
 const mockUpdateLanguage = vi.fn();
