@@ -17,7 +17,7 @@ export default function LandingHero() {
           <Link href="/register" className="btn-primary">
             {t('landing.hero.ctaPrimary')}
           </Link>
-          <Link href="/login" className={styles.heroSecondaryLink}>
+          <Link href="/login" className="btn-secondary">
             {t('landing.hero.ctaSecondary')}
           </Link>
         </div>

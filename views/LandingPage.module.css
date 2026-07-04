@@ -66,17 +66,6 @@
   margin-top: 0.5rem;
 }
 
-.heroSecondaryLink {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--text-2);
-  text-decoration: none;
-}
-
-.heroSecondaryLink:hover {
-  color: var(--text);
-}
-
 /* ── Features ───────────────────────────────────────────── */
 .features {
   padding: 4rem 1.5rem;
