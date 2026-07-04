@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useCallback } from 'react';
+import PropTypes from 'prop-types';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/services/apiService.js';
 import { useAuth } from '@/context/AuthContext.jsx';
@@ -19,7 +20,7 @@ function injectGisScript() {
   document.head.appendChild(s);
 }
 
-export default function GoogleSignInButton({ mode = 'login', onSuccess, onError }) {
+export default function GoogleSignInButton({ mode = 'login', onSuccess, onError, inviteCode }) {
   const { login } = useAuth() || {};
   const router = useRouter();
   const containerRef = useRef(null);
@@ -31,7 +32,7 @@ export default function GoogleSignInButton({ mode = 'login', onSuccess, onError 
           await authApi.linkGoogle({ idToken: credential });
           onSuccess?.();
         } else {
-          const { token } = await authApi.googleLogin({ idToken: credential });
+          const { token } = await authApi.googleLogin({ idToken: credential, inviteCode });
           login(token);
           router.push('/');
         }
@@ -39,7 +40,7 @@ export default function GoogleSignInButton({ mode = 'login', onSuccess, onError 
         onError?.(err.message);
       }
     },
-    [mode, login, router, onSuccess, onError],
+    [mode, login, router, onSuccess, onError, inviteCode],
   );
 
   useEffect(() => {
@@ -86,3 +87,7 @@ export default function GoogleSignInButton({ mode = 'login', onSuccess, onError 
 
   return <div ref={containerRef} style={{ width: '100%' }} />;
 }
+
+GoogleSignInButton.propTypes = {
+  inviteCode: PropTypes.string,
+};

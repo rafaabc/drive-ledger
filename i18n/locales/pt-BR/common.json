@@ -56,6 +56,8 @@
     },
     "register": {
       "heading": "Criar conta",
+      "inviteLabel": "Código de convite",
+      "inviteHint": "Digite o código de convite que você recebeu.",
       "username": "Usuário",
       "usernameHint": "3 a 50 caracteres, letras, números e sublinhado.",
       "email": "E-mail",
@@ -241,7 +243,8 @@
     "vehicleNameRequired": "O nome do veículo é obrigatório.",
     "incomeNotFound": "Registro de receita não encontrado.",
     "incomeFeatureLocked": "O controle de receita é um recurso Pro. Faça upgrade para desbloquear.",
-    "reportsFeatureLocked": "Relatórios prontos para o imposto de renda são um recurso Pro. Faça upgrade para desbloquear."
+    "reportsFeatureLocked": "Relatórios prontos para o imposto de renda são um recurso Pro. Faça upgrade para desbloquear.",
+    "inviteRequired": "Um código de convite é necessário para se cadastrar no momento."
   },
   "pwa": {
     "updateAvailable": "Nova versão disponível.",
