@@ -115,6 +115,11 @@
       "reminderEmails": "Enviar por email um resumo de lembretes atrasados e vencendo em breve",
       "success": "Preferências de notificação atualizadas."
     },
+    "billing": {
+      "heading": "Cobrança",
+      "upgrade": "Assinar o Pro",
+      "manage": "Gerenciar cobrança"
+    },
     "linkedAccounts": "Contas vinculadas",
     "googleConnected": "Conta Google vinculada",
     "googleDisconnected": "Conta Google desvinculada.",
@@ -209,6 +214,7 @@
   },
   "errors": {
     "generic": "Algo deu errado. Tente novamente.",
+    "billingNotConfigured": "A cobrança está temporariamente indisponível. Tente novamente mais tarde.",
     "emailNotVerified": "Verifique seu email antes de continuar.",
     "invalidVerificationToken": "Token de verificação inválido ou expirado.",
     "emailAlreadyVerified": "Email já verificado.",

@@ -57,6 +57,7 @@
     "recharts": "^3.8.1",
     "remark-gfm": "^4.0.1",
     "resend": "^6.12.4",
+    "stripe": "^22.3.0",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {

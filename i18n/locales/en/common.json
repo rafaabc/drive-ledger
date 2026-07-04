@@ -115,6 +115,11 @@
       "reminderEmails": "Email me a digest of overdue and due-soon reminders",
       "success": "Notification preferences updated."
     },
+    "billing": {
+      "heading": "Billing",
+      "upgrade": "Upgrade to Pro",
+      "manage": "Manage billing"
+    },
     "linkedAccounts": "Linked accounts",
     "googleConnected": "Google account connected",
     "googleDisconnected": "Google account disconnected.",
@@ -209,6 +214,7 @@
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
+    "billingNotConfigured": "Billing is temporarily unavailable. Please try again later.",
     "emailNotVerified": "Please verify your email before continuing.",
     "invalidVerificationToken": "Invalid or expired verification token.",
     "emailAlreadyVerified": "Email already verified.",

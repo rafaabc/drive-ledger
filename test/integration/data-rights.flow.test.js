@@ -4,8 +4,9 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
 process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 process.env.BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
-const { describe, it, before, after, beforeEach } = require('node:test');
+const { describe, it, before, after, beforeEach, mock } = require('node:test');
 const assert = require('node:assert/strict');
+const bcrypt = require('bcryptjs');
 
 const { startMongo, stopMongo, resetMongo } = require('../helpers/mongo');
 const { VALID_CONSENT } = require('../helpers/fixtures');
@@ -16,6 +17,7 @@ const expensesService = require('../../lib/services/expenses.service');
 const vehiclesService = require('../../lib/services/vehicles.service');
 const vehicleModel = require('../../lib/models/vehicle.model');
 const incomeModel = require('../../lib/models/income.model');
+const stripeLib = require('../../lib/stripe.js');
 
 before(async () => await startMongo());
 after(async () => await stopMongo());
@@ -76,5 +78,34 @@ describe('data rights flow', () => {
     assert.strictEqual(deletedUser, null);
     assert.strictEqual((await vehicleModel.findByUserId(userId)).length, 0);
     assert.strictEqual((await incomeModel.findByUserId(userId)).length, 0);
+  });
+
+  it('cancels the Stripe subscription and scrubs billing fields when deleting an account with an active subscription', async () => {
+    const user = await userModel.create({
+      username: 'stripedeleteuser',
+      password: await bcrypt.hash('pass1234', 12),
+      email: 'stripedeleteuser@test.com',
+    });
+    await userModel.updatePlanAndBilling(user._id, {
+      plan: 'pro',
+      stripeCustomerId: 'cus_delete1',
+      stripeSubscriptionId: 'sub_delete1',
+    });
+
+    let cancelledSubscriptionId = null;
+    mock.method(stripeLib, 'getStripe', () => ({
+      subscriptions: {
+        cancel: async (subId) => {
+          cancelledSubscriptionId = subId;
+          return {};
+        },
+      },
+    }));
+
+    await authService.deleteAccount({ userId: user._id.toString(), password: 'pass1234' });
+
+    assert.strictEqual(cancelledSubscriptionId, 'sub_delete1');
+    const deletedUser = await userModel.findById(user._id);
+    assert.strictEqual(deletedUser, null);
   });
 });

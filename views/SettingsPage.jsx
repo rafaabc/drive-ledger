@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { KeyRound, Car, DollarSign, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext.jsx';
@@ -11,7 +11,7 @@ import { useAutoClear } from '@/hooks/useAutoClear.js';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import GoogleSignInButton from '@/components/GoogleSignInButton.jsx';
 import PageTitle from '@/components/PageTitle.jsx';
-import { authApi } from '@/services/apiService.js';
+import { authApi, billingApi } from '@/services/apiService.js';
 import { SUPPORTED_CURRENCIES } from '@/constants/currencies.js';
 import styles from './SettingsPage.module.css';
 
@@ -42,6 +42,7 @@ ProBadge.propTypes = {
 export default function SettingsPage() {
   const { t } = useTranslation();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     username,
     currency,
@@ -53,6 +54,7 @@ export default function SettingsPage() {
     plan,
     reminderEmailsEnabled,
     updateNotificationPrefs,
+    refreshPlan,
   } = useAuth();
   const [selected, setSelected] = useState(currency);
   const [selectedLang, setSelectedLang] = useState(language);
@@ -61,6 +63,7 @@ export default function SettingsPage() {
   const langAction = useAsyncAction();
   const notificationsAction = useAsyncAction();
   const resendAction = useAsyncAction();
+  const billingAction = useAsyncAction();
 
   useAutoClear(currencyAction.success, currencyAction.setSuccess);
   useAutoClear(langAction.success, langAction.setSuccess);
@@ -83,6 +86,13 @@ export default function SettingsPage() {
       .getProviders()
       .then(setProviders)
       .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (searchParams.get('checkout') === 'success') {
+      refreshPlan();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount for this query param
   }, []);
 
   async function handleSubmit(e) {
@@ -250,6 +260,40 @@ export default function SettingsPage() {
         />
         {t('settings.notifications.reminderEmails')}
       </label>
+
+      <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
+
+      <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>
+        {t('settings.billing.heading')}
+      </h2>
+      {billingAction.error && <ErrorBanner message={billingAction.error} />}
+      {plan === 'pro' ? (
+        <button
+          className="btn-secondary"
+          disabled={billingAction.loading}
+          onClick={() =>
+            billingAction.run(async () => {
+              const { url } = await billingApi.portal();
+              window.location.href = url;
+            })
+          }
+        >
+          {billingAction.loading ? t('common.saving') : t('settings.billing.manage')}
+        </button>
+      ) : (
+        <button
+          className="btn-primary"
+          disabled={billingAction.loading}
+          onClick={() =>
+            billingAction.run(async () => {
+              const { url } = await billingApi.checkout({ interval: 'monthly' });
+              window.location.href = url;
+            })
+          }
+        >
+          {billingAction.loading ? t('common.saving') : t('settings.billing.upgrade')}
+        </button>
+      )}
 
       <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
 
