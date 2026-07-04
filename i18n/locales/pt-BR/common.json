@@ -396,5 +396,57 @@
   "legal": {
     "privacy": "Privacidade",
     "terms": "Termos"
+  },
+  "landing": {
+    "hero": {
+      "headline": "Saiba exatamente quanto seu veículo custa.",
+      "subhead": "Controle combustível, despesas, receita e manutenção em um só lugar — com relatórios prontos para o imposto de renda sempre que precisar.",
+      "ctaPrimary": "Começar agora",
+      "ctaSecondary": "Entrar"
+    },
+    "features": {
+      "multiVehicle": {
+        "title": "Vários veículos",
+        "blurb": "Organize carros, motos ou toda a sua frota em uma única conta."
+      },
+      "expenseTracking": {
+        "title": "Combustível e despesas",
+        "blurb": "Registre combustível, manutenção, seguro e mais — com cálculo automático do custo por litro."
+      },
+      "incomeProfit": {
+        "title": "Receita e lucro",
+        "blurb": "Veja o lucro real por quilômetro e por dia se você dirige para trabalhar."
+      },
+      "taxReports": {
+        "title": "Relatórios para o imposto de renda",
+        "blurb": "Baixe um resumo em CSV ou PDF de receita, despesas e lucro de qualquer ano."
+      },
+      "reminders": {
+        "title": "Lembretes de manutenção",
+        "blurb": "Nunca mais esqueça uma troca de óleo ou revisão — lembretes por data ou por km."
+      }
+    },
+    "pricing": {
+      "heading": "Grátis para começar, mais quando precisar",
+      "subhead": "Faça upgrade quando suas necessidades de controle crescerem.",
+      "free": {
+        "name": "Grátis",
+        "feature1": "1 veículo",
+        "feature2": "Controle de despesas e lembretes"
+      },
+      "pro": {
+        "name": "Pro",
+        "feature1": "Veículos ilimitados",
+        "feature2": "Controle de receita e lucro",
+        "feature3": "Relatórios em CSV e PDF para o imposto de renda"
+      },
+      "cta": "Começar agora"
+    },
+    "footer": {
+      "wordmark": "NOREVIFY",
+      "privacy": "Privacidade",
+      "terms": "Termos",
+      "login": "Entrar"
+    }
   }
 }
