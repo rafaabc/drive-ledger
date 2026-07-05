@@ -7,4 +7,8 @@ emailService.sendVerificationEmail = async () => {};
 emailService.sendPasswordResetEmail = async () => {};
 emailService.sendReminderDigest = async () => {};
 
+// passwordPolicy.assertStrongPassword() defaults to the global fetch for its HIBP
+// breach check — stub it so integration tests never hit the real network.
+global.fetch = async () => ({ ok: true, text: async () => '' });
+
 module.exports = emailService;

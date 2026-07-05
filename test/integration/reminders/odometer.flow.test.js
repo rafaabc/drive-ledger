@@ -24,7 +24,7 @@ describe('Odometer flow', () => {
   it('fuel odometer raises the vehicle currentKm; older reading does not lower it', async () => {
     await authService.register({
       username: 'od1',
-      password: 'pass1234',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'od1@test.com',
       consent: VALID_CONSENT,
     });
@@ -56,7 +56,7 @@ describe('Odometer flow', () => {
   it('manual override allows setting a lower value', async () => {
     await authService.register({
       username: 'od2',
-      password: 'pass1234',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'od2@test.com',
       consent: VALID_CONSENT,
     });

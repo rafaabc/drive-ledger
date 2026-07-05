@@ -36,7 +36,7 @@ describe('Google auth flow integration', () => {
   it('should auto-link Google to an existing password account sharing the same email', async () => {
     const user = await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'guser@gmail.com',
       consent: VALID_CONSENT,
     });
@@ -49,7 +49,7 @@ describe('Google auth flow integration', () => {
   it('should allow linking Google via Settings then unlinking (user has password)', async () => {
     const user = await authService.register({
       username: 'bob',
-      password: 'password1',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'bob@gmail.com',
       consent: VALID_CONSENT,
     });
@@ -85,7 +85,7 @@ describe('Google auth flow integration', () => {
   it('should return password provider and hasPassword=true for a normal user', async () => {
     const user = await authService.register({
       username: 'carol',
-      password: 'password1',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'carol@example.com',
       consent: VALID_CONSENT,
     });

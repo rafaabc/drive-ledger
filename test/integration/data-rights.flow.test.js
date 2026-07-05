@@ -27,7 +27,11 @@ describe('data rights flow', () => {
   it('should reject registration without consent', async () => {
     await assert.rejects(
       () =>
-        authService.register({ username: 'alice', password: 'password1', email: 'alice@test.com' }),
+        authService.register({
+          username: 'alice',
+          password: 'Zx7Qw2vNp9Lm4Rk8',
+          email: 'alice@test.com',
+        }),
       (err) => {
         assert.strictEqual(err.status, 400);
         return true;
@@ -38,7 +42,7 @@ describe('data rights flow', () => {
   it('should allow export and delete after register + verify', async () => {
     const { id: userId } = await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'alice@test.com',
       consent: VALID_CONSENT,
     });
@@ -71,7 +75,7 @@ describe('data rights flow', () => {
     });
 
     // Delete account
-    await authService.deleteAccount({ userId, password: 'password1' });
+    await authService.deleteAccount({ userId, password: 'Zx7Qw2vNp9Lm4Rk8' });
 
     // User and all owned records should no longer exist
     const deletedUser = await userModel.findById(userId);
