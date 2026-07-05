@@ -70,7 +70,7 @@ describe('assertInviteAllowed()', () => {
         assert.strictEqual(err.status, 403);
         assert.strictEqual(err.message, 'invite_required');
         return true;
-      }
+      },
     );
   });
 
@@ -85,7 +85,7 @@ describe('assertInviteAllowed()', () => {
         assert.strictEqual(err.status, 403);
         assert.strictEqual(err.message, 'invite_required');
         return true;
-      }
+      },
     );
   });
 
@@ -100,7 +100,7 @@ describe('assertInviteAllowed()', () => {
         assert.strictEqual(err.status, 403);
         assert.strictEqual(err.message, 'invite_required');
         return true;
-      }
+      },
     );
   });
 
@@ -123,7 +123,7 @@ describe('assertInviteAllowed()', () => {
         assert.strictEqual(err.status, 403);
         assert.strictEqual(err.message, 'invite_required');
         return true;
-      }
+      },
     );
   });
 
@@ -138,7 +138,7 @@ describe('assertInviteAllowed()', () => {
         assert.strictEqual(err.status, 403);
         assert.strictEqual(err.message, 'invite_required');
         return true;
-      }
+      },
     );
   });
 });
