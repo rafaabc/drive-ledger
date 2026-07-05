@@ -4,7 +4,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'test-secret';
 process.env.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h';
 process.env.BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
-const { describe, it, before, after, beforeEach } = require('node:test');
+const { describe, it, before, after, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert/strict');
 const jwt = require('jsonwebtoken');
 
@@ -1447,5 +1447,113 @@ describe('authService.register() - consent', () => {
     assert.ok(user.consent.acceptedAt instanceof Date);
     assert.ok(user.consent.ipHash, 'ipHash should be stored');
     assert.strictEqual(user.consent.ipHash.length, 16);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Phase B — invite gate wiring
+// ---------------------------------------------------------------------------
+describe('authService.register() - invite gate', () => {
+  let originalInviteOnly;
+  let originalInviteCodes;
+
+  beforeEach(() => {
+    originalInviteOnly = process.env.INVITE_ONLY;
+    originalInviteCodes = process.env.INVITE_CODES;
+  });
+
+  afterEach(() => {
+    if (originalInviteOnly === undefined) delete process.env.INVITE_ONLY;
+    else process.env.INVITE_ONLY = originalInviteOnly;
+    if (originalInviteCodes === undefined) delete process.env.INVITE_CODES;
+    else process.env.INVITE_CODES = originalInviteCodes;
+  });
+
+  it('should throw 403 invite_required when INVITE_ONLY=true and inviteCode is missing/invalid', async () => {
+    process.env.INVITE_ONLY = 'true';
+    process.env.INVITE_CODES = 'GOOD-CODE';
+    await assert.rejects(
+      () =>
+        authService.register({
+          username: 'nogate',
+          password: 'password1',
+          email: 'nogate@example.com',
+          ...VALID_CONSENT,
+          inviteCode: 'WRONG-CODE',
+        }),
+      (err) => {
+        assert.strictEqual(err.status, 403);
+        assert.match(err.message, /invite_required/);
+        return true;
+      },
+    );
+  });
+
+  it('should succeed when INVITE_ONLY=true and inviteCode is valid', async () => {
+    process.env.INVITE_ONLY = 'true';
+    process.env.INVITE_CODES = 'GOOD-CODE';
+    const result = await authService.register({
+      username: 'gatepass',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
+      email: 'gatepass@example.com',
+      ...VALID_CONSENT,
+      inviteCode: 'GOOD-CODE',
+    });
+    assert.ok(result.id);
+    assert.strictEqual(result.username, 'gatepass');
+  });
+
+  it('should succeed without an inviteCode when INVITE_ONLY is unset/false', async () => {
+    delete process.env.INVITE_ONLY;
+    delete process.env.INVITE_CODES;
+    const result = await authService.register({
+      username: 'gateoff',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
+      email: 'gateoff@example.com',
+      ...VALID_CONSENT,
+    });
+    assert.ok(result.id);
+    assert.strictEqual(result.username, 'gateoff');
+  });
+});
+
+describe('authService.googleLogin() - invite gate', () => {
+  let originalInviteOnly;
+  let originalInviteCodes;
+
+  beforeEach(() => {
+    originalInviteOnly = process.env.INVITE_ONLY;
+    originalInviteCodes = process.env.INVITE_CODES;
+  });
+
+  afterEach(() => {
+    if (originalInviteOnly === undefined) delete process.env.INVITE_ONLY;
+    else process.env.INVITE_ONLY = originalInviteOnly;
+    if (originalInviteCodes === undefined) delete process.env.INVITE_CODES;
+    else process.env.INVITE_CODES = originalInviteCodes;
+  });
+
+  it('should throw 403 invite_required for a new-user Google sign-in with a bad/missing inviteCode', async () => {
+    process.env.INVITE_ONLY = 'true';
+    process.env.INVITE_CODES = 'GOOD-CODE';
+    const fakeVerify = async () => fakePayload({ email: 'newgoogleuser@gmail.com' });
+    await assert.rejects(
+      () => authService.googleLogin({ idToken: 'tok' }, fakeVerify),
+      (err) => {
+        assert.strictEqual(err.status, 403);
+        assert.match(err.message, /invite_required/);
+        return true;
+      },
+    );
+  });
+
+  it('should succeed for an existing-user Google login (by googleId) with no inviteCode, gate is bypassed', async () => {
+    const fakeVerify = async () => fakePayload();
+    await authService.googleLogin({ idToken: 'tok' }, fakeVerify);
+
+    process.env.INVITE_ONLY = 'true';
+    process.env.INVITE_CODES = 'GOOD-CODE';
+    const result = await authService.googleLogin({ idToken: 'tok' }, fakeVerify);
+    assert.ok(result.token);
   });
 });

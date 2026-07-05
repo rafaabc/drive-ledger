@@ -17,6 +17,7 @@ export default function RegisterPage() {
   const { t } = useTranslation();
   const router = useRouter();
   const [form, setForm] = useState({
+    inviteCode: '',
     username: '',
     email: '',
     password: '',
@@ -55,13 +56,29 @@ export default function RegisterPage() {
 
           {error && <ErrorBanner message={error} />}
 
-          <GoogleSignInButton mode="register" onError={setError} />
+          <GoogleSignInButton mode="register" onError={setError} inviteCode={form.inviteCode} />
 
           <div className={styles.divider}>
             <span>{t('common.or')}</span>
           </div>
 
           <form onSubmit={handleSubmit}>
+            {process.env.NEXT_PUBLIC_INVITE_ONLY === 'true' && (
+              <div className="form-group">
+                <FieldLabelWithHint
+                  htmlFor="reg-invite-code"
+                  label={t('auth.register.inviteLabel')}
+                  hint={t('auth.register.inviteHint')}
+                />
+                <input
+                  id="reg-invite-code"
+                  name="inviteCode"
+                  value={form.inviteCode}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            )}
             <div className="form-group">
               <FieldLabelWithHint
                 htmlFor="reg-username"

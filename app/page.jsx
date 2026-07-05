@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext.jsx';
 import Loading from '@/components/Loading.jsx';
+import LandingPage from '@/views/LandingPage.jsx';
 
 export default function RootPage() {
   const { isAuthed, authLoading } = useAuth();
@@ -11,8 +12,9 @@ export default function RootPage() {
   useEffect(() => {
     if (authLoading) return;
     if (isAuthed) router.replace('/dashboard');
-    else router.replace('/login');
   }, [isAuthed, authLoading, router]);
 
-  return <Loading />;
+  if (authLoading) return <Loading />;
+  if (isAuthed) return <Loading />;
+  return <LandingPage />;
 }

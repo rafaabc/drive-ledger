@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import RegisterPage from '@/views/RegisterPage';
 
@@ -16,7 +16,7 @@ vi.mock('next/navigation', () => ({ useRouter: () => mockUseRouter() }));
 
 const mockRegister = vi.fn();
 vi.mock('@/services/apiService.js', () => ({
-  authApi: { register: () => mockRegister() },
+  authApi: { register: (payload) => mockRegister(payload) },
 }));
 
 describe('RegisterPage', () => {
@@ -24,6 +24,10 @@ describe('RegisterPage', () => {
     vi.clearAllMocks();
     mockUseRouter.mockReturnValue({ push: mockPush });
     mockRegister.mockResolvedValue({});
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it('should render heading', () => {
@@ -88,5 +92,30 @@ describe('RegisterPage', () => {
     fireEvent.click(checkbox);
     const submit = screen.getByRole('button', { name: 'auth.register.submit' });
     expect(submit).not.toBeDisabled();
+  });
+
+  it('should render invite code field when NEXT_PUBLIC_INVITE_ONLY is true', () => {
+    vi.stubEnv('NEXT_PUBLIC_INVITE_ONLY', 'true');
+    render(<RegisterPage />);
+    expect(screen.getByLabelText('auth.register.inviteLabel')).toBeInTheDocument();
+  });
+
+  it('should not render invite code field when NEXT_PUBLIC_INVITE_ONLY is unset', () => {
+    render(<RegisterPage />);
+    expect(screen.queryByLabelText('auth.register.inviteLabel')).not.toBeInTheDocument();
+  });
+
+  it('should include inviteCode in the register payload on submit', async () => {
+    vi.stubEnv('NEXT_PUBLIC_INVITE_ONLY', 'true');
+    render(<RegisterPage />);
+    fireEvent.change(screen.getByLabelText('auth.register.inviteLabel'), {
+      target: { value: 'SECRET123' },
+    });
+    await act(async () => {
+      fireEvent.submit(
+        screen.getByRole('button', { name: 'auth.register.submit' }).closest('form'),
+      );
+    });
+    expect(mockRegister).toHaveBeenCalledWith(expect.objectContaining({ inviteCode: 'SECRET123' }));
   });
 });

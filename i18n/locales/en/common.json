@@ -56,6 +56,8 @@
     },
     "register": {
       "heading": "Create account",
+      "inviteLabel": "Invite code",
+      "inviteHint": "Enter the invite code you were given.",
       "username": "Username",
       "usernameHint": "3–50 characters, letters, numbers and underscore.",
       "email": "Email",
@@ -241,7 +243,8 @@
     "vehicleNameRequired": "Vehicle name is required.",
     "incomeNotFound": "Income entry not found.",
     "incomeFeatureLocked": "Income tracking is a Pro feature. Upgrade to unlock it.",
-    "reportsFeatureLocked": "Tax-ready reports are a Pro feature. Upgrade to unlock them."
+    "reportsFeatureLocked": "Tax-ready reports are a Pro feature. Upgrade to unlock them.",
+    "inviteRequired": "An invite code is required to sign up right now."
   },
   "pwa": {
     "updateAvailable": "New version available.",
@@ -393,5 +396,57 @@
   "legal": {
     "privacy": "Privacy",
     "terms": "Terms"
+  },
+  "landing": {
+    "hero": {
+      "headline": "Know exactly what your vehicle costs you.",
+      "subhead": "Track fuel, expenses, income, and maintenance in one place — and get tax-ready reports whenever you need them.",
+      "ctaPrimary": "Get started",
+      "ctaSecondary": "Sign in"
+    },
+    "features": {
+      "multiVehicle": {
+        "title": "Multiple vehicles",
+        "blurb": "Keep every car, bike, or fleet vehicle organized in one account."
+      },
+      "expenseTracking": {
+        "title": "Fuel & expense tracking",
+        "blurb": "Log fuel, maintenance, insurance, and more — with automatic cost-per-litre math."
+      },
+      "incomeProfit": {
+        "title": "Income & profit",
+        "blurb": "See real profit per kilometer and per day if you drive for work."
+      },
+      "taxReports": {
+        "title": "Tax-ready reports",
+        "blurb": "Download a CSV or PDF summary of income, expenses, and profit for any year."
+      },
+      "reminders": {
+        "title": "Service reminders",
+        "blurb": "Never miss an oil change or inspection — reminders by date or by kilometer."
+      }
+    },
+    "pricing": {
+      "heading": "Free to start, more when you need it",
+      "subhead": "Upgrade whenever your tracking needs grow.",
+      "free": {
+        "name": "Free",
+        "feature1": "1 vehicle",
+        "feature2": "Expense & reminder tracking"
+      },
+      "pro": {
+        "name": "Pro",
+        "feature1": "Unlimited vehicles",
+        "feature2": "Income & profit tracking",
+        "feature3": "Tax-ready CSV & PDF reports"
+      },
+      "cta": "Get started"
+    },
+    "footer": {
+      "wordmark": "NOREVIFY",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "login": "Sign in"
+    }
   }
 }
