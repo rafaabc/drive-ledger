@@ -1,4 +1,7 @@
-export const DEFAULT_PASSWORD = process.env.E2E_TEST_PASSWORD ?? 'Password123'; // NOSONAR
+// Must clear passwordPolicy's strength + HIBP breach checks (register/change/reset
+// password all run through it now) — a simple word+digits pattern like the old
+// 'Password123' scores too low and is a known-breached password.
+export const DEFAULT_PASSWORD = process.env.E2E_TEST_PASSWORD ?? 'Qk4Wr9Ln2Vp8Mz5x'; // NOSONAR
 
 export function uniqueUsername(prefix = 'user'): string {
   return `${prefix}_${Date.now()}_${Math.floor(Math.random() * 999)}`;

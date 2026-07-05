@@ -44,7 +44,7 @@ beforeEach(async () => {
 const VALID_CONSENT = { policyVersion: '2026-05-20', acceptedAt: new Date().toISOString() };
 const USER = {
   username: 'bob',
-  password: 'Password1',
+  password: 'Zx7Qw2vNp9Lm4Rk8',
   email: 'bob@example.com',
   consent: VALID_CONSENT,
 };

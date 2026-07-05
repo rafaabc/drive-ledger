@@ -26,6 +26,7 @@ RESEND_API_KEY       # Resend email API
 GOOGLE_CLIENT_ID / NEXT_PUBLIC_GOOGLE_CLIENT_ID
 SENTRY_DSN / NEXT_PUBLIC_SENTRY_DSN / SENTRY_AUTH_TOKEN
 NEXT_PUBLIC_POSTHOG_KEY / NEXT_PUBLIC_POSTHOG_HOST
+BOTID_ENABLED / NEXT_PUBLIC_BOTID_ENABLED  # opt-in Vercel BotID gate on login/register
 ```
 
 `SENTRY_DSN` server-only; `NEXT_PUBLIC_SENTRY_DSN` client + server — both must be set in Vercel.
@@ -51,6 +52,14 @@ Sentry gotcha: `instrumentation.js` and `instrumentation-client.js` use CJS (`re
 **Reminders**: at least one of `dueDate` or `dueKm` required. Status: `overdue` (past dueDate OR currentKm ≥ dueKm), `dueSoon` (within 7 days / 500 km), `upcoming` (else). Completion with `intervalMonths`/`intervalKm` auto-creates the next reminder.
 
 **Odometer**: `Fuel` expense with `odometer` field updates `user.currentKm`. Drives km-based reminder status.
+
+**Auth hardening** (password path, alongside Google): password sign-in stays for non-Google users, hardened:
+
+- **Rate limiting** (`lib/middleware/rateLimit.js` + `lib/models/rateLimit.model.js`): Mongo-backed, not `globalThis` — required so limits hold across Vercel Fluid Compute instances. `withRateLimitedHandler` is async now; the 4 password routes + `/google` + `/resend-verification` call `connectDB()` **before** the rate-limited handler (limiter needs Mongo, and calling it after would hang on a cold instance).
+- **Account lockout** (`lib/services/auth.service.js`): 5 consecutive bad passwords locks the account with exponential backoff (1m→1h, capped). Locked-out login still returns the generic `401 Invalid credentials` — never reveals the lock state.
+- **Password strength + breach check** (`lib/services/passwordPolicy.js`): zxcvbn score ≥2 (not ≥3 — would defeat the existing 8-char minimum) + HaveIBeenPwned k-anonymity range check, fail-open on network error. Runs on register/changePassword/resetPassword, after existing length/format/duplicate checks.
+- **Register email enumeration**: duplicate **email** returns the same generic success (no account created, notifies the existing address via `sendAccountExistsEmail`) instead of 409 — email is the sensitive identifier. Duplicate **username** still 409 (a deliberately public handle).
+- **Vercel BotID**: `checkBotId()` gate on login/register, opt-in via `BOTID_ENABLED`/`NEXT_PUBLIC_BOTID_ENABLED` — off by default so CI (`next build && next start`, no real Vercel deployment) isn't blocked.
 
 ## Frontend
 
@@ -104,6 +113,8 @@ Add `vi.mock('@/i18n/index.js', ...)` in any file that imports a component using
 **E2E** (`e2e/`): Playwright Page Object Model. `globalTeardown` deletes all `/@test\.com$/` users from Atlas after each run.
 
 E2E language gotcha: new users default to `pt-BR` via JWT. Always set `localStorage.setItem('i18nextLng', 'en')` in `addInitScript` for text-based assertions. POMs must use language-agnostic selectors (`button[type="submit"]`, CSS classes, `[name="..."]`) — never hard-code translated strings.
+
+Password fixture gotcha: any password sent through `register`/`changePassword`/`resetPassword` must clear `passwordPolicy.assertStrongPassword()` — zxcvbn score ≥2 **and** not in the HaveIBeenPwned breach corpus. `test:unit`/`test:integration` stub `global.fetch` (see `test/helpers/email-mock.js`) so the breach check is a no-op there, but `test:api`/`test:e2e` hit the real HIBP endpoint — common-looking passwords like `Password123` or `NewPass99` are actually breached and get silently rejected (400), not just weak-scored. Use a genuinely random string (e.g. `Zx7Qw2vNp9Lm4Rk8`).
 
 ## Linting & Formatting
 

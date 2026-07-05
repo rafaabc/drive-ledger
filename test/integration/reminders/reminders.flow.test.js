@@ -25,7 +25,7 @@ describe('Reminder full flow', () => {
   it('create reminder → fuel updates currentKm → status flips → complete → next exists', async () => {
     await authService.register({
       username: 'flow1',
-      password: 'pass1234',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'flow1@test.com',
       consent: VALID_CONSENT,
     });

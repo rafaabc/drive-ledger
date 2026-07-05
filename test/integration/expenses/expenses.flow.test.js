@@ -31,7 +31,7 @@ describe('Expenses CRUD flow integration', () => {
   it('should persist a non-Fuel expense and make it retrievable via list and get', async () => {
     const user = await authService.register({
       username: 'testuser',
-      password: 'password1',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'testuser@example.com',
       consent: VALID_CONSENT,
     });
@@ -48,7 +48,7 @@ describe('Expenses CRUD flow integration', () => {
   it('should persist a Fuel expense with computed amount and make it retrievable', async () => {
     const user = await authService.register({
       username: 'testuser',
-      password: 'password1',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'testuser@example.com',
       consent: VALID_CONSENT,
     });
@@ -68,7 +68,7 @@ describe('Expenses CRUD flow integration', () => {
   it('should update an existing expense and reflect the change on subsequent read', async () => {
     const user = await authService.register({
       username: 'testuser',
-      password: 'password1',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'testuser@example.com',
       consent: VALID_CONSENT,
     });
@@ -82,7 +82,7 @@ describe('Expenses CRUD flow integration', () => {
   it('should throw 404 when updating a non-existent expense', async () => {
     const user = await authService.register({
       username: 'testuser',
-      password: 'password1',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'testuser@example.com',
       consent: VALID_CONSENT,
     });
@@ -100,7 +100,7 @@ describe('Expenses CRUD flow integration', () => {
   it('should delete an existing expense so it is no longer retrievable', async () => {
     const user = await authService.register({
       username: 'testuser',
-      password: 'password1',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'testuser@example.com',
       consent: VALID_CONSENT,
     });
@@ -121,7 +121,7 @@ describe('Expenses CRUD flow integration', () => {
   it('should throw 404 when deleting a non-existent expense', async () => {
     const user = await authService.register({
       username: 'testuser',
-      password: 'password1',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'testuser@example.com',
       consent: VALID_CONSENT,
     });

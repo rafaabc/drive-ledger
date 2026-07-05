@@ -1,5 +1,18 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 const Sentry = require('@sentry/nextjs');
+const { initBotId } = require('botid/client/core');
+
+// Vercel BotID client challenge — opt-in via NEXT_PUBLIC_BOTID_ENABLED so local/CI
+// runs (no real Vercel deployment in front) don't attach challenge headers the
+// server-side gate isn't expecting. See lib/middleware/botid.js.
+if (process.env.NEXT_PUBLIC_BOTID_ENABLED === 'true') {
+  initBotId({
+    protect: [
+      { path: '/api/auth/login', method: 'POST' },
+      { path: '/api/auth/register', method: 'POST' },
+    ],
+  });
+}
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,

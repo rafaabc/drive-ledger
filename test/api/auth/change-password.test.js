@@ -12,7 +12,7 @@ describe('US-05 - Change Password', () => {
       const res = await request(BASE_URL)
         .patch('/api/auth/password')
         .set('Authorization', `Bearer ${token}`)
-        .send({ currentPassword: 'Password1', newPassword: 'NewPass99' });
+        .send({ currentPassword: 'Zx7Qw2vNp9Lm4Rk8', newPassword: 'Hb3Ty8xRk1Vn6Zq5' });
 
       expect(res.status).to.equal(200);
       expect(res.body).to.have.property('message').that.is.a('string');
@@ -21,7 +21,7 @@ describe('US-05 - Change Password', () => {
     it('[TC-05-02] should return 401 when no token is provided', async () => {
       const res = await request(BASE_URL)
         .patch('/api/auth/password')
-        .send({ currentPassword: 'Password1', newPassword: 'NewPass99' });
+        .send({ currentPassword: 'Zx7Qw2vNp9Lm4Rk8', newPassword: 'Hb3Ty8xRk1Vn6Zq5' });
 
       expect(res.status).to.equal(401);
     });
@@ -32,7 +32,7 @@ describe('US-05 - Change Password', () => {
       const res = await request(BASE_URL)
         .patch('/api/auth/password')
         .set('Authorization', `Bearer ${token}`)
-        .send({ currentPassword: 'WrongPass1', newPassword: 'NewPass99' });
+        .send({ currentPassword: 'WrongPass1', newPassword: 'Hb3Ty8xRk1Vn6Zq5' });
 
       expect(res.status).to.equal(401);
     });
@@ -43,7 +43,7 @@ describe('US-05 - Change Password', () => {
       const res = await request(BASE_URL)
         .patch('/api/auth/password')
         .set('Authorization', `Bearer ${token}`)
-        .send({ currentPassword: 'Password1', newPassword: 'short' });
+        .send({ currentPassword: 'Zx7Qw2vNp9Lm4Rk8', newPassword: 'short' });
 
       expect(res.status).to.equal(400);
     });
