@@ -37,7 +37,11 @@
   "homepage": "https://github.com/rafaabc/norevify#readme",
   "dependencies": {
     "@sentry/nextjs": "^10.53.1",
+    "@zxcvbn-ts/core": "^4.1.2",
+    "@zxcvbn-ts/language-common": "^4.1.2",
+    "@zxcvbn-ts/language-en": "^4.1.1",
     "bcryptjs": "^3.0.3",
+    "botid": "^1.5.11",
     "dotenv": "^17.4.2",
     "google-auth-library": "^10.9.0",
     "i18next": "^26.3.4",

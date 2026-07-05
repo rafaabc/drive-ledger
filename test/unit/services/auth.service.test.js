@@ -17,11 +17,27 @@ const { POLICY_VERSION } = require('../../../lib/constants/legal');
 // Suppress real email sends in unit tests
 emailService.sendVerificationEmail = async () => {};
 emailService.sendPasswordResetEmail = async () => {};
+emailService.sendAccountExistsEmail = async () => {};
+
+// passwordPolicy.assertStrongPassword() defaults to the global fetch for its HIBP
+// breach check — stub it so unit tests never hit the real network. "Not breached"
+// response so the strength score is the only gate the fixtures above need to clear.
+global.fetch = async () => ({ ok: true, text: async () => '' });
 
 // Valid consent fixture used by all tests that exercise paths beyond consent validation
 const VALID_CONSENT = {
   consent: { policyVersion: POLICY_VERSION, acceptedAt: new Date().toISOString() },
 };
+
+// Strength/breach-policy-passing password fixtures. Weak literals like 'password1'
+// or '12345678' now get rejected by passwordPolicy.assertStrongPassword() — these
+// stand in wherever a test needs a password that is merely valid, not weak-on-purpose.
+const STRONG_PASSWORD = 'Zx7$Qw2vNp9!Lm4';
+const STRONG_PASSWORD_8 = 'fl9n1Sjo';
+const STRONG_PASSWORD_100 =
+  'jpWr3Au49Ix96Sw6s2ur9E1kb84EO4NEC8SdytzseOYkdBw6bextT4fBD6bD84BXlxs6PXezzx2qpGenEKNjxyaC2akDdqfakRV5';
+const STRONG_PASSWORD_128 =
+  'gYf7H7JFxLnx1xDFMp2xNkoSE8KskQwaj8zKgE7EZGWqexCQSuXQMkL1SjyX80Dr6IwzfQ4QyzfOxas1xUcfZyRPjWkSFcKBSp7u6H896oPsEIRxd9B8kHsuW3bLSd06';
 
 before(async () => await startMongo());
 after(async () => await stopMongo());
@@ -35,7 +51,7 @@ describe('authService.register()', () => {
   it('should throw 409 when username is already taken', async () => {
     await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
@@ -55,24 +71,83 @@ describe('authService.register()', () => {
     );
   });
 
-  it('should throw 409 when email is already registered', async () => {
+  // Email enumeration fix: a duplicate EMAIL must not confirm the account exists.
+  // Unlike username (a deliberately public handle), email is the sensitive identifier
+  // here, so register() returns the same generic success shape either way and emails
+  // the existing account instead of creating a duplicate.
+  it('should return a generic success (not 409) when email is already registered', async () => {
     await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
+      email: 'alice@example.com',
+      ...VALID_CONSENT,
+    });
+    const result = await authService.register({
+      username: 'alice2',
+      password: STRONG_PASSWORD,
+      email: 'alice@example.com',
+      ...VALID_CONSENT,
+    });
+    assert.strictEqual(result.username, 'alice2');
+  });
+
+  it('should not create a second account when email is already registered', async () => {
+    await authService.register({
+      username: 'alice',
+      password: STRONG_PASSWORD,
+      email: 'alice@example.com',
+      ...VALID_CONSENT,
+    });
+    await authService.register({
+      username: 'alice2',
+      password: STRONG_PASSWORD,
+      email: 'alice@example.com',
+      ...VALID_CONSENT,
+    });
+    const duplicateAttemptUser = await userModel.findByUsername('alice2');
+    assert.strictEqual(duplicateAttemptUser, null, 'alice2 must not have been created');
+    const original = await userModel.findByUsername('alice');
+    assert.ok(original, 'the original account must be untouched');
+  });
+
+  it('should send an account-exists notice to the existing address instead of creating a duplicate', async () => {
+    await authService.register({
+      username: 'alice',
+      password: STRONG_PASSWORD,
+      email: 'alice@example.com',
+      ...VALID_CONSENT,
+    });
+    let sentTo = null;
+    emailService.sendAccountExistsEmail = async ({ to }) => {
+      sentTo = to;
+    };
+    await authService.register({
+      username: 'alice2',
+      password: STRONG_PASSWORD,
+      email: 'alice@example.com',
+      ...VALID_CONSENT,
+    });
+    assert.strictEqual(sentTo, 'alice@example.com');
+  });
+
+  it('should still throw 409 when the username is already taken (username stays a public availability check)', async () => {
+    await authService.register({
+      username: 'alice',
+      password: STRONG_PASSWORD,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
     await assert.rejects(
       () =>
         authService.register({
-          username: 'alice2',
-          password: 'password1',
-          email: 'alice@example.com',
+          username: 'alice',
+          password: STRONG_PASSWORD,
+          email: 'somebodyelse@example.com',
           ...VALID_CONSENT,
         }),
       (err) => {
         assert.strictEqual(err.status, 409);
-        assert.match(err.message, /already registered/i);
+        assert.match(err.message, /already taken/i);
         return true;
       },
     );
@@ -81,7 +156,7 @@ describe('authService.register()', () => {
   // TC-01-04
   it('should throw 400 when username is missing', async () => {
     await assert.rejects(
-      () => authService.register({ password: 'password1', email: 'alice@example.com' }),
+      () => authService.register({ password: STRONG_PASSWORD, email: 'alice@example.com' }),
       (err) => {
         assert.strictEqual(err.status, 400);
         assert.match(err.message, /username, password and email are required/i);
@@ -104,7 +179,7 @@ describe('authService.register()', () => {
 
   it('should throw 400 when email is missing', async () => {
     await assert.rejects(
-      () => authService.register({ username: 'alice', password: 'password1' }),
+      () => authService.register({ username: 'alice', password: STRONG_PASSWORD }),
       (err) => {
         assert.strictEqual(err.status, 400);
         assert.match(err.message, /username, password and email are required/i);
@@ -116,7 +191,11 @@ describe('authService.register()', () => {
   it('should throw 400 when email format is invalid', async () => {
     await assert.rejects(
       () =>
-        authService.register({ username: 'alice', password: 'password1', email: 'not-an-email' }),
+        authService.register({
+          username: 'alice',
+          password: STRONG_PASSWORD,
+          email: 'not-an-email',
+        }),
       (err) => {
         assert.strictEqual(err.status, 400);
         assert.match(err.message, /invalid email format/i);
@@ -146,7 +225,7 @@ describe('authService.register()', () => {
   it('should succeed when password has exactly 8 characters', async () => {
     const result = await authService.register({
       username: 'alice',
-      password: '12345678',
+      password: STRONG_PASSWORD_8,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
@@ -158,7 +237,11 @@ describe('authService.register()', () => {
   it('should throw 400 when username has fewer than 3 characters', async () => {
     await assert.rejects(
       () =>
-        authService.register({ username: 'ab', password: 'password1', email: 'alice@example.com' }),
+        authService.register({
+          username: 'ab',
+          password: STRONG_PASSWORD,
+          email: 'alice@example.com',
+        }),
       (err) => {
         assert.strictEqual(err.status, 400);
         return true;
@@ -170,7 +253,7 @@ describe('authService.register()', () => {
   it('should succeed when username has exactly 3 characters', async () => {
     const result = await authService.register({
       username: 'abc',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'abc@example.com',
       ...VALID_CONSENT,
     });
@@ -183,7 +266,7 @@ describe('authService.register()', () => {
       () =>
         authService.register({
           username: 'ali ce',
-          password: 'password1',
+          password: STRONG_PASSWORD,
           email: 'alice@example.com',
         }),
       (err) => {
@@ -199,7 +282,7 @@ describe('authService.register()', () => {
       () =>
         authService.register({
           username: 'ali@ce',
-          password: 'password1',
+          password: STRONG_PASSWORD,
           email: 'alice@example.com',
         }),
       (err) => {
@@ -213,7 +296,7 @@ describe('authService.register()', () => {
   it('should succeed when username contains alphanumeric characters and underscores', async () => {
     const result = await authService.register({
       username: 'alice_01',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'alice_01@example.com',
       ...VALID_CONSENT,
     });
@@ -227,7 +310,7 @@ describe('authService.register()', () => {
       () =>
         authService.register({
           username: longUsername,
-          password: 'password1',
+          password: STRONG_PASSWORD,
           email: 'alice@example.com',
         }),
       (err) => {
@@ -242,7 +325,7 @@ describe('authService.register()', () => {
     const username = 'a'.repeat(50);
     const result = await authService.register({
       username,
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'long@example.com',
       ...VALID_CONSENT,
     });
@@ -270,7 +353,7 @@ describe('authService.register()', () => {
   it('should succeed when password has exactly 128 characters', async () => {
     const result = await authService.register({
       username: 'alice',
-      password: 'a'.repeat(128),
+      password: STRONG_PASSWORD_128,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
@@ -280,7 +363,7 @@ describe('authService.register()', () => {
   it('should succeed when password has 100 characters', async () => {
     const result = await authService.register({
       username: 'alice',
-      password: 'a'.repeat(100),
+      password: STRONG_PASSWORD_100,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
@@ -295,7 +378,7 @@ describe('authService.login()', () => {
   beforeEach(async () => {
     await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
@@ -316,7 +399,7 @@ describe('authService.login()', () => {
   // TC-02-03
   it('should throw 401 when username does not exist', async () => {
     await assert.rejects(
-      () => authService.login({ username: 'nobody', password: 'password1' }),
+      () => authService.login({ username: 'nobody', password: STRONG_PASSWORD }),
       (err) => {
         assert.strictEqual(err.status, 401);
         assert.match(err.message, /Invalid credentials/i);
@@ -327,14 +410,14 @@ describe('authService.login()', () => {
 
   // TC-02-05
   it('should return a JWT that expires in exactly 1 hour when JWT_EXPIRES_IN is 1h', async () => {
-    const { token } = await authService.login({ username: 'alice', password: 'password1' });
+    const { token } = await authService.login({ username: 'alice', password: STRONG_PASSWORD });
     const decoded = jwt.decode(token);
     assert.strictEqual(decoded.exp - decoded.iat, 3600);
   });
 
   it('should throw 400 when login is called without username', async () => {
     await assert.rejects(
-      () => authService.login({ password: 'password1' }),
+      () => authService.login({ password: STRONG_PASSWORD }),
       (err) => {
         assert.strictEqual(err.status, 400);
         assert.match(err.message, /username and password are required/i);
@@ -357,7 +440,7 @@ describe('authService.login()', () => {
   // NoSQL operator injection — a query-operator object must never reach the DB filter
   it('should throw 400 (not select an arbitrary user) when username is a query operator object', async () => {
     await assert.rejects(
-      () => authService.login({ username: { $gt: '' }, password: 'password1' }),
+      () => authService.login({ username: { $gt: '' }, password: STRONG_PASSWORD }),
       (err) => {
         assert.strictEqual(err.status, 400);
         return true;
@@ -379,12 +462,91 @@ describe('authService.login()', () => {
     const original = process.env.JWT_EXPIRES_IN;
     delete process.env.JWT_EXPIRES_IN;
     try {
-      const { token } = await authService.login({ username: 'alice', password: 'password1' });
+      const { token } = await authService.login({ username: 'alice', password: STRONG_PASSWORD });
       const decoded = jwt.decode(token);
       assert.strictEqual(decoded.exp - decoded.iat, 3600);
     } finally {
       process.env.JWT_EXPIRES_IN = original;
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Account lockout
+// ---------------------------------------------------------------------------
+describe('authService.login() — account lockout', () => {
+  beforeEach(async () => {
+    await authService.register({
+      username: 'lockuser',
+      password: STRONG_PASSWORD,
+      email: 'lockuser@example.com',
+      ...VALID_CONSENT,
+    });
+  });
+
+  it('should still return generic 401 (not lockout-specific) on the 5th consecutive bad password', async () => {
+    for (let i = 0; i < 4; i++) {
+      await assert.rejects(() =>
+        authService.login({ username: 'lockuser', password: 'wrongpass' }),
+      );
+    }
+    await assert.rejects(
+      () => authService.login({ username: 'lockuser', password: 'wrongpass' }),
+      (err) => {
+        assert.strictEqual(err.status, 401);
+        assert.match(err.message, /Invalid credentials/i);
+        return true;
+      },
+    );
+  });
+
+  it('should lock the account after 5 consecutive bad passwords, rejecting even the correct password', async () => {
+    for (let i = 0; i < 5; i++) {
+      await assert.rejects(() =>
+        authService.login({ username: 'lockuser', password: 'wrongpass' }),
+      );
+    }
+    await assert.rejects(
+      () => authService.login({ username: 'lockuser', password: STRONG_PASSWORD }),
+      (err) => {
+        assert.strictEqual(err.status, 401);
+        assert.match(err.message, /Invalid credentials/i);
+        return true;
+      },
+    );
+  });
+
+  it('should persist the lockUntil field on the user once locked', async () => {
+    for (let i = 0; i < 5; i++) {
+      await assert.rejects(() =>
+        authService.login({ username: 'lockuser', password: 'wrongpass' }),
+      );
+    }
+    const user = await userModel.findByUsername('lockuser');
+    assert.ok(user.lockUntil > new Date(), 'lockUntil should be set in the future');
+  });
+
+  it('should reset the failed-attempt counter and lock after a successful login', async () => {
+    for (let i = 0; i < 3; i++) {
+      await assert.rejects(() =>
+        authService.login({ username: 'lockuser', password: 'wrongpass' }),
+      );
+    }
+    await authService.login({ username: 'lockuser', password: STRONG_PASSWORD });
+    const user = await userModel.findByUsername('lockuser');
+    assert.strictEqual(user.failedLoginAttempts, 0);
+    assert.strictEqual(user.lockUntil, undefined);
+  });
+
+  it('should not lock the account before reaching the threshold', async () => {
+    for (let i = 0; i < 4; i++) {
+      await assert.rejects(() =>
+        authService.login({ username: 'lockuser', password: 'wrongpass' }),
+      );
+    }
+    // 5th attempt with the CORRECT password should still succeed — not yet locked
+    const { token } = await authService.login({ username: 'lockuser', password: STRONG_PASSWORD });
+    assert.ok(token);
   });
 });
 
@@ -395,13 +557,13 @@ describe('authService.changePassword()', () => {
   it('should update password when username exists and credentials are valid', async () => {
     await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
     const result = await authService.changePassword({
       username: 'alice',
-      currentPassword: 'password1',
+      currentPassword: STRONG_PASSWORD,
       newPassword: 'newPass99',
     });
     assert.strictEqual(result.message, 'Password updated successfully');
@@ -410,7 +572,7 @@ describe('authService.changePassword()', () => {
   it('should throw 401 when currentPassword is wrong', async () => {
     await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
@@ -434,7 +596,7 @@ describe('authService.changePassword()', () => {
       () =>
         authService.changePassword({
           username: 'nobody',
-          currentPassword: 'password1',
+          currentPassword: STRONG_PASSWORD,
           newPassword: 'newPass99',
         }),
       (err) => {
@@ -448,7 +610,7 @@ describe('authService.changePassword()', () => {
   it('should throw 400 when newPassword is too short', async () => {
     await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
@@ -456,7 +618,7 @@ describe('authService.changePassword()', () => {
       () =>
         authService.changePassword({
           username: 'alice',
-          currentPassword: 'password1',
+          currentPassword: STRONG_PASSWORD,
           newPassword: '1234567',
         }),
       (err) => {
@@ -470,7 +632,7 @@ describe('authService.changePassword()', () => {
   it('should throw 400 when newPassword is too long', async () => {
     await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
@@ -478,7 +640,7 @@ describe('authService.changePassword()', () => {
       () =>
         authService.changePassword({
           username: 'alice',
-          currentPassword: 'password1',
+          currentPassword: STRONG_PASSWORD,
           newPassword: 'a'.repeat(129),
         }),
       (err) => {
@@ -491,7 +653,8 @@ describe('authService.changePassword()', () => {
 
   it('should throw 400 when username is missing', async () => {
     await assert.rejects(
-      () => authService.changePassword({ currentPassword: 'password1', newPassword: 'newPass99' }),
+      () =>
+        authService.changePassword({ currentPassword: STRONG_PASSWORD, newPassword: 'newPass99' }),
       (err) => {
         assert.strictEqual(err.status, 400);
         assert.match(err.message, /username, currentPassword and newPassword are required/i);
@@ -513,7 +676,7 @@ describe('authService.changePassword()', () => {
 
   it('should throw 400 when newPassword is missing', async () => {
     await assert.rejects(
-      () => authService.changePassword({ username: 'alice', currentPassword: 'password1' }),
+      () => authService.changePassword({ username: 'alice', currentPassword: STRONG_PASSWORD }),
       (err) => {
         assert.strictEqual(err.status, 400);
         assert.match(err.message, /username, currentPassword and newPassword are required/i);
@@ -552,7 +715,7 @@ describe('authService.googleLogin()', () => {
   it('should append a suffix when derived username collides', async () => {
     await authService.register({
       username: 'guser',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'other@example.com',
       ...VALID_CONSENT,
     });
@@ -575,7 +738,7 @@ describe('authService.googleLogin()', () => {
   it('should auto-link Google to an existing password user with the same email', async () => {
     await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'guser@gmail.com',
       ...VALID_CONSENT,
     });
@@ -615,7 +778,7 @@ describe('authService.linkGoogle()', () => {
   it('should link Google to an existing user', async () => {
     const user = await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'guser@gmail.com',
       ...VALID_CONSENT,
     });
@@ -627,7 +790,7 @@ describe('authService.linkGoogle()', () => {
   it('should throw 400 when Google email does not match user email', async () => {
     const user = await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
@@ -646,7 +809,7 @@ describe('authService.linkGoogle()', () => {
     await authService.googleLogin({ idToken: 'tok' }, fakeVerify);
     const alice = await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
@@ -665,7 +828,7 @@ describe('authService.unlinkGoogle()', () => {
   it('should unlink Google when user has a password', async () => {
     const user = await authService.register({
       username: 'bob',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'bob@gmail.com',
       ...VALID_CONSENT,
     });
@@ -696,7 +859,7 @@ describe('authService.forgotPassword()', () => {
   beforeEach(async () => {
     await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
@@ -768,7 +931,7 @@ describe('authService.resetPassword()', () => {
   beforeEach(async () => {
     await authService.register({
       username: 'alice',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'alice@example.com',
       ...VALID_CONSENT,
     });
@@ -867,7 +1030,7 @@ describe('authService.updateLanguage()', () => {
   it('should throw 400 when language is missing', async () => {
     const user = await authService.register({
       username: 'lng1',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'lng1@x.com',
       ...VALID_CONSENT,
     });
@@ -883,7 +1046,7 @@ describe('authService.updateLanguage()', () => {
   it('should throw 400 when language is not supported', async () => {
     const user = await authService.register({
       username: 'lng2',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'lng2@x.com',
       ...VALID_CONSENT,
     });
@@ -910,7 +1073,7 @@ describe('authService.updateLanguage()', () => {
   it('should return a new JWT containing the updated language', async () => {
     const user = await authService.register({
       username: 'lng3',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'lng3@x.com',
       ...VALID_CONSENT,
     });
@@ -968,7 +1131,7 @@ describe('authService.updateCurrency()', () => {
   it('should throw 400 when currency is missing', async () => {
     const user = await authService.register({
       username: 'cur1',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'cur1@x.com',
       ...VALID_CONSENT,
     });
@@ -984,7 +1147,7 @@ describe('authService.updateCurrency()', () => {
   it('should throw 400 when currency is not supported', async () => {
     const user = await authService.register({
       username: 'cur2',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'cur2@x.com',
       ...VALID_CONSENT,
     });
@@ -1011,7 +1174,7 @@ describe('authService.updateCurrency()', () => {
   it('should return a JWT containing both currency and language', async () => {
     const user = await authService.register({
       username: 'curr_lang',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'currlang@x.com',
       ...VALID_CONSENT,
     });
@@ -1029,7 +1192,7 @@ describe('authService.register() — email verification', () => {
   it('should create user with emailVerified=false and a verification token', async () => {
     await authService.register({
       username: 'evuser',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'evuser@x.com',
       ...VALID_CONSENT,
     });
@@ -1042,11 +1205,11 @@ describe('authService.register() — email verification', () => {
   it('should include emailVerified=false in the JWT payload on login', async () => {
     await authService.register({
       username: 'evjwt',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'evjwt@x.com',
       ...VALID_CONSENT,
     });
-    const { token } = await authService.login({ username: 'evjwt', password: 'password1' });
+    const { token } = await authService.login({ username: 'evjwt', password: STRONG_PASSWORD });
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     assert.strictEqual(payload.emailVerified, false);
   });
@@ -1056,7 +1219,7 @@ describe('authService.verifyEmail()', () => {
   it('should set emailVerified=true and return a JWT with emailVerified=true', async () => {
     await authService.register({
       username: 'vf1',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'vf1@x.com',
       ...VALID_CONSENT,
     });
@@ -1095,7 +1258,7 @@ describe('authService.verifyEmail()', () => {
   it('should throw 400 and not issue a token when token is a query operator object', async () => {
     await authService.register({
       username: 'takeover_target',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'takeover@x.com',
       ...VALID_CONSENT,
     });
@@ -1113,7 +1276,7 @@ describe('authService.verifyEmail()', () => {
   it('should throw 400 when token is expired', async () => {
     await authService.register({
       username: 'expired1',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'expired1@x.com',
       ...VALID_CONSENT,
     });
@@ -1136,7 +1299,7 @@ describe('authService.verifyEmail()', () => {
   it('should throw 400 when email is already verified', async () => {
     await authService.register({
       username: 'vf2',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'vf2@x.com',
       ...VALID_CONSENT,
     });
@@ -1157,7 +1320,7 @@ describe('authService.resendVerification()', () => {
   it('should generate a new token and update expiry', async () => {
     await authService.register({
       username: 'rsnd1',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'rsnd1@x.com',
       ...VALID_CONSENT,
     });
@@ -1172,7 +1335,7 @@ describe('authService.resendVerification()', () => {
   it('should throw 400 when email is already verified', async () => {
     await authService.register({
       username: 'rsnd2',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'rsnd2@x.com',
       ...VALID_CONSENT,
     });
@@ -1208,7 +1371,7 @@ describe('authService.register() - consent', () => {
       () =>
         authService.register({
           username: 'consentless',
-          password: 'password1',
+          password: STRONG_PASSWORD,
           email: 'cl@example.com',
         }),
       (err) => {
@@ -1224,7 +1387,7 @@ describe('authService.register() - consent', () => {
       () =>
         authService.register({
           username: 'consentless',
-          password: 'password1',
+          password: STRONG_PASSWORD,
           email: 'cl@example.com',
           consent: { acceptedAt: new Date().toISOString() },
         }),
@@ -1241,7 +1404,7 @@ describe('authService.register() - consent', () => {
       () =>
         authService.register({
           username: 'consentless',
-          password: 'password1',
+          password: STRONG_PASSWORD,
           email: 'cl@example.com',
           consent: { policyVersion: POLICY_VERSION },
         }),
@@ -1258,7 +1421,7 @@ describe('authService.register() - consent', () => {
       () =>
         authService.register({
           username: 'consentmis',
-          password: 'password1',
+          password: STRONG_PASSWORD,
           email: 'cm@example.com',
           consent: { policyVersion: '1970-01-01', acceptedAt: new Date().toISOString() },
         }),
@@ -1273,7 +1436,7 @@ describe('authService.register() - consent', () => {
   it('should register successfully with valid consent', async () => {
     const result = await authService.register({
       username: 'consented',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'consented@example.com',
       consent: { policyVersion: POLICY_VERSION, acceptedAt: new Date().toISOString() },
     });

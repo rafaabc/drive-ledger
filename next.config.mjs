@@ -1,5 +1,6 @@
 import withSerwistInit from '@serwist/next';
 import { withSentryConfig } from '@sentry/nextjs';
+import { withBotId } from 'botid/next/config';
 
 const withSerwist = withSerwistInit({
   swSrc: 'app/sw.ts',
@@ -48,7 +49,7 @@ const nextConfig = {
   },
 };
 
-export default withSentryConfig(withSerwist(nextConfig), {
+export default withSentryConfig(withSerwist(withBotId(nextConfig)), {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 

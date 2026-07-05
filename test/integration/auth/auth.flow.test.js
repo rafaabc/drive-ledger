@@ -12,6 +12,9 @@ const { VALID_CONSENT } = require('../../helpers/fixtures');
 require('../../helpers/email-mock');
 const authService = require('../../../lib/services/auth.service');
 
+const STRONG_PASSWORD = 'Zx7$Qw2vNp9!Lm4';
+const STRONG_PASSWORD_OTHER = 'Hb3#Ty8xRk1!Vn6';
+
 before(async () => await startMongo());
 after(async () => await stopMongo());
 beforeEach(async () => await resetMongo());
@@ -21,11 +24,11 @@ describe('Auth flow integration', () => {
   it('should persist registered user so a subsequent login succeeds', async () => {
     await authService.register({
       username: 'testuser',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'testuser@example.com',
       consent: VALID_CONSENT,
     });
-    const { token } = await authService.login({ username: 'testuser', password: 'password1' });
+    const { token } = await authService.login({ username: 'testuser', password: STRONG_PASSWORD });
     assert.ok(token, 'login must return a token for the just-registered user');
   });
 
@@ -33,7 +36,7 @@ describe('Auth flow integration', () => {
   it('should reject duplicate username registration with "already taken" message', async () => {
     await authService.register({
       username: 'testuser',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'testuser@example.com',
       consent: VALID_CONSENT,
     });
@@ -41,7 +44,7 @@ describe('Auth flow integration', () => {
       () =>
         authService.register({
           username: 'testuser',
-          password: 'other_pass1',
+          password: STRONG_PASSWORD_OTHER,
           email: 'testuser2@example.com',
           consent: VALID_CONSENT,
         }),
@@ -57,11 +60,11 @@ describe('Auth flow integration', () => {
   it('should return an access token when valid credentials are provided', async () => {
     await authService.register({
       username: 'testuser',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'testuser@example.com',
       consent: VALID_CONSENT,
     });
-    const result = await authService.login({ username: 'testuser', password: 'password1' });
+    const result = await authService.login({ username: 'testuser', password: STRONG_PASSWORD });
     assert.ok(result.token);
     assert.strictEqual(typeof result.token, 'string');
     assert.ok(result.token.length > 0);
@@ -71,11 +74,11 @@ describe('Auth flow integration', () => {
   it('should return a well-formed JWT with user identity claims', async () => {
     const user = await authService.register({
       username: 'testuser',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'testuser@example.com',
       consent: VALID_CONSENT,
     });
-    const { token } = await authService.login({ username: 'testuser', password: 'password1' });
+    const { token } = await authService.login({ username: 'testuser', password: STRONG_PASSWORD });
     const segments = token.split('.');
     const decoded = jwt.decode(token);
     assert.strictEqual(segments.length, 3);
@@ -88,7 +91,7 @@ describe('Auth flow integration', () => {
   it('should persist language preference and return it in the next JWT', async () => {
     const { id } = await authService.register({
       username: 'langflow',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'langflow@x.com',
       consent: VALID_CONSENT,
     });
@@ -99,17 +102,19 @@ describe('Auth flow integration', () => {
 
     const { token: token2 } = await authService.login({
       username: 'langflow',
-      password: 'password1',
+      password: STRONG_PASSWORD,
     });
     const payload2 = jwt.verify(token2, process.env.JWT_SECRET);
     assert.strictEqual(payload2.language, 'en');
   });
 
-  // TC-02-08
-  it('should not lock account after multiple failed login attempts', async () => {
+  // TC-02-08 — superseded by account lockout hardening: 5 consecutive failed
+  // attempts now locks the account instead of allowing an immediate correct-password
+  // recovery. See authService.login() — account lockout unit tests for full coverage.
+  it('should lock account after 5 consecutive failed login attempts, rejecting the correct password too', async () => {
     await authService.register({
       username: 'testuser',
-      password: 'password1',
+      password: STRONG_PASSWORD,
       email: 'testuser@example.com',
       consent: VALID_CONSENT,
     });
@@ -119,7 +124,9 @@ describe('Auth flow integration', () => {
         { status: 401 },
       );
     }
-    const { token } = await authService.login({ username: 'testuser', password: 'password1' });
-    assert.ok(token);
+    await assert.rejects(
+      () => authService.login({ username: 'testuser', password: STRONG_PASSWORD }),
+      { status: 401 },
+    );
   });
 });

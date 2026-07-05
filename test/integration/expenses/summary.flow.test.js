@@ -26,7 +26,7 @@ const PAST_YEAR = new Date().getFullYear() - 1;
 async function seedUser() {
   const user = await authService.register({
     username: 'testuser',
-    password: 'password1',
+    password: 'Zx7Qw2vNp9Lm4Rk8',
     email: 'testuser@example.com',
     consent: VALID_CONSENT,
   });

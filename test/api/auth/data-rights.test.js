@@ -11,7 +11,7 @@ const {
 
 const VALID_CONSENT = { policyVersion: '2026-05-20', acceptedAt: new Date().toISOString() };
 
-async function registerAndLogin(prefix, password = 'Password1') {
+async function registerAndLogin(prefix, password = 'Zx7Qw2vNp9Lm4Rk8') {
   const username = uniqueUsername(prefix);
   const email = `${username}@test.com`;
   const regRes = await request(BASE_URL)

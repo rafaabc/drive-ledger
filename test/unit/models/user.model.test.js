@@ -164,3 +164,64 @@ describe('userModel — odometer', () => {
     assert.ok(updated.currentKmUpdatedAt instanceof Date);
   });
 });
+
+describe('userModel — account lockout', () => {
+  it('should default failedLoginAttempts to 0 for a new user', async () => {
+    const user = await userModel.create({
+      username: 'lockout1',
+      password: 'hashed',
+      email: 'lockout1@example.com',
+    });
+    assert.strictEqual(user.failedLoginAttempts, 0);
+  });
+
+  it('incrementFailedLogins() should atomically bump the counter and return the updated doc', async () => {
+    const user = await userModel.create({
+      username: 'lockout2',
+      password: 'hashed',
+      email: 'lockout2@example.com',
+    });
+    await userModel.incrementFailedLogins(user._id);
+    const updated = await userModel.incrementFailedLogins(user._id);
+    assert.strictEqual(updated.failedLoginAttempts, 2);
+  });
+
+  it('setLockUntil() should set the lockUntil field', async () => {
+    const user = await userModel.create({
+      username: 'lockout3',
+      password: 'hashed',
+      email: 'lockout3@example.com',
+    });
+    const until = new Date(Date.now() + 60_000);
+    await userModel.setLockUntil(user._id, until);
+    const found = await userModel.findByUsername('lockout3');
+    assert.strictEqual(found.lockUntil.getTime(), until.getTime());
+  });
+
+  it('resetFailedLogins() should zero the counter and clear lockUntil', async () => {
+    const user = await userModel.create({
+      username: 'lockout4',
+      password: 'hashed',
+      email: 'lockout4@example.com',
+    });
+    await userModel.incrementFailedLogins(user._id);
+    await userModel.setLockUntil(user._id, new Date(Date.now() + 60_000));
+    await userModel.resetFailedLogins(user._id);
+    const found = await userModel.findByUsername('lockout4');
+    assert.strictEqual(found.failedLoginAttempts, 0);
+    assert.strictEqual(found.lockUntil, undefined);
+  });
+
+  it('toJSON should strip failedLoginAttempts and lockUntil', async () => {
+    const user = await userModel.create({
+      username: 'lockout5',
+      password: 'hashed',
+      email: 'lockout5@example.com',
+    });
+    await userModel.setLockUntil(user._id, new Date(Date.now() + 60_000));
+    const found = await userModel.findByUsername('lockout5');
+    const json = found.toJSON();
+    assert.strictEqual(json.failedLoginAttempts, undefined);
+    assert.strictEqual(json.lockUntil, undefined);
+  });
+});

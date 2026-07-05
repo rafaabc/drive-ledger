@@ -29,7 +29,7 @@ function exactUsername(len) {
 describe('US-01 - User Registration', () => {
   describe('POST /api/auth/register', () => {
     it('[TC-01-01] should return 201 with id and username when credentials are valid', async () => {
-      const res = await registerAndTrack(uniqueUsername('tc0101'), 'Password1');
+      const res = await registerAndTrack(uniqueUsername('tc0101'), 'Zx7Qw2vNp9Lm4Rk8');
 
       expect(res.status).to.equal(201);
       expect(res.body).to.have.property('id').that.is.a('string');
@@ -38,13 +38,13 @@ describe('US-01 - User Registration', () => {
 
     it('[TC-01-02] should return 409 when username is already taken', async () => {
       const username = uniqueUsername('tc0102');
-      await registerAndTrack(username, 'Password1');
+      await registerAndTrack(username, 'Zx7Qw2vNp9Lm4Rk8');
 
       const res = await request(BASE_URL)
         .post('/api/auth/register')
         .send({
           username,
-          password: 'Password1',
+          password: 'Zx7Qw2vNp9Lm4Rk8',
           email: `${username}_dup@test.com`,
           consent: VALID_CONSENT,
         });
@@ -54,13 +54,13 @@ describe('US-01 - User Registration', () => {
 
     it('[TC-01-03] should include an error message in the response body when username is duplicate', async () => {
       const username = uniqueUsername('tc0103');
-      await registerAndTrack(username, 'Password1');
+      await registerAndTrack(username, 'Zx7Qw2vNp9Lm4Rk8');
 
       const res = await request(BASE_URL)
         .post('/api/auth/register')
         .send({
           username,
-          password: 'Password1',
+          password: 'Zx7Qw2vNp9Lm4Rk8',
           email: `${username}_dup@test.com`,
           consent: VALID_CONSENT,
         });
@@ -89,26 +89,26 @@ describe('US-01 - User Registration', () => {
     );
 
     it('[TC-01-08] should return 201 when password has exactly 8 characters', async () => {
-      const res = await registerAndTrack(uniqueUsername('tc0108'), 'Pass1234');
+      const res = await registerAndTrack(uniqueUsername('tc0108'), 'fl9n1Sjo');
 
       expect(res.status).to.equal(201);
     });
 
     it('[TC-01-10] should return 201 when username has exactly 3 characters', async () => {
-      const res = await registerAndTrack(exactUsername(3), 'Password1');
+      const res = await registerAndTrack(exactUsername(3), 'Zx7Qw2vNp9Lm4Rk8');
 
       expect(res.status).to.equal(201);
     });
 
     it('[TC-01-13] should return 201 when username contains alphanumeric characters and underscores', async () => {
       const username = uniqueUsername('v_u').replace(/-/g, '_').slice(0, 50);
-      const res = await registerAndTrack(username, 'Password1');
+      const res = await registerAndTrack(username, 'Zx7Qw2vNp9Lm4Rk8');
 
       expect(res.status).to.equal(201);
     });
 
     it('[TC-01-15] should return 201 when username has exactly 50 characters', async () => {
-      const res = await registerAndTrack(exactUsername(50), 'Password1');
+      const res = await registerAndTrack(exactUsername(50), 'Zx7Qw2vNp9Lm4Rk8');
 
       expect(res.status).to.equal(201);
     });
@@ -150,7 +150,7 @@ describe('US-02 - User Login', () => {
     it('[TC-02-03] should return 401 when username does not exist', async () => {
       const res = await request(BASE_URL)
         .post('/api/auth/login')
-        .send({ username: 'nonexistent_user_xyz', password: 'Password1' });
+        .send({ username: 'nonexistent_user_xyz', password: 'Zx7Qw2vNp9Lm4Rk8' });
 
       expect(res.status).to.equal(401);
     });
@@ -172,8 +172,14 @@ describe('US-02 - User Login', () => {
       expect(payload.exp - payload.iat).to.equal(3600);
     });
 
-    it('[TC-02-08] should not lock out the account after multiple failed login attempts', async () => {
-      const { username, password } = getUser();
+    // Superseded by account lockout hardening: 5 consecutive bad passwords now locks
+    // the account instead of allowing an immediate correct-password recovery. Uses a
+    // dedicated user (not the shared primary from getUser()) so the lockout this test
+    // deliberately triggers doesn't affect later tests reusing the primary account.
+    it('[TC-02-08] should lock out the account after 5 consecutive failed login attempts', async () => {
+      const username = uniqueUsername('tc0208');
+      const password = 'Zx7Qw2vNp9Lm4Rk8'; // NOSONAR — test fixture password, not a real credential
+      await registerAndTrack(username, password);
 
       for (let i = 0; i < 5; i++) {
         await request(BASE_URL)
@@ -183,8 +189,7 @@ describe('US-02 - User Login', () => {
 
       const res = await request(BASE_URL).post('/api/auth/login').send({ username, password });
 
-      expect(res.status).to.equal(200);
-      expect(res.body).to.have.property('token');
+      expect(res.status).to.equal(401);
     });
   });
 
