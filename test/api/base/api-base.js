@@ -52,7 +52,7 @@ async function registerAndTrack(username, password, email) {
 // Registers + logs in a fresh user; tracks them for cleanup; returns token only.
 async function createAndLoginUser(prefix) {
   const username = uniqueUsername(prefix);
-  const password = 'Zx7Qw2vNp9Lm4Rk8';
+  const password = 'Zx7Qw2vNp9Lm4Rk8'; // NOSONAR — test fixture password, not a real credential
   const email = `${username}@test.com`;
 
   const regRes = await request(BASE_URL)
@@ -83,7 +83,7 @@ before(async function () {
   await mongoose.connect(process.env.MONGODB_URI);
 
   const username = uniqueUsername('primary');
-  const password = 'Zx7Qw2vNp9Lm4Rk8';
+  const password = 'Zx7Qw2vNp9Lm4Rk8'; // NOSONAR — test fixture password, not a real credential
   const email = `${username}@test.com`;
 
   const regRes = await request(BASE_URL)

@@ -178,7 +178,7 @@ describe('US-02 - User Login', () => {
     // deliberately triggers doesn't affect later tests reusing the primary account.
     it('[TC-02-08] should lock out the account after 5 consecutive failed login attempts', async () => {
       const username = uniqueUsername('tc0208');
-      const password = 'Zx7Qw2vNp9Lm4Rk8';
+      const password = 'Zx7Qw2vNp9Lm4Rk8'; // NOSONAR — test fixture password, not a real credential
       await registerAndTrack(username, password);
 
       for (let i = 0; i < 5; i++) {

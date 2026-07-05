@@ -54,6 +54,7 @@ Sentry gotcha: `instrumentation.js` and `instrumentation-client.js` use CJS (`re
 **Odometer**: `Fuel` expense with `odometer` field updates `user.currentKm`. Drives km-based reminder status.
 
 **Auth hardening** (password path, alongside Google): password sign-in stays for non-Google users, hardened:
+
 - **Rate limiting** (`lib/middleware/rateLimit.js` + `lib/models/rateLimit.model.js`): Mongo-backed, not `globalThis` — required so limits hold across Vercel Fluid Compute instances. `withRateLimitedHandler` is async now; the 4 password routes + `/google` + `/resend-verification` call `connectDB()` **before** the rate-limited handler (limiter needs Mongo, and calling it after would hang on a cold instance).
 - **Account lockout** (`lib/services/auth.service.js`): 5 consecutive bad passwords locks the account with exponential backoff (1m→1h, capped). Locked-out login still returns the generic `401 Invalid credentials` — never reveals the lock state.
 - **Password strength + breach check** (`lib/services/passwordPolicy.js`): zxcvbn score ≥2 (not ≥3 — would defeat the existing 8-char minimum) + HaveIBeenPwned k-anonymity range check, fail-open on network error. Runs on register/changePassword/resetPassword, after existing length/format/duplicate checks.
