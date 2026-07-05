@@ -1494,7 +1494,7 @@ describe('authService.register() - invite gate', () => {
     process.env.INVITE_CODES = 'GOOD-CODE';
     const result = await authService.register({
       username: 'gatepass',
-      password: 'password1',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'gatepass@example.com',
       ...VALID_CONSENT,
       inviteCode: 'GOOD-CODE',
@@ -1508,7 +1508,7 @@ describe('authService.register() - invite gate', () => {
     delete process.env.INVITE_CODES;
     const result = await authService.register({
       username: 'gateoff',
-      password: 'password1',
+      password: 'Zx7Qw2vNp9Lm4Rk8',
       email: 'gateoff@example.com',
       ...VALID_CONSENT,
     });
