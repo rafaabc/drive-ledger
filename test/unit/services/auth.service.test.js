@@ -1213,6 +1213,18 @@ describe('authService.register() — email verification', () => {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     assert.strictEqual(payload.emailVerified, false);
   });
+
+  it('should include role=user in the JWT payload on login for a freshly registered user', async () => {
+    await authService.register({
+      username: 'roleusr',
+      password: STRONG_PASSWORD,
+      email: 'roleusr@x.com',
+      ...VALID_CONSENT,
+    });
+    const { token } = await authService.login({ username: 'roleusr', password: STRONG_PASSWORD });
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    assert.strictEqual(payload.role, 'user');
+  });
 });
 
 describe('authService.verifyEmail()', () => {

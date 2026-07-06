@@ -65,6 +65,7 @@ export function AuthProvider({ children }) {
   const language = decoded?.language ?? 'pt-BR';
   const emailVerified = decoded?.emailVerified ?? null;
   const plan = decoded?.plan ?? 'free';
+  const role = decoded?.role ?? 'user';
   const reminderEmailsEnabled = decoded?.reminderEmailsEnabled ?? true;
 
   const updateCurrency = useCallback(async (newCurrency) => {
@@ -106,6 +107,7 @@ export function AuthProvider({ children }) {
         language,
         emailVerified,
         plan,
+        role,
         reminderEmailsEnabled,
         updateCurrency,
         updateLanguage,
