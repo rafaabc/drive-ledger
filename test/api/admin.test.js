@@ -1,15 +1,9 @@
 'use strict';
 
 const jwt = require('jsonwebtoken');
-const mongoose = require('mongoose');
-const { request, expect, createAndLoginUser } = require('./base/api-base');
+const { request, expect, createAndLoginUser, promoteToAdmin } = require('./base/api-base');
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-
-async function promoteToAdmin(userId) {
-  const UserM = mongoose.model('User');
-  await UserM.findByIdAndUpdate(userId, { role: 'admin' });
-}
 
 describe('Admin API', function () {
   this.timeout(20000);

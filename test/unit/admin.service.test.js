@@ -2,6 +2,7 @@
 
 const { describe, it, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
+const mongoose = require('mongoose');
 const { startMongo, stopMongo, resetMongo } = require('../helpers/mongo');
 const userModel = require('../../lib/models/user.model');
 const adminService = require('../../lib/services/admin.service');
@@ -74,6 +75,31 @@ describe('admin.service', () => {
         () => adminService.setUserPlan(admin._id, target._id, 'ultra'),
         (err) => {
           assert.strictEqual(err.status, 400);
+          return true;
+        },
+      );
+    });
+
+    it('throws 404 when targetUserId is a malformed ObjectId', async () => {
+      const admin = await createAdmin();
+      await assert.rejects(
+        () => adminService.setUserPlan(admin._id, 'not-an-object-id', 'pro'),
+        (err) => {
+          assert.strictEqual(err.status, 404);
+          assert.strictEqual(err.message, 'User not found');
+          return true;
+        },
+      );
+    });
+
+    it('throws 404 when targetUserId is well-formed but no user exists', async () => {
+      const admin = await createAdmin();
+      const nonExistentId = new mongoose.Types.ObjectId();
+      await assert.rejects(
+        () => adminService.setUserPlan(admin._id, nonExistentId, 'pro'),
+        (err) => {
+          assert.strictEqual(err.status, 404);
+          assert.strictEqual(err.message, 'User not found');
           return true;
         },
       );
