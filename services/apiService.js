@@ -186,7 +186,8 @@ export const billingApi = {
 
 export const adminApi = {
   listUsers: () => request('/admin/users'),
-  setUserPlan: (id, plan) => request(`/admin/users/${id}/plan`, { method: 'PATCH', body: { plan } }),
+  setUserPlan: (id, plan) =>
+    request(`/admin/users/${id}/plan`, { method: 'PATCH', body: { plan } }),
 };
 
 export const remindersApi = {

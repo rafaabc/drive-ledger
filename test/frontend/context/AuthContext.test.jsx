@@ -306,7 +306,13 @@ describe('AuthProvider', () => {
       return <span data-testid="role">{role}</span>;
     }
 
-    const tokenWithRole = makeToken({ id: '10', username: 'admin_user', currency: 'BRL', language: 'pt-BR', role: 'admin' });
+    const tokenWithRole = makeToken({
+      id: '10',
+      username: 'admin_user',
+      currency: 'BRL',
+      language: 'pt-BR',
+      role: 'admin',
+    });
     localStorage.setItem('token', tokenWithRole);
     await act(async () => {
       render(
@@ -324,7 +330,12 @@ describe('AuthProvider', () => {
       return <span data-testid="role">{role}</span>;
     }
 
-    const tokenWithoutRole = makeToken({ id: '11', username: 'regular_user', currency: 'BRL', language: 'pt-BR' });
+    const tokenWithoutRole = makeToken({
+      id: '11',
+      username: 'regular_user',
+      currency: 'BRL',
+      language: 'pt-BR',
+    });
     localStorage.setItem('token', tokenWithoutRole);
     await act(async () => {
       render(
