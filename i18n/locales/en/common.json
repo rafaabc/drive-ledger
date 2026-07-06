@@ -21,7 +21,27 @@
     "reports": "Reports",
     "settings": "Settings",
     "changePassword": "Change password",
-    "logout": "Log out"
+    "logout": "Log out",
+    "admin": "Admin"
+  },
+  "admin": {
+    "users": {
+      "heading": "Users",
+      "noUsers": "No users found.",
+      "columns": {
+        "username": "Username",
+        "email": "Email",
+        "plan": "Plan",
+        "planSource": "Plan source",
+        "role": "Role",
+        "createdAt": "Created",
+        "actions": "Actions"
+      },
+      "actions": {
+        "setPro": "Set Pro",
+        "setFree": "Set Free"
+      }
+    }
   },
   "auth": {
     "login": {

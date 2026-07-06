@@ -21,7 +21,27 @@
     "reports": "Relatórios",
     "settings": "Configurações",
     "changePassword": "Alterar senha",
-    "logout": "Sair"
+    "logout": "Sair",
+    "admin": "Admin"
+  },
+  "admin": {
+    "users": {
+      "heading": "Usuários",
+      "noUsers": "Nenhum usuário encontrado.",
+      "columns": {
+        "username": "Usuário",
+        "email": "Email",
+        "plan": "Plano",
+        "planSource": "Origem do plano",
+        "role": "Função",
+        "createdAt": "Criado em",
+        "actions": "Ações"
+      },
+      "actions": {
+        "setPro": "Definir Pro",
+        "setFree": "Definir Free"
+      }
+    }
   },
   "auth": {
     "login": {
