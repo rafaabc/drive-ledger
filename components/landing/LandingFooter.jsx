@@ -13,7 +13,6 @@ export default function LandingFooter() {
         <nav className={styles.footerLinks}>
           <Link href="/privacy">{t('landing.footer.privacy')}</Link>
           <Link href="/terms">{t('landing.footer.terms')}</Link>
-          <Link href="/login">{t('landing.footer.login')}</Link>
         </nav>
       </div>
     </footer>

@@ -73,14 +73,16 @@
 }
 
 .featuresGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 1.5rem;
   max-width: 1080px;
   margin: 0 auto;
 }
 
 .featureCard {
+  flex: 0 1 300px;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
