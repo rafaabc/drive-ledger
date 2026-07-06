@@ -65,30 +65,33 @@ export default function AdminUsersPage() {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
-              <tr key={u.id}>
-                <td>{u.username}</td>
-                <td>{u.email}</td>
-                <td>{u.plan}</td>
-                <td>{u.planSource}</td>
-                <td>{u.role}</td>
-                <td>{formatDate(u.createdAt)}</td>
-                <td>
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => handleTogglePlan(u)}
-                    disabled={togglingId === u.id}
-                  >
-                    {togglingId === u.id
-                      ? t('common.saving')
-                      : u.plan === 'pro'
-                        ? t('admin.users.actions.setFree')
-                        : t('admin.users.actions.setPro')}
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {users.map((u) => {
+              const toggling = togglingId === u.id;
+              const actionLabel =
+                u.plan === 'pro'
+                  ? t('admin.users.actions.setFree')
+                  : t('admin.users.actions.setPro');
+              return (
+                <tr key={u.id}>
+                  <td>{u.username}</td>
+                  <td>{u.email}</td>
+                  <td>{u.plan}</td>
+                  <td>{u.planSource}</td>
+                  <td>{u.role}</td>
+                  <td>{formatDate(u.createdAt)}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className="btn-secondary"
+                      onClick={() => handleTogglePlan(u)}
+                      disabled={toggling}
+                    >
+                      {toggling ? t('common.saving') : actionLabel}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
