@@ -20,3 +20,5 @@ frontend/test-results/
 public/sw.js.map
 public/swe-worker-*.js.map
 public/workbox-*.js.map
+
+.vercel
