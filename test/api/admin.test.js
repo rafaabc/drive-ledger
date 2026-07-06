@@ -7,7 +7,7 @@ const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 describe('Admin API', function () {
   this.timeout(20000);
-  let userToken, adminToken, adminUserId, targetUserId;
+  let userToken, adminToken, adminUserId, targetUserId, targetUsername;
 
   before(async () => {
     userToken = await createAndLoginUser('adminregu');
@@ -17,6 +17,7 @@ describe('Admin API', function () {
     await promoteToAdmin(adminUserId);
 
     targetUserId = jwt.decode(userToken).id;
+    targetUsername = jwt.decode(userToken).username;
   });
 
   describe('GET /api/admin/users', () => {
@@ -38,8 +39,9 @@ describe('Admin API', function () {
         .set('Authorization', `Bearer ${adminToken}`);
       expect(res.status).to.equal(200);
       expect(res.body).to.be.an('array');
-      const found = res.body.find((u) => u.id === targetUserId || u._id === targetUserId);
+      const found = res.body.find((u) => u.id === targetUserId);
       expect(found).to.exist;
+      expect(found).to.not.have.property('_id');
       expect(found).to.not.have.property('password');
     });
   });
@@ -73,6 +75,29 @@ describe('Admin API', function () {
         .send({ plan: 'free' });
       expect(res2.status).to.equal(200);
       expect(res2.body.plan).to.equal('free');
+    });
+
+    it('[TC-AD-06b] round trips the id from GET /api/admin/users into the PATCH url, as the real UI does', async () => {
+      const listRes = await request(BASE_URL)
+        .get('/api/admin/users')
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(listRes.status).to.equal(200);
+      const target = listRes.body.find((u) => u.username === targetUsername);
+      expect(target).to.exist;
+      expect(target.id).to.be.a('string');
+
+      const patchRes = await request(BASE_URL)
+        .patch(`/api/admin/users/${target.id}/plan`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ plan: 'pro' });
+      expect(patchRes.status).to.equal(200);
+      expect(patchRes.body.plan).to.equal('pro');
+
+      // reset back to free so this test doesn't leak state into TC-AD-07/others
+      await request(BASE_URL)
+        .patch(`/api/admin/users/${target.id}/plan`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ plan: 'free' });
     });
 
     it('[TC-AD-07] rejects an invalid plan value from an admin', async () => {
