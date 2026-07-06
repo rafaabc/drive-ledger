@@ -184,6 +184,12 @@ export const billingApi = {
   portal: () => request('/billing/portal', { method: 'POST' }),
 };
 
+export const adminApi = {
+  listUsers: () => request('/admin/users'),
+  setUserPlan: (id, plan) =>
+    request(`/admin/users/${id}/plan`, { method: 'PATCH', body: { plan } }),
+};
+
 export const remindersApi = {
   list: ({ status } = {}, signal = null) => {
     const params = new URLSearchParams();

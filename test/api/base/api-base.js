@@ -75,6 +75,16 @@ async function verifyUserInDb(userId) {
   await UserM.findByIdAndUpdate(userId, { emailVerified: true });
 }
 
+// Promotes a user to the admin role directly in the DB (bypasses the admin API,
+// which has no self-service way to create the first admin — matches the
+// verifyUserInDb pattern above for reaching the DB in tests that can't go
+// through the public HTTP API). Relies on the root before() hook above having
+// already opened the shared mongoose connection.
+async function promoteToAdmin(userId) {
+  const UserM = mongoose.model('User');
+  await UserM.findByIdAndUpdate(userId, { role: 'admin' });
+}
+
 // Root-suite before() — runs once before all test files.
 before(async function () {
   this.timeout(15000);
@@ -146,4 +156,5 @@ module.exports = {
   createAndLoginUser,
   registerAndTrack,
   verifyUserInDb,
+  promoteToAdmin,
 };

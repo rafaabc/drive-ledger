@@ -12,6 +12,7 @@ import {
   Car,
   DollarSign,
   FileText,
+  ShieldCheck,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext.jsx';
@@ -19,7 +20,7 @@ import NavLink from './NavLink.jsx';
 import styles from './Sidebar.module.css';
 
 export default function Sidebar({ badgeCount = 0 }) {
-  const { username, logout, plan } = useAuth();
+  const { username, logout, plan, role } = useAuth();
   const { t } = useTranslation();
 
   const NAV_ITEMS = [
@@ -33,6 +34,7 @@ export default function Sidebar({ badgeCount = 0 }) {
     { to: '/summary', icon: BarChart3, label: t('nav.summary') },
     { to: '/change-password', icon: KeyRound, label: t('nav.changePassword') },
     { to: '/settings', icon: Settings, label: t('nav.settings') },
+    ...(role === 'admin' ? [{ to: '/users', icon: ShieldCheck, label: t('nav.admin') }] : []),
   ];
 
   return (

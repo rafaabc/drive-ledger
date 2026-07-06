@@ -6,13 +6,15 @@ vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k) => k }) }));
 vi.mock('@/components/Sidebar.module.css', () => ({ default: {} }));
 
 const mockLogout = vi.fn();
+let mockRole = 'user';
 vi.mock('@/context/AuthContext.jsx', () => ({
-  useAuth: () => ({ username: 'testuser', logout: mockLogout }),
+  useAuth: () => ({ username: 'testuser', logout: mockLogout, role: mockRole }),
 }));
 
 describe('Sidebar', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockRole = 'user';
   });
 
   it('should render brand name', () => {
@@ -47,5 +49,17 @@ describe('Sidebar', () => {
     render(<Sidebar />);
     fireEvent.click(screen.getByRole('button', { name: 'nav.logout' }));
     expect(mockLogout).toHaveBeenCalledOnce();
+  });
+
+  it('should not render the admin nav link for a non-admin role', () => {
+    mockRole = 'user';
+    render(<Sidebar />);
+    expect(screen.queryByRole('link', { name: /nav.admin/i })).toBeNull();
+  });
+
+  it('should render the admin nav link for the admin role', () => {
+    mockRole = 'admin';
+    render(<Sidebar />);
+    expect(screen.getByRole('link', { name: /nav.admin/i })).toBeInTheDocument();
   });
 });

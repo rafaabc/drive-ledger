@@ -21,7 +21,27 @@
     "reports": "Reports",
     "settings": "Settings",
     "changePassword": "Change password",
-    "logout": "Log out"
+    "logout": "Log out",
+    "admin": "Admin"
+  },
+  "admin": {
+    "users": {
+      "heading": "Users",
+      "noUsers": "No users found.",
+      "columns": {
+        "username": "Username",
+        "email": "Email",
+        "plan": "Plan",
+        "planSource": "Plan source",
+        "role": "Role",
+        "createdAt": "Created",
+        "actions": "Actions"
+      },
+      "actions": {
+        "setPro": "Set Pro",
+        "setFree": "Set Free"
+      }
+    }
   },
   "auth": {
     "login": {
@@ -244,7 +264,8 @@
     "incomeNotFound": "Income entry not found.",
     "incomeFeatureLocked": "Income tracking is a Pro feature. Upgrade to unlock it.",
     "reportsFeatureLocked": "Tax-ready reports are a Pro feature. Upgrade to unlock them.",
-    "inviteRequired": "An invite code is required to sign up right now."
+    "inviteRequired": "An invite code is required to sign up right now.",
+    "adminRequired": "You don't have permission to do that."
   },
   "pwa": {
     "updateAvailable": "New version available.",

@@ -21,7 +21,27 @@
     "reports": "Relatórios",
     "settings": "Configurações",
     "changePassword": "Alterar senha",
-    "logout": "Sair"
+    "logout": "Sair",
+    "admin": "Admin"
+  },
+  "admin": {
+    "users": {
+      "heading": "Usuários",
+      "noUsers": "Nenhum usuário encontrado.",
+      "columns": {
+        "username": "Usuário",
+        "email": "Email",
+        "plan": "Plano",
+        "planSource": "Origem do plano",
+        "role": "Função",
+        "createdAt": "Criado em",
+        "actions": "Ações"
+      },
+      "actions": {
+        "setPro": "Definir Pro",
+        "setFree": "Definir Free"
+      }
+    }
   },
   "auth": {
     "login": {
@@ -244,7 +264,8 @@
     "incomeNotFound": "Registro de receita não encontrado.",
     "incomeFeatureLocked": "O controle de receita é um recurso Pro. Faça upgrade para desbloquear.",
     "reportsFeatureLocked": "Relatórios prontos para o imposto de renda são um recurso Pro. Faça upgrade para desbloquear.",
-    "inviteRequired": "Um código de convite é necessário para se cadastrar no momento."
+    "inviteRequired": "Um código de convite é necessário para se cadastrar no momento.",
+    "adminRequired": "Você não tem permissão para fazer isso."
   },
   "pwa": {
     "updateAvailable": "Nova versão disponível.",

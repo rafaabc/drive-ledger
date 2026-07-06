@@ -39,6 +39,7 @@ function Consumer() {
       <span data-testid="authed">{String(auth.isAuthed)}</span>
       <span data-testid="username">{auth.username ?? 'none'}</span>
       <span data-testid="currency">{auth.currency}</span>
+      <span data-testid="role">{auth.role ?? 'none'}</span>
       <button onClick={auth.logout}>logout</button>
     </div>
   );
@@ -297,5 +298,52 @@ describe('AuthProvider', () => {
     });
 
     expect(screen.getByTestId('verified').textContent).toBe('true');
+  });
+
+  it('should derive role from token, defaulting to user when absent', async () => {
+    function RoleConsumer() {
+      const { role } = useAuth();
+      return <span data-testid="role">{role}</span>;
+    }
+
+    const tokenWithRole = makeToken({
+      id: '10',
+      username: 'admin_user',
+      currency: 'BRL',
+      language: 'pt-BR',
+      role: 'admin',
+    });
+    localStorage.setItem('token', tokenWithRole);
+    await act(async () => {
+      render(
+        <AuthProvider>
+          <RoleConsumer />
+        </AuthProvider>,
+      );
+    });
+    expect(screen.getByTestId('role').textContent).toBe('admin');
+  });
+
+  it('should derive role=user when token does not include role field', async () => {
+    function RoleConsumer() {
+      const { role } = useAuth();
+      return <span data-testid="role">{role}</span>;
+    }
+
+    const tokenWithoutRole = makeToken({
+      id: '11',
+      username: 'regular_user',
+      currency: 'BRL',
+      language: 'pt-BR',
+    });
+    localStorage.setItem('token', tokenWithoutRole);
+    await act(async () => {
+      render(
+        <AuthProvider>
+          <RoleConsumer />
+        </AuthProvider>,
+      );
+    });
+    expect(screen.getByTestId('role').textContent).toBe('user');
   });
 });

@@ -260,6 +260,32 @@ describe('billingService.handleWebhookEvent()', () => {
     assert.strictEqual(updated.plan, 'free', 'stale retried event must not resurrect plan=pro');
   });
 
+  it('does not clobber an admin-granted manual comp with a Stripe webhook for the same customer', async () => {
+    const user = await makeStripeUser({ stripeCustomerId: 'cus_wh_manual' });
+    await userModel.updatePlanAndBilling(user._id, {
+      plan: 'pro',
+      planSource: 'manual',
+      stripeCustomerId: 'cus_wh_manual',
+    });
+
+    const updatePlanAndBillingMock = mock.method(userModel, 'updatePlanAndBilling');
+
+    await billingService.handleWebhookEvent({
+      id: 'evt_manual_1',
+      type: 'customer.subscription.updated',
+      data: {
+        object: { customer: 'cus_wh_manual', id: 'sub_manual', status: 'active' },
+      },
+    });
+
+    assert.strictEqual(updatePlanAndBillingMock.mock.callCount(), 0);
+    updatePlanAndBillingMock.mock.restore();
+
+    const updated = await userModel.findByStripeCustomerId('cus_wh_manual');
+    assert.strictEqual(updated.plan, 'pro');
+    assert.strictEqual(updated.planSource, 'manual');
+  });
+
   it('silently ignores an event for an unknown customer id', async () => {
     await assert.doesNotReject(() =>
       billingService.handleWebhookEvent({
