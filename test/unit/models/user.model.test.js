@@ -165,6 +165,76 @@ describe('userModel — odometer', () => {
   });
 });
 
+describe('userModel — role', () => {
+  it('should default role to user', async () => {
+    const user = await userModel.create({
+      username: 'role1',
+      password: 'hashed',
+      email: 'role1@example.com',
+    });
+    assert.strictEqual(user.role, 'user');
+  });
+
+  it('should reject an unsupported role value', async () => {
+    await assert.rejects(
+      () =>
+        userModel.create({
+          username: 'role2',
+          password: 'hashed',
+          email: 'role2@example.com',
+          role: 'superuser',
+        }),
+      /role/i,
+    );
+  });
+
+  it('updateRole() should persist the new role', async () => {
+    const user = await userModel.create({
+      username: 'role3',
+      password: 'hashed',
+      email: 'role3@example.com',
+    });
+    await userModel.updateRole(user._id, 'admin');
+    const found = await userModel.findById(user._id);
+    assert.strictEqual(found.role, 'admin');
+  });
+
+  it('listForAdmin() should return users sorted by createdAt descending, projected fields only', async () => {
+    const first = await userModel.create({
+      username: 'role_list1',
+      password: 'hashed',
+      email: 'role_list1@example.com',
+    });
+    const second = await userModel.create({
+      username: 'role_list2',
+      password: 'hashed',
+      email: 'role_list2@example.com',
+    });
+    const list = await userModel.listForAdmin();
+    assert.strictEqual(list.length, 2);
+    assert.strictEqual(list[0]._id.toString(), second._id.toString());
+    assert.strictEqual(list[1]._id.toString(), first._id.toString());
+    assert.strictEqual(list[0].username, 'role_list2');
+    assert.strictEqual(list[0].plan, 'free');
+    assert.strictEqual(list[0].planSource, 'stripe');
+    assert.strictEqual(list[0].role, 'user');
+    assert.ok(list[0].createdAt instanceof Date);
+    assert.strictEqual(list[0].password, undefined);
+  });
+
+  it('setPlanManually() should set plan and planSource atomically', async () => {
+    const user = await userModel.create({
+      username: 'role4',
+      password: 'hashed',
+      email: 'role4@example.com',
+    });
+    await userModel.setPlanManually(user._id, 'pro');
+    const found = await userModel.findById(user._id);
+    assert.strictEqual(found.plan, 'pro');
+    assert.strictEqual(found.planSource, 'manual');
+  });
+});
+
 describe('userModel — account lockout', () => {
   it('should default failedLoginAttempts to 0 for a new user', async () => {
     const user = await userModel.create({
