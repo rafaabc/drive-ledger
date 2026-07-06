@@ -244,7 +244,8 @@
     "incomeNotFound": "Income entry not found.",
     "incomeFeatureLocked": "Income tracking is a Pro feature. Upgrade to unlock it.",
     "reportsFeatureLocked": "Tax-ready reports are a Pro feature. Upgrade to unlock them.",
-    "inviteRequired": "An invite code is required to sign up right now."
+    "inviteRequired": "An invite code is required to sign up right now.",
+    "adminRequired": "You don't have permission to do that."
   },
   "pwa": {
     "updateAvailable": "New version available.",

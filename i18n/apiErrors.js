@@ -29,4 +29,5 @@ export const API_ERROR_MAP = {
   reports_feature_locked: 'errors.reportsFeatureLocked',
   billing_not_configured: 'errors.billingNotConfigured',
   invite_required: 'errors.inviteRequired',
+  admin_required: 'errors.adminRequired',
 };
