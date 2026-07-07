@@ -78,7 +78,7 @@
     "@vitest/coverage-v8": "^4.1.8",
     "c8": "^11.0.0",
     "chai": "^4.5.0",
-    "eslint": "^9.39.4",
+    "eslint": "^10.6.0",
     "eslint-config-next": "^16.2.9",
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^29.1.1",
