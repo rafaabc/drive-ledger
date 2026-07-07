@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/rafaabc/norevify#readme",
   "dependencies": {
-    "@sentry/nextjs": "^10.53.1",
+    "@sentry/nextjs": "^10.63.0",
     "@zxcvbn-ts/core": "^4.1.2",
     "@zxcvbn-ts/language-common": "^4.1.2",
     "@zxcvbn-ts/language-en": "^4.1.1",
