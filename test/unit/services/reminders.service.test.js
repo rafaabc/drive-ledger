@@ -10,6 +10,7 @@ const { startMongo, stopMongo, resetMongo } = require('../../helpers/mongo');
 const remindersService = require('../../../lib/services/reminders.service');
 const reminderModel = require('../../../lib/models/reminder.model');
 const userModel = require('../../../lib/models/user.model');
+const vehicleModel = require('../../../lib/models/vehicle.model');
 
 before(async () => await startMongo());
 after(async () => await stopMongo());
@@ -218,6 +219,35 @@ describe('remindersService.updateReminder()', () => {
     await assert.rejects(
       () => remindersService.updateReminder(u, r._id.toString(), { dueKm: 99999 }),
       (err) => err.status === 400 && /cannot edit completed/i.test(err.message),
+    );
+  });
+
+  it('reassigns vehicleId to another owned vehicle', async () => {
+    const u = USER_ID();
+    const r = await remindersService.createReminder(u, { type: 'Maintenance', dueKm: 10000 });
+    const originalVehicleId = r.vehicleId.toString();
+    const vehicleB = await vehicleModel.create({ userId: u, name: 'Car B' });
+
+    const updated = await remindersService.updateReminder(u, r._id.toString(), {
+      vehicleId: vehicleB._id.toString(),
+    });
+
+    assert.strictEqual(updated.vehicleId.toString(), vehicleB._id.toString());
+    assert.notStrictEqual(updated.vehicleId.toString(), originalVehicleId);
+  });
+
+  it('throws 404 for a vehicleId owned by another user', async () => {
+    const u1 = USER_ID();
+    const u2 = USER_ID();
+    const r = await remindersService.createReminder(u1, { type: 'Maintenance', dueKm: 10000 });
+    const otherVehicle = await vehicleModel.create({ userId: u2, name: 'Not yours' });
+
+    await assert.rejects(
+      () =>
+        remindersService.updateReminder(u1, r._id.toString(), {
+          vehicleId: otherVehicle._id.toString(),
+        }),
+      (err) => err.status === 404,
     );
   });
 });
