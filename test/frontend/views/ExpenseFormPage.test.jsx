@@ -47,11 +47,15 @@ vi.mock('next/navigation', () => ({
 const mockCreate = vi.fn();
 const mockUpdate = vi.fn();
 const mockGet = vi.fn();
+const mockVehiclesList = vi.fn();
 vi.mock('@/services/apiService.js', () => ({
   expensesApi: {
     create: () => mockCreate(),
     update: (...a) => mockUpdate(...a),
     get: (id) => mockGet(id),
+  },
+  vehiclesApi: {
+    list: () => mockVehiclesList(),
   },
 }));
 
@@ -62,6 +66,7 @@ describe('ExpenseFormPage', () => {
     mockUseParams.mockReturnValue({});
     mockCreate.mockResolvedValue({});
     mockUpdate.mockResolvedValue({});
+    mockVehiclesList.mockResolvedValue([]);
   });
 
   it('should render create heading when no id', () => {

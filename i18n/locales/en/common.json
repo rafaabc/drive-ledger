@@ -319,6 +319,7 @@
     "addNew": "Add vehicle",
     "editVehicle": "Edit vehicle",
     "currentKm": "{{km}} km",
+    "selectLabel": "Vehicle",
     "fields": {
       "name": "Name",
       "namePlaceholder": "e.g. My Civic",
