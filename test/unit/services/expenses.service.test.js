@@ -11,6 +11,7 @@ const { startMongo, stopMongo, resetMongo } = require('../../helpers/mongo');
 const expensesService = require('../../../lib/services/expenses.service');
 const userModel = require('../../../lib/models/user.model');
 const vehiclesService = require('../../../lib/services/vehicles.service');
+const vehicleModel = require('../../../lib/models/vehicle.model');
 
 before(async () => await startMongo());
 after(async () => await stopMongo());
@@ -461,6 +462,37 @@ describe('expensesService.updateExpense()', () => {
     const created = await expensesService.createExpense(USER_ID, validOther());
     await assert.rejects(
       () => expensesService.updateExpense(OTHER_USER_ID, created.id, { amount: 50 }),
+      (err) => {
+        assert.strictEqual(err.status, 404);
+        return true;
+      },
+    );
+  });
+
+  it('should reassign vehicleId to another owned vehicle', async () => {
+    const created = await expensesService.createExpense(USER_ID, validOther());
+    const originalVehicleId = created.vehicleId;
+    const vehicleB = await vehicleModel.create({ userId: USER_ID, name: 'Car B' });
+
+    const updated = await expensesService.updateExpense(USER_ID, created.id, {
+      amount: 99,
+      vehicleId: vehicleB._id.toString(),
+    });
+
+    assert.strictEqual(updated.vehicleId.toString(), vehicleB._id.toString());
+    assert.notStrictEqual(updated.vehicleId.toString(), originalVehicleId);
+  });
+
+  it('should throw 404 when reassigning to a vehicleId owned by another user', async () => {
+    const created = await expensesService.createExpense(USER_ID, validOther());
+    const otherVehicle = await vehicleModel.create({ userId: OTHER_USER_ID, name: 'Not yours' });
+
+    await assert.rejects(
+      () =>
+        expensesService.updateExpense(USER_ID, created.id, {
+          amount: 99,
+          vehicleId: otherVehicle._id.toString(),
+        }),
       (err) => {
         assert.strictEqual(err.status, 404);
         return true;
