@@ -8,6 +8,8 @@ import AmountField from '@/components/AmountField.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import Loading from '@/components/Loading.jsx';
 import PageTitle from '@/components/PageTitle.jsx';
+import VehicleSelect from '@/components/VehicleSelect.jsx';
+import { useVehicleOptions } from '@/hooks/useVehicleOptions.js';
 import { todayISO } from '@/utils/formatDate.js';
 import styles from './RecurringFormPage.module.css';
 
@@ -21,6 +23,7 @@ const EMPTY = {
   startDate: todayISO(),
   interval: '1',
   active: true,
+  vehicleId: '',
 };
 
 export default function RecurringFormPage() {
@@ -34,6 +37,7 @@ export default function RecurringFormPage() {
   const [loadingData, setLoadingData] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const vehicles = useVehicleOptions(isEdit, setForm);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -47,6 +51,7 @@ export default function RecurringFormPage() {
           startDate: rule.startDate?.split('T')[0] || todayISO(),
           interval: String(rule.interval ?? '1'),
           active: rule.active !== false,
+          vehicleId: rule.vehicleId || '',
         });
       })
       .catch((err) => setError(err.message))
@@ -70,6 +75,7 @@ export default function RecurringFormPage() {
       startDate: form.startDate,
       interval: Number(form.interval),
       active: form.active,
+      vehicleId: form.vehicleId || undefined,
     };
 
     try {
@@ -98,6 +104,9 @@ export default function RecurringFormPage() {
         {error && <ErrorBanner message={error} />}
 
         <form onSubmit={handleSubmit}>
+          {vehicles.length > 1 && (
+            <VehicleSelect vehicles={vehicles} value={form.vehicleId} onChange={handleChange} />
+          )}
           <div className="form-group">
             <label htmlFor="field-category">{t('recurring.fields.category')}</label>
             <select
