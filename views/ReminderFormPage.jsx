@@ -7,8 +7,9 @@ import VehicleSelect from '@/components/VehicleSelect.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import FieldLabelWithHint from '@/components/FieldLabelWithHint.jsx';
 import PageTitle from '@/components/PageTitle.jsx';
-import { remindersApi, vehiclesApi } from '@/services/apiService.js';
+import { remindersApi } from '@/services/apiService.js';
 import { useAsyncAction } from '@/hooks/useAsyncAction.js';
+import { useVehicleOptions } from '@/hooks/useVehicleOptions.js';
 import { todayISO } from '@/utils/formatDate.js';
 
 const EMPTY = {
@@ -29,20 +30,8 @@ export default function ReminderFormPage() {
   const isEdit = Boolean(id);
   const [form, setForm] = useState(EMPTY);
   const [loadError, setLoadError] = useState('');
-  const [vehicles, setVehicles] = useState([]);
   const action = useAsyncAction();
-
-  useEffect(() => {
-    vehiclesApi
-      .list()
-      .then((list) => {
-        setVehicles(list);
-        if (!isEdit && list.length > 0) {
-          setForm((f) => (f.vehicleId ? f : { ...f, vehicleId: list[0].id }));
-        }
-      })
-      .catch(() => {});
-  }, [isEdit]);
+  const vehicles = useVehicleOptions(isEdit, setForm);
 
   useEffect(() => {
     if (!isEdit) return;
