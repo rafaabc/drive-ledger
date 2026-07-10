@@ -10,6 +10,7 @@ const { startMongo, stopMongo, resetMongo } = require('../../helpers/mongo');
 const recurringService = require('../../../lib/services/recurring.service');
 const expenseModel = require('../../../lib/models/expense.model');
 const userModel = require('../../../lib/models/user.model');
+const vehicleModel = require('../../../lib/models/vehicle.model');
 
 before(async () => await startMongo());
 after(async () => await stopMongo());
@@ -168,6 +169,38 @@ describe('recurringService CRUD', () => {
     });
     assert.strictEqual(updated.amount, 200);
     assert.strictEqual(updated.dayOfMonth, 20);
+  });
+
+  it('updateRule reassigns vehicleId to another owned vehicle', async () => {
+    const user = await createUser();
+    const vehicleB = await vehicleModel.create({ userId: user._id, name: 'Car B' });
+    const rule = await recurringService.createRule(user._id.toString(), validRule());
+    const originalVehicleId = rule.vehicleId;
+
+    const updated = await recurringService.updateRule(user._id.toString(), rule.id, {
+      vehicleId: vehicleB._id.toString(),
+    });
+
+    assert.strictEqual(updated.vehicleId.toString(), vehicleB._id.toString());
+    assert.notStrictEqual(updated.vehicleId.toString(), originalVehicleId);
+  });
+
+  it('updateRule throws 404 for a vehicleId owned by another user', async () => {
+    const u1 = await createUser();
+    const u2 = await createUser();
+    const otherVehicle = await vehicleModel.create({ userId: u2._id, name: 'Not yours' });
+    const rule = await recurringService.createRule(u1._id.toString(), validRule());
+
+    await assert.rejects(
+      () =>
+        recurringService.updateRule(u1._id.toString(), rule.id, {
+          vehicleId: otherVehicle._id.toString(),
+        }),
+      (err) => {
+        assert.strictEqual(err.status, 404);
+        return true;
+      },
+    );
   });
 
   it('deleteRule removes the rule', async () => {
