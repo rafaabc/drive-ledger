@@ -3,13 +3,14 @@ import { useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2 } from 'lucide-react';
-import { incomeApi } from '@/services/apiService.js';
+import { incomeApi, vehiclesApi } from '@/services/apiService.js';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { useAutoClear } from '@/hooks/useAutoClear.js';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import Loading from '@/components/Loading.jsx';
 import PageTitle from '@/components/PageTitle.jsx';
 import Modal from '@/components/Modal.jsx';
+import VehicleSelect from '@/components/VehicleSelect.jsx';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.jsx';
 import { formatDate, currentYear, todayISO } from '@/utils/formatDate.js';
 import { formatCurrency } from '@/utils/formatCurrency.js';
@@ -21,12 +22,15 @@ function sourceLabel(source, t) {
   return source === 'Other' ? t('income.sources.Other') : source;
 }
 
-function IncomeFormModal({ open, initial, onSubmit, onCancel, error, loading }) {
+function IncomeFormModal({ open, initial, vehicles = [], onSubmit, onCancel, error, loading }) {
   const { t } = useTranslation();
   const [date, setDate] = useState(initial?.date?.slice(0, 10) || todayISO());
   const [amount, setAmount] = useState(initial?.amount ?? '');
   const [source, setSource] = useState(initial?.source || SOURCES[0]);
   const [note, setNote] = useState(initial?.note || '');
+  const [vehicleId, setVehicleId] = useState(
+    initial?.vehicleId || (vehicles.length > 0 ? vehicles[0].id : ''),
+  );
   const [prevOpen, setPrevOpen] = useState(open);
 
   // Derived-state reset: re-seed fields whenever the modal is (re)opened.
@@ -37,6 +41,7 @@ function IncomeFormModal({ open, initial, onSubmit, onCancel, error, loading }) 
       setAmount(initial?.amount ?? '');
       setSource(initial?.source || SOURCES[0]);
       setNote(initial?.note || '');
+      setVehicleId(initial?.vehicleId || (vehicles.length > 0 ? vehicles[0].id : ''));
     }
   }
 
@@ -44,7 +49,13 @@ function IncomeFormModal({ open, initial, onSubmit, onCancel, error, loading }) 
 
   function handleSubmit(e) {
     e.preventDefault();
-    onSubmit({ date, amount: Number(amount), source, note: note || undefined });
+    onSubmit({
+      date,
+      amount: Number(amount),
+      source,
+      note: note || undefined,
+      vehicleId: vehicleId || undefined,
+    });
   }
 
   return (
@@ -52,6 +63,13 @@ function IncomeFormModal({ open, initial, onSubmit, onCancel, error, loading }) 
       <h3 id="income-modal-title">{initial ? t('income.editIncome') : t('income.addNew')}</h3>
       {error && <ErrorBanner message={error} />}
       <form onSubmit={handleSubmit}>
+        {vehicles.length > 1 && (
+          <VehicleSelect
+            vehicles={vehicles}
+            value={vehicleId}
+            onChange={(e) => setVehicleId(e.target.value)}
+          />
+        )}
         <div className="form-group">
           <label htmlFor="income-date">{t('income.fields.date')}</label>
           <input
@@ -105,6 +123,7 @@ function IncomeFormModal({ open, initial, onSubmit, onCancel, error, loading }) 
 IncomeFormModal.propTypes = {
   open: PropTypes.bool.isRequired,
   initial: PropTypes.object,
+  vehicles: PropTypes.array,
   onSubmit: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   error: PropTypes.string,
@@ -184,6 +203,7 @@ export default function IncomeListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [vehicles, setVehicles] = useState([]);
 
   const [editing, setEditing] = useState(null);
   const [formError, setFormError] = useState('');
@@ -214,6 +234,10 @@ export default function IncomeListPage() {
     if (!isPro) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- load is async, setState only after await
     load();
+    vehiclesApi
+      .list()
+      .then((list) => setVehicles(list))
+      .catch(() => {});
   }, [isPro, load]);
 
   async function handleFormSubmit(data) {
@@ -320,6 +344,7 @@ export default function IncomeListPage() {
       <IncomeFormModal
         open={!!editing}
         initial={editing === 'new' ? null : editing}
+        vehicles={vehicles}
         onSubmit={handleFormSubmit}
         onCancel={() => setEditing(null)}
         error={formError}

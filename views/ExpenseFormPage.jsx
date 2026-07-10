@@ -3,11 +3,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { Check, X } from 'lucide-react';
-import { expensesApi } from '@/services/apiService.js';
+import { expensesApi, vehiclesApi } from '@/services/apiService.js';
 import CategorySelect from '@/components/CategorySelect.jsx';
 import DateField from '@/components/DateField.jsx';
 import FuelFields from '@/components/FuelFields.jsx';
 import AmountField from '@/components/AmountField.jsx';
+import VehicleSelect from '@/components/VehicleSelect.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import FieldLabelWithHint from '@/components/FieldLabelWithHint.jsx';
 import Loading from '@/components/Loading.jsx';
@@ -22,6 +23,7 @@ const EMPTY = {
   price_per_litre: '',
   amount: '',
   odometer: '',
+  vehicleId: '',
 };
 
 export default function ExpenseFormPage() {
@@ -35,6 +37,19 @@ export default function ExpenseFormPage() {
   const [loadingData, setLoadingData] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [vehicles, setVehicles] = useState([]);
+
+  useEffect(() => {
+    vehiclesApi
+      .list()
+      .then((list) => {
+        setVehicles(list);
+        if (!isEdit && list.length > 0) {
+          setForm((f) => (f.vehicleId ? f : { ...f, vehicleId: list[0].id }));
+        }
+      })
+      .catch(() => {});
+  }, [isEdit]);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -48,6 +63,7 @@ export default function ExpenseFormPage() {
           price_per_litre: exp.price_per_litre ?? '',
           amount: exp.amount ?? '',
           odometer: exp.odometer ?? '',
+          vehicleId: exp.vehicleId || '',
         });
       })
       .catch((err) => setError(err.message))
@@ -75,6 +91,7 @@ export default function ExpenseFormPage() {
 
     const isFuel = form.category === 'Fuel';
     const payload = { date: form.date, category: form.category };
+    if (form.vehicleId) payload.vehicleId = form.vehicleId;
 
     if (isFuel) {
       payload.litres = parseFloat(form.litres);
@@ -112,6 +129,9 @@ export default function ExpenseFormPage() {
         {error && <ErrorBanner message={error} />}
 
         <form onSubmit={handleSubmit}>
+          {vehicles.length > 1 && (
+            <VehicleSelect vehicles={vehicles} value={form.vehicleId} onChange={handleChange} />
+          )}
           <div className="form-group">
             <FieldLabelWithHint
               htmlFor="field-date"

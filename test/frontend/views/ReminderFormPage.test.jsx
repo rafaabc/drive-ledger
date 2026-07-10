@@ -24,11 +24,15 @@ vi.mock('next/navigation', () => ({
 const mockCreate = vi.fn();
 const mockUpdate = vi.fn();
 const mockGet = vi.fn();
+const mockVehiclesList = vi.fn();
 vi.mock('@/services/apiService.js', () => ({
   remindersApi: {
     create: () => mockCreate(),
     update: (...a) => mockUpdate(...a),
     get: (id) => mockGet(id),
+  },
+  vehiclesApi: {
+    list: () => mockVehiclesList(),
   },
 }));
 
@@ -37,6 +41,7 @@ describe('ReminderFormPage', () => {
     vi.clearAllMocks();
     mockUseRouter.mockReturnValue({ push: mockPush });
     mockUseParams.mockReturnValue({});
+    mockVehiclesList.mockResolvedValue([]);
     mockCreate.mockResolvedValue({});
     mockUpdate.mockResolvedValue({});
   });

@@ -76,12 +76,38 @@ describe('remindersService.createReminder()', () => {
     );
   });
 
-  it('rejects past dueDate', async () => {
+  it('rejects clearly past dueDate', async () => {
     await assert.rejects(
       () =>
-        remindersService.createReminder(USER_ID(), { type: 'Maintenance', dueDate: PAST_DATE(1) }),
+        remindersService.createReminder(USER_ID(), { type: 'Maintenance', dueDate: PAST_DATE(3) }),
       (err) => err.status === 400 && /dueDate cannot be in the past/i.test(err.message),
     );
+  });
+
+  it('accepts a dueDate serialized as UTC midnight of tomorrow (client west of UTC)', async () => {
+    // Simulates a browser west of UTC (e.g. Brazil, UTC-3) sending <input type="date">
+    // "tomorrow" as new Date(dateStr).toISOString() — UTC midnight of tomorrow's date.
+    const now = new Date();
+    const tomorrowUtcMidnight = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1),
+    );
+    const r = await remindersService.createReminder(USER_ID(), {
+      type: 'Maintenance',
+      dueDate: tomorrowUtcMidnight,
+    });
+    assert.strictEqual(new Date(r.dueDate).getTime(), tomorrowUtcMidnight.getTime());
+  });
+
+  it('accepts a dueDate serialized as UTC midnight of today, even late in the UTC day', async () => {
+    const now = new Date();
+    const todayUtcMidnight = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    );
+    const r = await remindersService.createReminder(USER_ID(), {
+      type: 'Maintenance',
+      dueDate: todayUtcMidnight,
+    });
+    assert.strictEqual(new Date(r.dueDate).getTime(), todayUtcMidnight.getTime());
   });
 
   it('rejects invalid type', async () => {

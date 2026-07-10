@@ -36,6 +36,16 @@ describe('todayISO', () => {
   it('should return a string in YYYY-MM-DD format', () => {
     expect(todayISO()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
+
+  it('should use local date parts, not UTC (avoids off-by-one near UTC midnight)', () => {
+    // 2026-07-10 23:30 local time is already 2026-07-11 in UTC for any zone east of
+    // local, and still 2026-07-10 in UTC for zones west of local (e.g. Brazil, UTC-3
+    // relative to a UTC-based clock). todayISO must report the *local* calendar date.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 6, 10, 23, 30, 0)); // local: Jul 10, 2026, 23:30
+    expect(todayISO()).toBe('2026-07-10');
+    vi.useRealTimers();
+  });
 });
 
 describe('currentYear', () => {

@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import ReminderTypeSelect from '@/components/ReminderTypeSelect.jsx';
+import VehicleSelect from '@/components/VehicleSelect.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import FieldLabelWithHint from '@/components/FieldLabelWithHint.jsx';
 import PageTitle from '@/components/PageTitle.jsx';
-import { remindersApi } from '@/services/apiService.js';
+import { remindersApi, vehiclesApi } from '@/services/apiService.js';
 import { useAsyncAction } from '@/hooks/useAsyncAction.js';
 import { todayISO } from '@/utils/formatDate.js';
 
@@ -17,6 +18,7 @@ const EMPTY = {
   dueKm: '',
   intervalMonths: '',
   intervalKm: '',
+  vehicleId: '',
 };
 
 export default function ReminderFormPage() {
@@ -27,7 +29,20 @@ export default function ReminderFormPage() {
   const isEdit = Boolean(id);
   const [form, setForm] = useState(EMPTY);
   const [loadError, setLoadError] = useState('');
+  const [vehicles, setVehicles] = useState([]);
   const action = useAsyncAction();
+
+  useEffect(() => {
+    vehiclesApi
+      .list()
+      .then((list) => {
+        setVehicles(list);
+        if (!isEdit && list.length > 0) {
+          setForm((f) => (f.vehicleId ? f : { ...f, vehicleId: list[0].id }));
+        }
+      })
+      .catch(() => {});
+  }, [isEdit]);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -41,6 +56,7 @@ export default function ReminderFormPage() {
           dueKm: r.dueKm ?? '',
           intervalMonths: r.intervalMonths ?? '',
           intervalKm: r.intervalKm ?? '',
+          vehicleId: r.vehicleId || '',
         });
       })
       .catch((e) => setLoadError(e.message));
@@ -57,6 +73,7 @@ export default function ReminderFormPage() {
     if (form.dueKm !== '') body.dueKm = Number(form.dueKm);
     if (form.intervalMonths !== '') body.intervalMonths = Number(form.intervalMonths);
     if (form.intervalKm !== '') body.intervalKm = Number(form.intervalKm);
+    if (form.vehicleId) body.vehicleId = form.vehicleId;
     return body;
   }
 
@@ -79,6 +96,9 @@ export default function ReminderFormPage() {
       {loadError && <ErrorBanner message={loadError} />}
       {action.error && <ErrorBanner message={action.error} />}
       <form onSubmit={handleSubmit} style={{ maxWidth: '500px' }}>
+        {vehicles.length > 1 && (
+          <VehicleSelect vehicles={vehicles} value={form.vehicleId} onChange={handleChange} />
+        )}
         <ReminderTypeSelect value={form.type} onChange={handleChange} />
         <div className="form-group">
           <label htmlFor="field-title">{t('reminders.fields.title')}</label>
