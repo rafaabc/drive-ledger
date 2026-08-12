@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run lint
       - run: npm run format:check
 
@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - name: Audit production dependencies
         run: npm audit --audit-level=high --omit=dev
 
@@ -130,7 +130,7 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: node_modules/.bin/playwright install chromium --with-deps
       - name: Build Next.js app
         run: npm run build
       - name: Start Next.js server

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import path from 'path';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 // Read + parse at runtime rather than `import spec from '...json'` — a static JSON
 // import needs an import-assertion syntax that differs between Turbopack (dev) and
