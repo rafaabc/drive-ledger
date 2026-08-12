@@ -46,7 +46,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run test:unit:coverage
 
   test-integration:
@@ -58,7 +58,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run test:integration:coverage
 
   test-api:
@@ -81,7 +81,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - name: Build Next.js app
         run: npm run build
       - name: Start Next.js server
@@ -128,7 +128,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - name: Install Playwright browsers
         run: node_modules/.bin/playwright install chromium --with-deps
       - name: Build Next.js app
