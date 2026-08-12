@@ -93,6 +93,22 @@ describe('createRateLimiter()', () => {
     }
   });
 
+  it('should NOT bypass loopback IPs when NODE_ENV is production (anti x-forwarded-for spoofing)', async () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const limiter = createRateLimiter({ max: 1, windowMs: 60_000, key: 'k8' });
+      assert.strictEqual((await limiter.consume('127.0.0.1')).allowed, true);
+      assert.strictEqual(
+        (await limiter.consume('127.0.0.1')).allowed,
+        false,
+        'loopback IP must be rate-limited like any other IP in production',
+      );
+    } finally {
+      process.env.NODE_ENV = originalNodeEnv;
+    }
+  });
+
   it('should isolate counters across different limiter instances (different keys)', async () => {
     const loginLimiter = createRateLimiter({ max: 2, windowMs: 60_000, key: 'login' });
     const registerLimiter = createRateLimiter({ max: 2, windowMs: 60_000, key: 'register' });
