@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run lint
       - run: npm run format:check
 
@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - name: Audit production dependencies
         run: npm audit --audit-level=high --omit=dev
 
@@ -46,7 +46,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run test:unit:coverage
 
   test-integration:
@@ -58,12 +58,15 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - run: npm run test:integration:coverage
 
   test-api:
     needs: test-integration
     runs-on: ubuntu-latest
+    # Fork PRs correctly don't receive repo secrets — skip rather than fail red,
+    # since JWT_SECRET/MONGODB_URI will be empty and the server can't boot.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     env:
       PORT: '3000'
       BASE_URL: 'http://localhost:3000'
@@ -78,7 +81,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - name: Build Next.js app
         run: npm run build
       - name: Start Next.js server
@@ -108,6 +111,8 @@ jobs:
   e2e:
     needs: test-api
     runs-on: ubuntu-latest
+    # Same fork-PR guard as test-api — no repo secrets available on a fork PR.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     env:
       BASE_URL: 'http://localhost:3000'
       FRONTEND_URL: 'http://localhost:3000'
@@ -123,9 +128,9 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
-      - run: npm ci
+      - run: npm ci --ignore-scripts
       - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
+        run: node_modules/.bin/playwright install chromium --with-deps
       - name: Build Next.js app
         run: npm run build
       - name: Start Next.js server
