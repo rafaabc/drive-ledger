@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db.mjs';
 import recurringService from '@/lib/services/recurring.service';
 import { reportHandlerError } from '@/lib/sentry.mjs';
+import { isValidCronRequest } from '@/lib/cronAuth.mjs';
 
 export const GET = async (request) => {
   const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isValidCronRequest(authHeader)) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
