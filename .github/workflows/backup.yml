@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Install MongoDB Database Tools
         run: |
-          curl -fsSL https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.10.0.deb -o mongodb-tools.deb
+          curl -fsSL --proto '=https' --tlsv1.2 https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.10.0.deb -o mongodb-tools.deb
           sudo apt-get install -y ./mongodb-tools.deb
 
       - name: Dump database
