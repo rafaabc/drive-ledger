@@ -32,7 +32,7 @@ lint → audit → test-unit → test-integration → test-api → e2e
 
 ### QA process, not just automation
 
-The [closed issues](../../issues?q=is%3Aissue+is%3Aclosed) in this repo are real findings from structured usability testing sessions on the live app — written as repro steps + expected/actual + severity, the format enforced by this repo's [bug report template](.github/ISSUE_TEMPLATE/bug_report.md). They cover things automated tests don't catch on their own: ambiguous form labels, a missing password-strength indicator, a crash discovered only by walking through the real signup→expense flow as a user would.
+The [closed issues](../../issues?q=is%3Aissue+is%3Aclosed) in this repo are real findings from structured usability testing sessions on the live app — written as repro steps + expected/actual + severity, the format enforced by this repo's [issue template](.github/ISSUE_TEMPLATE/issue_report.md). They cover things automated tests don't catch on their own: ambiguous form labels, a missing password-strength indicator, a crash discovered only by walking through the real signup→expense flow as a user would.
 
 Interactive API documentation: **[`/api-docs`](https://app.norevify.com/api-docs)** (OpenAPI 3.0, generated from the actual route handlers).
 
