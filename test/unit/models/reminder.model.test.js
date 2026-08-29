@@ -46,4 +46,13 @@ describe('reminderModel', () => {
     const list = await reminderModel.findByUserId(USER_ID);
     assert.strictEqual(list.length, 1);
   });
+
+  // Regression guard: an undefined userId must never widen the filter to match
+  // every user's reminders — see lib/models/queryScope.js.
+  it('should return an empty array — not every users reminders — when userId is undefined', async () => {
+    const future = new Date(Date.now() + 30 * 86400000);
+    await reminderModel.create({ userId: USER_ID, type: 'Maintenance', dueDate: future });
+    const list = await reminderModel.findByUserId(undefined);
+    assert.deepStrictEqual(list, []);
+  });
 });

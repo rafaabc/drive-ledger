@@ -71,6 +71,15 @@ describe('expenseModel.findByUserId()', () => {
     const results = await expenseModel.findByUserId(new mongoose.Types.ObjectId());
     assert.deepStrictEqual(results, []);
   });
+
+  // Regression guard: an undefined userId must never widen the filter to match
+  // every user's expenses — see lib/models/queryScope.js.
+  it('should return an empty array — not every users expenses — when userId is undefined', async () => {
+    await expenseModel.create(sample({ userId: USER_ID }));
+    await expenseModel.create(sample({ userId: OTHER_USER_ID }));
+    const results = await expenseModel.findByUserId(undefined);
+    assert.deepStrictEqual(results, []);
+  });
 });
 
 describe('expenseModel.update()', () => {
