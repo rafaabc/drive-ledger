@@ -14,6 +14,7 @@ const mockUseSearchParams = vi.fn();
 vi.mock('next/navigation', () => ({
   useRouter: () => mockUseRouter(),
   useSearchParams: () => mockUseSearchParams(),
+  usePathname: () => '/reset-password',
 }));
 
 const mockResetPassword = vi.fn();
@@ -41,6 +42,13 @@ describe('ResetPasswordPage', () => {
       render(<ResetPasswordPage />);
     });
     expect(mockReplace).toHaveBeenCalledWith('/forgot-password');
+  });
+
+  it('should strip the token from the address bar so analytics never see it', async () => {
+    await act(async () => {
+      render(<ResetPasswordPage />);
+    });
+    expect(mockReplace).toHaveBeenCalledWith('/reset-password');
   });
 
   it('should show mismatch error when passwords differ', async () => {

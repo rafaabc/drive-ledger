@@ -12,10 +12,12 @@ vi.mock('@/components/ErrorBanner.jsx', () => ({
 }));
 
 const mockPush = vi.fn();
+const mockReplace = vi.fn();
 const mockUseSearchParams = vi.fn();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
   useSearchParams: () => mockUseSearchParams(),
+  usePathname: () => '/verify-email',
 }));
 
 const mockLogin = vi.fn();
@@ -50,6 +52,22 @@ describe('VerifyEmailPage', () => {
       render(<VerifyEmailPage />);
     });
     expect(mockVerifyEmail).toHaveBeenCalledWith({ token: 'abc123' });
+  });
+
+  it('should strip the token from the address bar so analytics never see it', async () => {
+    mockVerifyEmail.mockResolvedValue({ token: 'newTok' });
+    await act(async () => {
+      render(<VerifyEmailPage />);
+    });
+    expect(mockReplace).toHaveBeenCalledWith('/verify-email');
+  });
+
+  it('should not call replace when there is no token to strip', async () => {
+    mockUseSearchParams.mockReturnValue(new URLSearchParams());
+    await act(async () => {
+      render(<VerifyEmailPage />);
+    });
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('should call login and show success state on valid token', async () => {

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { authApi } from '@/services/apiService.js';
 import { bindField } from '@/utils/form.js';
@@ -14,15 +14,26 @@ export default function ResetPasswordPage() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get('token');
+  const pathname = usePathname();
+  // Captured once on mount: the URL is stripped of the token right below,
+  // so re-reading searchParams after that would return null.
+  const [token] = useState(() => searchParams.get('token'));
 
   const [form, setForm] = useState({ newPassword: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!token) router.replace('/forgot-password');
-  }, [token, router]);
+    if (!token) {
+      router.replace('/forgot-password');
+      return;
+    }
+    // Drop the one-time token from the address bar/history so it can't be
+    // picked up by page-view analytics, browser history, or a screen share —
+    // it stays valid in `token` state for the actual reset request below.
+    if (searchParams.get('token')) router.replace(pathname);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount only
+  }, [token]);
 
   const handleChange = bindField(setForm);
 
