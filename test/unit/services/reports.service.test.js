@@ -68,10 +68,10 @@ describe('reportsService.generateReport()', () => {
     const result = await reportsService.generateReport(u, { year: String(YEAR) }, 'csv');
     assert.strictEqual(result.contentType, 'text/csv');
     assert.match(result.filename, /\.csv$/);
-    assert.match(result.body, /Currency,BRL/);
-    assert.match(result.body, /Total Income,1000\.00 BRL/);
-    assert.match(result.body, /Parking,300\.00 BRL/);
-    assert.match(result.body, /Net Profit,700\.00 BRL/);
+    assert.match(result.body, /"Currency","BRL"/);
+    assert.match(result.body, /"Total Income","1000\.00 BRL"/);
+    assert.match(result.body, /"Parking","300\.00 BRL"/);
+    assert.match(result.body, /"Net Profit","700\.00 BRL"/);
   });
 
   it('uses the requesting users own currency in the report', async () => {
@@ -79,8 +79,8 @@ describe('reportsService.generateReport()', () => {
     await incomeService.createIncome(u, { date: TODAY, amount: 1000, source: 'Uber' });
 
     const result = await reportsService.generateReport(u, { year: String(YEAR) }, 'csv');
-    assert.match(result.body, /Currency,USD/);
-    assert.match(result.body, /Total Income,1000\.00 USD/);
+    assert.match(result.body, /"Currency","USD"/);
+    assert.match(result.body, /"Total Income","1000\.00 USD"/);
   });
 
   it('includes the vehicle name when vehicleId is provided', async () => {
@@ -98,7 +98,51 @@ describe('reportsService.generateReport()', () => {
       { year: String(YEAR), vehicleId: vehicle.id },
       'csv',
     );
-    assert.match(result.body, /Vehicle,My Civic/);
+    assert.match(result.body, /"Vehicle","My Civic"/);
+  });
+
+  it('neutralizes a formula-triggering vehicle name in the CSV (CSV injection)', async () => {
+    const u = await proUser('proreport6');
+    const vehicle = await vehiclesService.createVehicle(u, {
+      name: '=HYPERLINK("https://evil.example","click")',
+    });
+    await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 500,
+      source: 'Uber',
+      vehicleId: vehicle.id,
+    });
+
+    const result = await reportsService.generateReport(
+      u,
+      { year: String(YEAR), vehicleId: vehicle.id },
+      'csv',
+    );
+    assert.doesNotMatch(result.body, /"Vehicle","=HYPERLINK/);
+    assert.match(result.body, /"Vehicle","'=HYPERLINK\(""https:\/\/evil\.example"",""click""\)"/);
+  });
+
+  describe('csvCell()', () => {
+    it('quotes plain values without altering their content', () => {
+      assert.strictEqual(reportsService.csvCell('My Civic'), '"My Civic"');
+      assert.strictEqual(reportsService.csvCell(300), '"300"');
+    });
+
+    it('doubles internal double quotes', () => {
+      assert.strictEqual(reportsService.csvCell('12" wheels'), '"12"" wheels"');
+    });
+
+    for (const prefix of ['=', '+', '-', '@', '\t', '\r']) {
+      it(`neutralizes a value starting with ${JSON.stringify(prefix)} with a leading apostrophe`, () => {
+        const value = `${prefix}cmd|' /C calc'!A0`;
+        const cell = reportsService.csvCell(value);
+        assert.ok(cell.startsWith(`"'${prefix}`), `expected neutralized prefix, got: ${cell}`);
+      });
+    }
+
+    it('does not neutralize a value that merely contains = later in the string', () => {
+      assert.strictEqual(reportsService.csvCell('total=100'), '"total=100"');
+    });
   });
 
   it('generates a valid PDF buffer', async () => {
