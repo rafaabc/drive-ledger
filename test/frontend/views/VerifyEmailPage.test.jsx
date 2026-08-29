@@ -12,10 +12,12 @@ vi.mock('@/components/ErrorBanner.jsx', () => ({
 }));
 
 const mockPush = vi.fn();
+const mockReplace = vi.fn();
 const mockUseSearchParams = vi.fn();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: mockPush }),
+  useRouter: () => ({ push: mockPush, replace: mockReplace }),
   useSearchParams: () => mockUseSearchParams(),
+  usePathname: () => '/verify-email',
 }));
 
 const mockLogin = vi.fn();
@@ -50,6 +52,18 @@ describe('VerifyEmailPage', () => {
       render(<VerifyEmailPage />);
     });
     expect(mockVerifyEmail).toHaveBeenCalledWith({ token: 'abc123' });
+  });
+
+  it('should strip the token from the address bar so analytics never see it', () => {
+    mockVerifyEmail.mockResolvedValue({ token: 'newTok' });
+    render(<VerifyEmailPage />);
+    expect(mockReplace).toHaveBeenCalledWith('/verify-email');
+  });
+
+  it('should not call replace when there is no token to strip', () => {
+    mockUseSearchParams.mockReturnValue(new URLSearchParams());
+    render(<VerifyEmailPage />);
+    expect(mockReplace).not.toHaveBeenCalled();
   });
 
   it('should call login and show success state on valid token', async () => {
@@ -128,11 +142,10 @@ describe('VerifyEmailPage', () => {
         resolveResend = r;
       }),
     );
-    await act(async () => {
-      render(<VerifyEmailPage />);
-    });
+    render(<VerifyEmailPage />);
+    const resendButton = await screen.findByRole('button', { name: 'auth.verifyEmail.resend' });
     act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'auth.verifyEmail.resend' }));
+      fireEvent.click(resendButton);
     });
     expect(screen.getByRole('button', { name: 'auth.verifyEmail.resending' })).toBeDisabled();
     await act(async () => {

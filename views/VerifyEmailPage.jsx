@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/context/AuthContext.jsx';
 import { authApi } from '@/services/apiService.js';
@@ -11,9 +11,10 @@ export default function VerifyEmailPage() {
   const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
   const { login } = useAuth();
 
-  const verifyToken = searchParams.get('token');
+  const [verifyToken] = useState(() => searchParams.get('token'));
   const [status, setStatus] = useState(verifyToken ? 'verifying' : 'error');
   const [errorMsg, setErrorMsg] = useState(verifyToken ? '' : t('auth.verifyEmail.invalid'));
   const [resendLoading, setResendLoading] = useState(false);
@@ -22,6 +23,9 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     if (!verifyToken) return;
+    // Drop the one-time token from the address bar/history so it can't be
+    // picked up by page-view analytics, browser history, or a screen share.
+    if (searchParams.get('token')) router.replace(pathname);
     authApi
       .verifyEmail({ token: verifyToken })
       .then(({ token: newToken }) => {
@@ -32,7 +36,7 @@ export default function VerifyEmailPage() {
         setErrorMsg(err.message);
         setStatus('error');
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount only
   }, []);
 
   async function handleResend() {
