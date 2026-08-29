@@ -73,3 +73,32 @@ describe('emailService.sendPasswordResetEmail()', () => {
     assert.strictEqual(sentPayloads[1].to, 'b@example.com');
   });
 });
+
+describe('emailService.sendReminderDigest()', () => {
+  it('should escape HTML in a reminder title instead of injecting it raw', async () => {
+    await emailService.sendReminderDigest({
+      to: 'user@example.com',
+      overdue: [{ type: 'Other', title: '<a href="https://evil.example">click me</a>' }],
+      dueSoon: [],
+    });
+
+    const { html } = sentPayloads[0];
+    assert.ok(!html.includes('<a href="https://evil.example">'), 'raw anchor tag must not appear');
+    assert.ok(
+      html.includes('&lt;a href=&quot;https://evil.example&quot;&gt;click me&lt;/a&gt;'),
+      'title must appear HTML-escaped',
+    );
+  });
+
+  it('should still render reminders with no title', async () => {
+    await emailService.sendReminderDigest({
+      to: 'user@example.com',
+      overdue: [{ type: 'Fuel', dueKm: 5000 }],
+      dueSoon: [],
+    });
+
+    const { html } = sentPayloads[0];
+    assert.ok(html.includes('Fuel'));
+    assert.ok(html.includes('5000 km'));
+  });
+});
