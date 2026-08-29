@@ -8,30 +8,14 @@ const withSerwist = withSerwistInit({
   disable: process.env.NODE_ENV === 'development',
 });
 
-const isDev = process.env.NODE_ENV === 'development';
-
+// Content-Security-Policy moved to proxy.js — it needs a fresh nonce per request
+// (see F-08 fix), which a static headers() entry here can't provide.
 const securityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'Permissions-Policy', value: 'geolocation=(), camera=(), microphone=()' },
-  {
-    key: 'Content-Security-Policy',
-    value: [
-      "default-src 'self'",
-      `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval' " : ''}accounts.google.com eu-assets.i.posthog.com`,
-      "style-src 'self' 'unsafe-inline' fonts.googleapis.com accounts.google.com",
-      "font-src 'self' fonts.gstatic.com",
-      "img-src 'self' data: blob:",
-      "worker-src 'self' blob:",
-      "connect-src 'self' accounts.google.com *.sentry.io eu.i.posthog.com eu-assets.i.posthog.com",
-      'frame-src accounts.google.com',
-      "base-uri 'self'",
-      "form-action 'self'",
-      "object-src 'none'",
-    ].join('; '),
-  },
 ];
 
 const nextConfig = {
@@ -43,6 +27,14 @@ const nextConfig = {
   webpack(config) {
     config.module.rules.unshift({
       test: /[\\/](instrumentation(-client)?|sentry\.(client|server|edge)\.config)\.mjs$/,
+      type: 'javascript/esm',
+    });
+    // proxy.js must be a plain .js file (Next's proxy file convention doesn't
+    // recognize .mjs), but package.json's "type": "commonjs" makes webpack parse
+    // .js as CJS by default — force this one file to parse as ESM instead, same
+    // trick as the rule above.
+    config.module.rules.unshift({
+      test: /[\\/]proxy\.js$/,
       type: 'javascript/esm',
     });
     return config;
