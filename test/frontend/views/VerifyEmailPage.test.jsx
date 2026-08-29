@@ -54,19 +54,15 @@ describe('VerifyEmailPage', () => {
     expect(mockVerifyEmail).toHaveBeenCalledWith({ token: 'abc123' });
   });
 
-  it('should strip the token from the address bar so analytics never see it', async () => {
+  it('should strip the token from the address bar so analytics never see it', () => {
     mockVerifyEmail.mockResolvedValue({ token: 'newTok' });
-    await act(async () => {
-      render(<VerifyEmailPage />);
-    });
+    render(<VerifyEmailPage />);
     expect(mockReplace).toHaveBeenCalledWith('/verify-email');
   });
 
-  it('should not call replace when there is no token to strip', async () => {
+  it('should not call replace when there is no token to strip', () => {
     mockUseSearchParams.mockReturnValue(new URLSearchParams());
-    await act(async () => {
-      render(<VerifyEmailPage />);
-    });
+    render(<VerifyEmailPage />);
     expect(mockReplace).not.toHaveBeenCalled();
   });
 
@@ -146,11 +142,10 @@ describe('VerifyEmailPage', () => {
         resolveResend = r;
       }),
     );
-    await act(async () => {
-      render(<VerifyEmailPage />);
-    });
+    render(<VerifyEmailPage />);
+    const resendButton = await screen.findByRole('button', { name: 'auth.verifyEmail.resend' });
     act(() => {
-      fireEvent.click(screen.getByRole('button', { name: 'auth.verifyEmail.resend' }));
+      fireEvent.click(resendButton);
     });
     expect(screen.getByRole('button', { name: 'auth.verifyEmail.resending' })).toBeDisabled();
     await act(async () => {

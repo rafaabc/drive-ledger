@@ -44,10 +44,8 @@ describe('ResetPasswordPage', () => {
     expect(mockReplace).toHaveBeenCalledWith('/forgot-password');
   });
 
-  it('should strip the token from the address bar so analytics never see it', async () => {
-    await act(async () => {
-      render(<ResetPasswordPage />);
-    });
+  it('should strip the token from the address bar so analytics never see it', () => {
+    render(<ResetPasswordPage />);
     expect(mockReplace).toHaveBeenCalledWith('/reset-password');
   });
 
