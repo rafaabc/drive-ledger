@@ -29,7 +29,7 @@ function makeHandler(captured = {}) {
 
 describe('withAuth', () => {
   it('should call handler with decoded user when token is valid', async () => {
-    const payload = { id: 'abc123', username: 'alice' };
+    const payload = { typ: 'access', id: 'abc123', username: 'alice' };
     const token = jwt.sign(payload, SECRET, { expiresIn: '1h' });
     const captured = {};
     const res = await withAuth(makeHandler(captured))(makeReq(`Bearer ${token}`), {});
@@ -37,6 +37,27 @@ describe('withAuth', () => {
     assert.ok(captured.called);
     assert.strictEqual(captured.user.id, payload.id);
     assert.strictEqual(captured.user.username, payload.username);
+  });
+
+  // Regression guard for the token-purpose-confusion fix: a single-purpose token
+  // (e.g. password-reset) is signed with the same JWT_SECRET but must never be
+  // usable as a session credential on an authenticated route.
+  it('should return 401 for a valid token missing the typ:access claim', async () => {
+    const token = jwt.sign({ id: 'abc123', username: 'alice' }, SECRET, { expiresIn: '1h' });
+    const res = await withAuth(makeHandler())(makeReq(`Bearer ${token}`), {});
+    assert.strictEqual(res.status, 401);
+  });
+
+  it('should return 401 for a password-reset-shaped token (purpose: reset)', async () => {
+    const token = jwt.sign({ username: 'alice', purpose: 'reset' }, SECRET, { expiresIn: '15m' });
+    const res = await withAuth(makeHandler())(makeReq(`Bearer ${token}`), {});
+    assert.strictEqual(res.status, 401);
+  });
+
+  it('should return 401 for a typ:access token with no id claim', async () => {
+    const token = jwt.sign({ typ: 'access', username: 'alice' }, SECRET, { expiresIn: '1h' });
+    const res = await withAuth(makeHandler())(makeReq(`Bearer ${token}`), {});
+    assert.strictEqual(res.status, 401);
   });
 
   it('should return 401 when Authorization header is missing', async () => {
