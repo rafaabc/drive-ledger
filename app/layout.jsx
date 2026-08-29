@@ -1,3 +1,4 @@
+import { headers } from 'next/headers';
 import '@/styles/globals.css';
 import { AuthProvider } from '@/context/AuthContext.jsx';
 import I18nProvider from '@/components/I18nProvider.jsx';
@@ -9,7 +10,12 @@ export const metadata = {
   description: 'Track every kilometer.',
 };
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  // Reading headers() opts every route into dynamic rendering — required so Next
+  // attaches the per-request nonce (set by proxy.js) to its own framework/page
+  // scripts, which is what lets script-src drop 'unsafe-inline' (see F-08 fix).
+  await headers();
+
   return (
     <html lang="pt-BR">
       <head>
