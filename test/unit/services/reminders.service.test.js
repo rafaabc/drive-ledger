@@ -141,6 +141,39 @@ describe('remindersService.createReminder()', () => {
       (err) => err.status === 400 && /intervalKm requires dueKm/i.test(err.message),
     );
   });
+
+  it('rejects a non-string title', async () => {
+    await assert.rejects(
+      () =>
+        remindersService.createReminder(USER_ID(), {
+          type: 'Maintenance',
+          dueKm: 1000,
+          title: 12345,
+        }),
+      (err) => err.status === 400 && /title must be a string/i.test(err.message),
+    );
+  });
+
+  it('rejects a title over 120 characters', async () => {
+    await assert.rejects(
+      () =>
+        remindersService.createReminder(USER_ID(), {
+          type: 'Maintenance',
+          dueKm: 1000,
+          title: 'x'.repeat(121),
+        }),
+      (err) => err.status === 400 && /at most 120 characters/i.test(err.message),
+    );
+  });
+
+  it('accepts a title at exactly the 120-character limit', async () => {
+    const r = await remindersService.createReminder(USER_ID(), {
+      type: 'Maintenance',
+      dueKm: 1000,
+      title: 'x'.repeat(120),
+    });
+    assert.strictEqual(r.title.length, 120);
+  });
 });
 
 describe('remindersService.listReminders()', () => {
@@ -248,6 +281,24 @@ describe('remindersService.updateReminder()', () => {
           vehicleId: otherVehicle._id.toString(),
         }),
       (err) => err.status === 404,
+    );
+  });
+
+  it('rejects a non-string title', async () => {
+    const u = USER_ID();
+    const r = await remindersService.createReminder(u, { type: 'Maintenance', dueKm: 10000 });
+    await assert.rejects(
+      () => remindersService.updateReminder(u, r._id.toString(), { title: 12345 }),
+      (err) => err.status === 400 && /title must be a string/i.test(err.message),
+    );
+  });
+
+  it('rejects a title over 120 characters', async () => {
+    const u = USER_ID();
+    const r = await remindersService.createReminder(u, { type: 'Maintenance', dueKm: 10000 });
+    await assert.rejects(
+      () => remindersService.updateReminder(u, r._id.toString(), { title: 'x'.repeat(121) }),
+      (err) => err.status === 400 && /at most 120 characters/i.test(err.message),
     );
   });
 });

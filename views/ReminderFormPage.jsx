@@ -91,7 +91,13 @@ export default function ReminderFormPage() {
         <ReminderTypeSelect value={form.type} onChange={handleChange} />
         <div className="form-group">
           <label htmlFor="field-title">{t('reminders.fields.title')}</label>
-          <input id="field-title" name="title" value={form.title} onChange={handleChange} />
+          <input
+            id="field-title"
+            name="title"
+            value={form.title}
+            onChange={handleChange}
+            maxLength={120}
+          />
         </div>
         <div className="form-group">
           <FieldLabelWithHint
