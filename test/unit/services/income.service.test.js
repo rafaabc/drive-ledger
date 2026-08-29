@@ -90,6 +90,18 @@ describe('incomeService.createIncome()', () => {
 });
 
 describe('incomeService.listIncome() / getIncome()', () => {
+  it('rejects listIncome for a free-plan user with 402', async () => {
+    const u = await freeUser('freelistinc');
+    await assert.rejects(
+      () => incomeService.listIncome(u),
+      (err) => {
+        assert.strictEqual(err.status, 402);
+        assert.match(err.message, /income_feature_locked/);
+        return true;
+      },
+    );
+  });
+
   it('returns only this users income entries', async () => {
     const me = await proUser('listme');
     const other = await proUser('listother');
@@ -178,6 +190,18 @@ describe('incomeService.updateIncome() / deleteIncome()', () => {
 });
 
 describe('incomeService.getProfitSummary()', () => {
+  it('rejects for a free-plan user with 402', async () => {
+    const u = await freeUser('freeprofit');
+    await assert.rejects(
+      () => incomeService.getProfitSummary(u, { year: String(YEAR) }),
+      (err) => {
+        assert.strictEqual(err.status, 402);
+        assert.match(err.message, /income_feature_locked/);
+        return true;
+      },
+    );
+  });
+
   it('computes profit as income minus expenses', async () => {
     const u = await proUser('profit1');
     await incomeService.createIncome(u, { date: TODAY, amount: 1000, source: 'Uber' });
