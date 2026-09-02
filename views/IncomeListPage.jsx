@@ -244,14 +244,14 @@ IncomeFormModal.propTypes = {
   loading: PropTypes.bool,
 };
 
+function netEarningsClass(netEarnings) {
+  if (netEarnings == null) return '';
+  return netEarnings >= 0 ? styles.profitPositive : styles.profitNegative;
+}
+
 function ProfitSummaryCard({ summary, currency, period, onPeriodChange, t }) {
   if (!summary) return null;
-  const netClass =
-    summary.netEarnings == null
-      ? ''
-      : summary.netEarnings >= 0
-        ? styles.profitPositive
-        : styles.profitNegative;
+  const netClass = netEarningsClass(summary.netEarnings);
 
   return (
     <div className={`card ${styles.summaryCard}`}>
