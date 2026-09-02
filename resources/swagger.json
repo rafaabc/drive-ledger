@@ -375,10 +375,15 @@
           "amount": { "type": "number", "example": 320.5 },
           "source": {
             "type": "string",
-            "enum": ["Uber", "99", "iFood", "Other"],
-            "example": "Uber"
+            "enum": ["Uber", "99", "iFood", "Wolt", "Other"],
+            "example": "Wolt"
           },
-          "note": { "type": "string", "nullable": true }
+          "note": { "type": "string", "nullable": true },
+          "startTime": { "type": "string", "nullable": true, "example": "13:15" },
+          "endTime": { "type": "string", "nullable": true, "example": "15:00" },
+          "hours": { "type": "number", "nullable": true, "example": 1.75 },
+          "km": { "type": "number", "nullable": true, "example": 22.1 },
+          "deliveries": { "type": "integer", "nullable": true, "example": 3 }
         }
       },
       "IncomeCreate": {
@@ -387,9 +392,24 @@
         "properties": {
           "date": { "type": "string", "format": "date", "example": "2026-04-22" },
           "amount": { "type": "number", "example": 320.5 },
-          "source": { "type": "string", "enum": ["Uber", "99", "iFood", "Other"] },
+          "source": { "type": "string", "enum": ["Uber", "99", "iFood", "Wolt", "Other"] },
           "note": { "type": "string", "nullable": true },
-          "vehicleId": { "type": "string", "nullable": true }
+          "vehicleId": { "type": "string", "nullable": true },
+          "startTime": {
+            "type": "string",
+            "nullable": true,
+            "description": "HH:MM, provide together with endTime; hours is derived, not accepted",
+            "example": "13:15"
+          },
+          "endTime": { "type": "string", "nullable": true, "example": "15:00" },
+          "hours": {
+            "type": "number",
+            "nullable": true,
+            "description": "Only accepted when startTime/endTime are absent",
+            "example": 1.75
+          },
+          "km": { "type": "number", "nullable": true, "example": 22.1 },
+          "deliveries": { "type": "integer", "nullable": true, "example": 3 }
         }
       },
       "IncomeUpdate": {
@@ -397,9 +417,14 @@
         "properties": {
           "date": { "type": "string", "format": "date" },
           "amount": { "type": "number" },
-          "source": { "type": "string", "enum": ["Uber", "99", "iFood", "Other"] },
+          "source": { "type": "string", "enum": ["Uber", "99", "iFood", "Wolt", "Other"] },
           "note": { "type": "string", "nullable": true },
-          "vehicleId": { "type": "string", "nullable": true }
+          "vehicleId": { "type": "string", "nullable": true },
+          "startTime": { "type": "string", "nullable": true },
+          "endTime": { "type": "string", "nullable": true },
+          "hours": { "type": "number", "nullable": true },
+          "km": { "type": "number", "nullable": true },
+          "deliveries": { "type": "integer", "nullable": true }
         }
       },
       "ProfitSummary": {
@@ -417,7 +442,31 @@
           "profit": { "type": "number", "example": 1500.0 },
           "profitPerKm": { "type": "number", "nullable": true, "example": 1.2 },
           "profitPerDay": { "type": "number", "example": 50.0 },
-          "kmDriven": { "type": "number", "nullable": true, "example": 1250 }
+          "kmDriven": {
+            "type": "number",
+            "nullable": true,
+            "description": "Fill-to-fill odometer span used for the fuel cost calculation",
+            "example": 1250
+          },
+          "hours": { "type": "number", "nullable": true, "example": 2.95 },
+          "workKm": { "type": "number", "nullable": true, "example": 41.0 },
+          "deliveries": { "type": "integer", "nullable": true, "example": 7 },
+          "costPerKm": {
+            "type": "number",
+            "nullable": true,
+            "description": "Fill-to-fill fuel DKK/km; null until 2+ odometer-tagged fill-ups exist",
+            "example": 1.35
+          },
+          "costPerKmSamples": {
+            "type": "integer",
+            "example": 2,
+            "description": "Number of fill-ups used in costPerKm (excludes the anchor fill)"
+          },
+          "fuelCost": { "type": "number", "nullable": true, "example": 55.35 },
+          "netEarnings": { "type": "number", "nullable": true, "example": 339.02 },
+          "netPerHour": { "type": "number", "nullable": true, "example": 114.92 },
+          "netPerKm": { "type": "number", "nullable": true, "example": 8.27 },
+          "grossPerHour": { "type": "number", "nullable": true, "example": 133.68 }
         }
       },
       "RecurringRule": {

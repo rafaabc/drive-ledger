@@ -46,6 +46,69 @@
   color: var(--danger);
 }
 
+.summaryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.periodSwitch {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0.75rem 0;
+}
+
+.headlineLabel {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.headlineValue {
+  font-family: var(--font-mono);
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.unstableHint {
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.shiftToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+}
+
+.shiftRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.shiftReadout {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: -0.5rem 0 0.75rem;
+}
+
 .list {
   list-style: none;
   padding: 0;

@@ -346,19 +346,37 @@
       "date": "Data",
       "amount": "Valor",
       "source": "Origem",
-      "note": "Observação (opcional)"
+      "note": "Observação (opcional)",
+      "shiftMode": "Turno de entrega",
+      "startTime": "Hora de início",
+      "endTime": "Hora de término",
+      "km": "Km rodado",
+      "deliveries": "Entregas"
     },
     "sources": {
       "Other": "Outro"
     },
     "summary": {
-      "heading": "Resumo de lucro",
+      "heading": "Vale a pena?",
+      "thisMonth": "Este mês",
+      "thisYear": "Este ano",
       "totalIncome": "Receita",
       "totalExpenses": "Despesas",
       "profit": "Lucro",
       "profitPerKm": "Lucro / km",
       "profitPerDay": "Lucro / dia",
-      "noKmData": "Registre pelo menos 2 abastecimentos com hodômetro para ver o lucro por km."
+      "noKmData": "Registre pelo menos 2 abastecimentos com hodômetro para ver o lucro por km.",
+      "netPerHour": "Líquido / hora",
+      "netEarnings": "Líquido",
+      "fuelCost": "Custo de combustível",
+      "hours": "Horas trabalhadas",
+      "workKm": "Km trabalhados",
+      "costPerKm": "Custo de combustível / km",
+      "noHoursData": "Registre as horas do turno para ver o líquido por hora.",
+      "noCostData": "Requer 2+ abastecimentos com hodômetro.",
+      "needsTwoFills": "O custo de combustível requer 2+ abastecimentos com hodômetro.",
+      "unstable": "Baseado em {{count}} abastecimento — dado ainda instável.",
+      "unstable_other": "Baseado em {{count}} abastecimentos — dado ainda instável."
     },
     "actions": {
       "confirmDelete": "Excluir esta receita?",
@@ -387,7 +405,8 @@
     "newAction": "O que deseja criar?",
     "newExpense": "Novo gasto",
     "newRecurring": "Nova recorrência",
-    "newReminder": "Novo lembrete"
+    "newReminder": "Novo lembrete",
+    "newIncome": "Nova receita"
   },
   "recurring": {
     "heading": "Despesas Recorrentes",
