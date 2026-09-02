@@ -346,19 +346,37 @@
       "date": "Date",
       "amount": "Amount",
       "source": "Source",
-      "note": "Note (optional)"
+      "note": "Note (optional)",
+      "shiftMode": "Delivery shift",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "km": "Km driven",
+      "deliveries": "Deliveries"
     },
     "sources": {
       "Other": "Other"
     },
     "summary": {
-      "heading": "Profit summary",
+      "heading": "Does it pay?",
+      "thisMonth": "This month",
+      "thisYear": "This year",
       "totalIncome": "Income",
       "totalExpenses": "Expenses",
       "profit": "Profit",
       "profitPerKm": "Profit / km",
       "profitPerDay": "Profit / day",
-      "noKmData": "Log at least 2 Fuel entries with odometer to see profit per km."
+      "noKmData": "Log at least 2 Fuel entries with odometer to see profit per km.",
+      "netPerHour": "Net / hour",
+      "netEarnings": "Net earnings",
+      "fuelCost": "Fuel cost",
+      "hours": "Hours worked",
+      "workKm": "Km worked",
+      "costPerKm": "Fuel cost / km",
+      "noHoursData": "Log shift hours and 2+ fill-ups to see net per hour.",
+      "noCostData": "Needs 2+ fill-ups with odometer.",
+      "needsTwoFills": "Fuel cost needs 2+ Fuel entries with odometer.",
+      "unstable": "Based on {{count}} fill-up — still stabilising.",
+      "unstable_other": "Based on {{count}} fill-ups — still stabilising."
     },
     "actions": {
       "confirmDelete": "Delete this income entry?",
@@ -387,7 +405,8 @@
     "newAction": "What do you want to add?",
     "newExpense": "New expense",
     "newRecurring": "New recurring",
-    "newReminder": "New reminder"
+    "newReminder": "New reminder",
+    "newIncome": "New income"
   },
   "recurring": {
     "heading": "Recurring Expenses",

@@ -51,6 +51,14 @@ export default function MobileNewActionSheet({ open, onClose }) {
         >
           {t('mobile.newReminder')}
         </button>
+        <button
+          type="button"
+          className="action-sheet-btn"
+          onClick={() => go('/income?new=1')}
+          data-action="new-income"
+        >
+          {t('mobile.newIncome')}
+        </button>
         <button type="button" className="btn-secondary" onClick={onClose}>
           {t('common.cancel')}
         </button>

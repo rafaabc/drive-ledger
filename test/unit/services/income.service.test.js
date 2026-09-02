@@ -252,6 +252,186 @@ describe('incomeService.getProfitSummary()', () => {
   });
 });
 
+describe('incomeService shift fields', () => {
+  it('derives hours from startTime/endTime', async () => {
+    const u = await proUser('shift1');
+    const income = await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 191.4,
+      source: 'Wolt',
+      startTime: '13:15',
+      endTime: '15:00',
+      km: 22.1,
+      deliveries: 3,
+    });
+    assert.strictEqual(income.hours, 1.75);
+    assert.strictEqual(income.km, 22.1);
+    assert.strictEqual(income.deliveries, 3);
+  });
+
+  it('adds 24h when a shift crosses midnight', async () => {
+    const u = await proUser('shift2');
+    const income = await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 100,
+      source: 'Wolt',
+      startTime: '23:30',
+      endTime: '00:15',
+    });
+    assert.strictEqual(income.hours, 0.75);
+  });
+
+  it('rejects startTime without endTime', async () => {
+    const u = await proUser('shift3');
+    await assert.rejects(
+      () =>
+        incomeService.createIncome(u, {
+          date: TODAY,
+          amount: 100,
+          source: 'Wolt',
+          startTime: '13:00',
+        }),
+      (err) => err.status === 400 && /startTime and endTime/i.test(err.message),
+    );
+  });
+
+  it('rejects malformed time strings', async () => {
+    const u = await proUser('shift4');
+    await assert.rejects(
+      () =>
+        incomeService.createIncome(u, {
+          date: TODAY,
+          amount: 100,
+          source: 'Wolt',
+          startTime: '1pm',
+          endTime: '15:00',
+        }),
+      (err) => err.status === 400 && /HH:MM/i.test(err.message),
+    );
+  });
+
+  it('rejects an explicit hours alongside startTime/endTime', async () => {
+    const u = await proUser('shift5');
+    await assert.rejects(
+      () =>
+        incomeService.createIncome(u, {
+          date: TODAY,
+          amount: 100,
+          source: 'Wolt',
+          startTime: '13:00',
+          endTime: '15:00',
+          hours: 2,
+        }),
+      (err) => err.status === 400 && /derived/i.test(err.message),
+    );
+  });
+
+  it('rejects negative km', async () => {
+    const u = await proUser('shift6');
+    await assert.rejects(
+      () => incomeService.createIncome(u, { date: TODAY, amount: 100, source: 'Wolt', km: -1 }),
+      (err) => err.status === 400 && /km must be/i.test(err.message),
+    );
+  });
+
+  it('accepts Wolt as a source', async () => {
+    const u = await proUser('shift7');
+    const income = await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 100,
+      source: 'Wolt',
+    });
+    assert.strictEqual(income.source, 'Wolt');
+  });
+});
+
+describe('incomeService.getProfitSummary() with shift data', () => {
+  it('reproduces the 2026-09-01 Wolt shift data with a single fill (no cost/km yet)', async () => {
+    const u = await proUser('woltday1');
+    await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 191.4,
+      source: 'Wolt',
+      startTime: '13:15',
+      endTime: '15:00',
+      km: 22.1,
+      deliveries: 3,
+    });
+    await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 202.97,
+      source: 'Wolt',
+      startTime: '17:15',
+      endTime: '18:27',
+      km: 18.9,
+      deliveries: 4,
+    });
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 27.12,
+      price_per_litre: 17.39,
+      odometer: 1000,
+    });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.strictEqual(summary.totalIncome, 394.37);
+    assert.strictEqual(summary.hours, 2.95);
+    assert.strictEqual(summary.workKm, 41);
+    assert.strictEqual(summary.deliveries, 7);
+    // Only one fill-up so far: fill-to-fill cost/km needs a second anchor.
+    assert.strictEqual(summary.costPerKm, null);
+    assert.strictEqual(summary.fuelCost, null);
+    assert.strictEqual(summary.netEarnings, null);
+    assert.strictEqual(summary.grossPerHour, Math.round((394.37 / 2.95) * 100) / 100);
+  });
+
+  it('computes fill-to-fill costPerKm and net/hour once a second fill exists', async () => {
+    const u = await proUser('woltday2');
+    await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 400,
+      source: 'Wolt',
+      startTime: '13:00',
+      endTime: '15:00',
+      km: 40,
+    });
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 27.12,
+      price_per_litre: 17.39,
+      odometer: 1000,
+    });
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 10,
+      price_per_litre: 17,
+      odometer: 1200,
+    });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    // Only the second fill's cost (170) pays for the 200km span since the first fill.
+    assert.strictEqual(summary.costPerKm, Math.round((170 / 200) * 10000) / 10000);
+    assert.strictEqual(summary.costPerKmSamples, 1);
+    const expectedFuelCost = Math.round(summary.costPerKm * 40 * 100) / 100;
+    assert.strictEqual(summary.fuelCost, expectedFuelCost);
+    assert.strictEqual(summary.netEarnings, Math.round((400 - expectedFuelCost) * 100) / 100);
+    assert.strictEqual(summary.netPerHour, Math.round((summary.netEarnings / 2) * 100) / 100);
+  });
+
+  it('keeps plain (non-shift) income rows working: hours/workKm null, no crash', async () => {
+    const u = await proUser('plaininc');
+    await incomeService.createIncome(u, { date: TODAY, amount: 500, source: 'Uber' });
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.strictEqual(summary.hours, null);
+    assert.strictEqual(summary.workKm, null);
+    assert.strictEqual(summary.netPerHour, null);
+    assert.strictEqual(summary.totalIncome, 500);
+  });
+});
+
 describe('incomeService.deleteAllByUser()', () => {
   it('deletes all income entries for the given userId', async () => {
     const u = await proUser('delall1');

@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import PropTypes from 'prop-types';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2 } from 'lucide-react';
@@ -16,21 +17,52 @@ import { formatDate, currentYear, todayISO } from '@/utils/formatDate.js';
 import { formatCurrency } from '@/utils/formatCurrency.js';
 import styles from './IncomeListPage.module.css';
 
-const SOURCES = ['Uber', '99', 'iFood', 'Other'];
+const SOURCES = ['Uber', '99', 'iFood', 'Wolt', 'Other'];
+const SHIFT_MODE_KEY = 'income:shiftMode';
 
 function sourceLabel(source, t) {
   return source === 'Other' ? t('income.sources.Other') : source;
 }
 
-function IncomeFormModal({ open, initial, vehicles = [], onSubmit, onCancel, error, loading }) {
+function shiftHoursLabel(startTime, endTime) {
+  if (!startTime || !endTime) return null;
+  const [sh, sm] = startTime.split(':').map(Number);
+  const [eh, em] = endTime.split(':').map(Number);
+  let diffMin = eh * 60 + em - (sh * 60 + sm);
+  if (diffMin < 0) diffMin += 24 * 60;
+  const h = Math.floor(diffMin / 60);
+  const m = diffMin % 60;
+  return `${h}h${String(m).padStart(2, '0')}`;
+}
+
+function IncomeFormModal({
+  open,
+  initial,
+  vehicles = [],
+  defaultSource,
+  onSubmit,
+  onCancel,
+  error,
+  loading,
+}) {
   const { t } = useTranslation();
   const [date, setDate] = useState(initial?.date?.slice(0, 10) || todayISO());
   const [amount, setAmount] = useState(initial?.amount ?? '');
-  const [source, setSource] = useState(initial?.source || SOURCES[0]);
+  const [source, setSource] = useState(initial?.source || defaultSource || SOURCES[0]);
   const [note, setNote] = useState(initial?.note || '');
   const [vehicleId, setVehicleId] = useState(
     initial?.vehicleId || (vehicles.length > 0 ? vehicles[0].id : ''),
   );
+  const [shiftMode, setShiftMode] = useState(() => {
+    if (initial?.startTime || initial?.km) return true;
+    if (initial) return false;
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem(SHIFT_MODE_KEY) === '1';
+  });
+  const [startTime, setStartTime] = useState(initial?.startTime || '');
+  const [endTime, setEndTime] = useState(initial?.endTime || '');
+  const [km, setKm] = useState(initial?.km ?? '');
+  const [deliveries, setDeliveries] = useState(initial?.deliveries ?? '');
   const [prevOpen, setPrevOpen] = useState(open);
 
   // Derived-state reset: re-seed fields whenever the modal is (re)opened.
@@ -39,13 +71,29 @@ function IncomeFormModal({ open, initial, vehicles = [], onSubmit, onCancel, err
     if (open) {
       setDate(initial?.date?.slice(0, 10) || todayISO());
       setAmount(initial?.amount ?? '');
-      setSource(initial?.source || SOURCES[0]);
+      setSource(initial?.source || defaultSource || SOURCES[0]);
       setNote(initial?.note || '');
       setVehicleId(initial?.vehicleId || (vehicles.length > 0 ? vehicles[0].id : ''));
+      setStartTime(initial?.startTime || '');
+      setEndTime(initial?.endTime || '');
+      setKm(initial?.km ?? '');
+      setDeliveries(initial?.deliveries ?? '');
+    }
+  }
+
+  function toggleShiftMode() {
+    const next = !shiftMode;
+    setShiftMode(next);
+    try {
+      window.localStorage.setItem(SHIFT_MODE_KEY, next ? '1' : '0');
+    } catch {
+      // localStorage unavailable (private window etc.) — non-fatal, mode just won't persist.
     }
   }
 
   if (!open) return null;
+
+  const durationLabel = shiftMode ? shiftHoursLabel(startTime, endTime) : null;
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -55,6 +103,10 @@ function IncomeFormModal({ open, initial, vehicles = [], onSubmit, onCancel, err
       source,
       note: note || undefined,
       vehicleId: vehicleId || undefined,
+      startTime: shiftMode && startTime ? startTime : undefined,
+      endTime: shiftMode && endTime ? endTime : undefined,
+      km: shiftMode && km !== '' ? Number(km) : undefined,
+      deliveries: shiftMode && deliveries !== '' ? Number(deliveries) : undefined,
     });
   }
 
@@ -62,6 +114,10 @@ function IncomeFormModal({ open, initial, vehicles = [], onSubmit, onCancel, err
     <Modal open={open} labelledBy="income-modal-title">
       <h3 id="income-modal-title">{initial ? t('income.editIncome') : t('income.addNew')}</h3>
       {error && <ErrorBanner message={error} />}
+      <label className={styles.shiftToggle}>
+        <input type="checkbox" checked={shiftMode} onChange={toggleShiftMode} />
+        {t('income.fields.shiftMode')}
+      </label>
       <form onSubmit={handleSubmit}>
         {vehicles.length > 1 && (
           <VehicleSelect
@@ -86,6 +142,7 @@ function IncomeFormModal({ open, initial, vehicles = [], onSubmit, onCancel, err
           <input
             id="income-amount"
             type="number"
+            inputMode="decimal"
             min="0.01"
             step="0.01"
             value={amount}
@@ -103,6 +160,62 @@ function IncomeFormModal({ open, initial, vehicles = [], onSubmit, onCancel, err
             ))}
           </select>
         </div>
+        {shiftMode && (
+          <>
+            <div className={styles.shiftRow}>
+              <div className="form-group">
+                <label htmlFor="income-start-time">{t('income.fields.startTime')}</label>
+                <input
+                  id="income-start-time"
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="income-end-time">{t('income.fields.endTime')}</label>
+                <input
+                  id="income-end-time"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                />
+              </div>
+            </div>
+            {durationLabel && (
+              <p className={styles.shiftReadout}>
+                {durationLabel}
+                {km !== '' ? ` · ${km} km` : ''}
+              </p>
+            )}
+            <div className={styles.shiftRow}>
+              <div className="form-group">
+                <label htmlFor="income-km">{t('income.fields.km')}</label>
+                <input
+                  id="income-km"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  step="0.1"
+                  value={km}
+                  onChange={(e) => setKm(e.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="income-deliveries">{t('income.fields.deliveries')}</label>
+                <input
+                  id="income-deliveries"
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  step="1"
+                  value={deliveries}
+                  onChange={(e) => setDeliveries(e.target.value)}
+                />
+              </div>
+            </div>
+          </>
+        )}
         <div className="form-group">
           <label htmlFor="income-note">{t('income.fields.note')}</label>
           <input id="income-note" value={note} onChange={(e) => setNote(e.target.value)} />
@@ -124,18 +237,53 @@ IncomeFormModal.propTypes = {
   open: PropTypes.bool.isRequired,
   initial: PropTypes.object,
   vehicles: PropTypes.array,
+  defaultSource: PropTypes.string,
   onSubmit: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,
   error: PropTypes.string,
   loading: PropTypes.bool,
 };
 
-function ProfitSummaryCard({ summary, currency, t }) {
+function netEarningsClass(netEarnings) {
+  if (netEarnings == null) return '';
+  return netEarnings >= 0 ? styles.profitPositive : styles.profitNegative;
+}
+
+function ProfitSummaryCard({ summary, currency, period, onPeriodChange, t }) {
   if (!summary) return null;
-  const profitClass = summary.profit >= 0 ? styles.profitPositive : styles.profitNegative;
+  const netClass = netEarningsClass(summary.netEarnings);
+
   return (
     <div className={`card ${styles.summaryCard}`}>
-      <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>{t('income.summary.heading')}</h3>
+      <div className={styles.summaryHeader}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>{t('income.summary.heading')}</h3>
+        <div className={styles.periodSwitch}>
+          <button
+            type="button"
+            className={period === 'month' ? 'btn-primary' : 'btn-secondary'}
+            onClick={() => onPeriodChange('month')}
+          >
+            {t('income.summary.thisMonth')}
+          </button>
+          <button
+            type="button"
+            className={period === 'year' ? 'btn-primary' : 'btn-secondary'}
+            onClick={() => onPeriodChange('year')}
+          >
+            {t('income.summary.thisYear')}
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.headline}>
+        <span className={styles.headlineLabel}>{t('income.summary.netPerHour')}</span>
+        <span className={`${styles.headlineValue} ${netClass}`}>
+          {summary.netPerHour == null
+            ? t('income.summary.noHoursData')
+            : `${formatCurrency(summary.netPerHour, currency)}/h`}
+        </span>
+      </div>
+
       <div className={styles.summaryGrid}>
         <div className={styles.summaryItem}>
           <span className={styles.summaryLabel}>{t('income.summary.totalIncome')}</span>
@@ -144,32 +292,47 @@ function ProfitSummaryCard({ summary, currency, t }) {
           </span>
         </div>
         <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>{t('income.summary.totalExpenses')}</span>
+          <span className={styles.summaryLabel}>{t('income.summary.fuelCost')}</span>
           <span className={styles.summaryValue}>
-            {formatCurrency(summary.totalExpenses, currency)}
+            {summary.fuelCost == null
+              ? t('income.summary.noCostData')
+              : formatCurrency(summary.fuelCost, currency)}
           </span>
         </div>
         <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>{t('income.summary.profit')}</span>
-          <span className={`${styles.summaryValue} ${profitClass}`}>
-            {formatCurrency(summary.profit, currency)}
+          <span className={styles.summaryLabel}>{t('income.summary.netEarnings')}</span>
+          <span className={`${styles.summaryValue} ${netClass}`}>
+            {summary.netEarnings == null
+              ? t('income.summary.noCostData')
+              : formatCurrency(summary.netEarnings, currency)}
           </span>
         </div>
         <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>{t('income.summary.profitPerDay')}</span>
-          <span className={styles.summaryValue}>
-            {formatCurrency(summary.profitPerDay, currency)}
-          </span>
+          <span className={styles.summaryLabel}>{t('income.summary.hours')}</span>
+          <span className={styles.summaryValue}>{summary.hours ?? '—'}</span>
         </div>
         <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>{t('income.summary.profitPerKm')}</span>
+          <span className={styles.summaryLabel}>{t('income.summary.workKm')}</span>
+          <span className={styles.summaryValue}>{summary.workKm ?? '—'}</span>
+        </div>
+        <div className={styles.summaryItem}>
+          <span className={styles.summaryLabel}>{t('income.summary.costPerKm')}</span>
           <span className={styles.summaryValue}>
-            {summary.profitPerKm == null
-              ? t('income.summary.noKmData')
-              : formatCurrency(summary.profitPerKm, currency)}
+            {summary.costPerKm == null
+              ? t('income.summary.noCostData')
+              : `${formatCurrency(summary.costPerKm, currency)}/km`}
           </span>
         </div>
       </div>
+
+      {summary.costPerKm != null && summary.costPerKmSamples < 3 && (
+        <p className={styles.unstableHint}>
+          {t('income.summary.unstable', { count: summary.costPerKmSamples })}
+        </p>
+      )}
+      {summary.costPerKm == null && (
+        <p className={styles.unstableHint}>{t('income.summary.needsTwoFills')}</p>
+      )}
     </div>
   );
 }
@@ -177,6 +340,8 @@ function ProfitSummaryCard({ summary, currency, t }) {
 ProfitSummaryCard.propTypes = {
   summary: PropTypes.object,
   currency: PropTypes.string,
+  period: PropTypes.string.isRequired,
+  onPeriodChange: PropTypes.func.isRequired,
   t: PropTypes.func.isRequired,
 };
 
@@ -193,10 +358,11 @@ UpgradePrompt.propTypes = {
   t: PropTypes.func.isRequired,
 };
 
-export default function IncomeListPage() {
+function IncomeListPageInner() {
   const { t } = useTranslation();
   const { currency, plan } = useAuth();
   const isPro = plan === 'pro';
+  const searchParams = useSearchParams();
 
   const [entries, setEntries] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -204,6 +370,7 @@ export default function IncomeListPage() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [vehicles, setVehicles] = useState([]);
+  const [period, setPeriod] = useState('year');
 
   const [editing, setEditing] = useState(null);
   const [formError, setFormError] = useState('');
@@ -213,13 +380,14 @@ export default function IncomeListPage() {
   useAutoClear(successMsg, setSuccessMsg);
 
   const year = currentYear();
+  const month = period === 'month' ? new Date().getMonth() + 1 : undefined;
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const [list, sum] = await Promise.all([
-        incomeApi.list({ year }),
-        incomeApi.summary({ year }),
+        incomeApi.list({ year, month }),
+        incomeApi.summary({ year, month }),
       ]);
       setEntries(list.sort((a, b) => new Date(b.date) - new Date(a.date)));
       setSummary(sum);
@@ -228,7 +396,7 @@ export default function IncomeListPage() {
     } finally {
       setLoading(false);
     }
-  }, [year]);
+  }, [year, month]);
 
   useEffect(() => {
     if (!isPro) return;
@@ -239,6 +407,15 @@ export default function IncomeListPage() {
       .then((list) => setVehicles(list))
       .catch(() => {});
   }, [isPro, load]);
+
+  useEffect(() => {
+    if (isPro && searchParams.get('new') === '1') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reacting to a one-shot query param
+      setEditing('new');
+    }
+  }, [isPro, searchParams]);
+
+  const defaultSource = entries.length > 0 ? entries[0].source : undefined;
 
   async function handleFormSubmit(data) {
     setFormError('');
@@ -297,45 +474,56 @@ export default function IncomeListPage() {
         <Loading />
       ) : (
         <>
-          <ProfitSummaryCard summary={summary} currency={currency} t={t} />
+          <ProfitSummaryCard
+            summary={summary}
+            currency={currency}
+            period={period}
+            onPeriodChange={setPeriod}
+            t={t}
+          />
 
           {entries.length === 0 ? (
             <p style={{ color: 'var(--muted)' }}>{t('income.noIncome')}</p>
           ) : (
             <ul className={styles.list}>
-              {entries.map((i) => (
-                <li key={i.id} className={styles.row}>
-                  <div className={styles.info}>
-                    <strong>{formatCurrency(i.amount, currency)}</strong>
-                    <span> · {sourceLabel(i.source, t)}</span>
-                    <div className={styles.meta}>
-                      {formatDate(i.date)}
-                      {i.note && ` · ${i.note}`}
+              {entries.map((i) => {
+                const duration = shiftHoursLabel(i.startTime, i.endTime);
+                return (
+                  <li key={i.id} className={styles.row}>
+                    <div className={styles.info}>
+                      <strong>{formatCurrency(i.amount, currency)}</strong>
+                      <span> · {sourceLabel(i.source, t)}</span>
+                      <div className={styles.meta}>
+                        {formatDate(i.date)}
+                        {duration && ` · ${duration}`}
+                        {i.km != null && ` · ${i.km} km`}
+                        {i.note && ` · ${i.note}`}
+                      </div>
                     </div>
-                  </div>
-                  <div className={styles.actions}>
-                    <button
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => {
-                        setFormError('');
-                        setEditing(i);
-                      }}
-                      aria-label={t('common.edit')}
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-danger"
-                      onClick={() => setDeleting(i)}
-                      aria-label={t('common.delete')}
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </li>
-              ))}
+                    <div className={styles.actions}>
+                      <button
+                        type="button"
+                        className="btn-secondary"
+                        onClick={() => {
+                          setFormError('');
+                          setEditing(i);
+                        }}
+                        aria-label={t('common.edit')}
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-danger"
+                        onClick={() => setDeleting(i)}
+                        aria-label={t('common.delete')}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </>
@@ -345,6 +533,7 @@ export default function IncomeListPage() {
         open={!!editing}
         initial={editing === 'new' ? null : editing}
         vehicles={vehicles}
+        defaultSource={defaultSource}
         onSubmit={handleFormSubmit}
         onCancel={() => setEditing(null)}
         error={formError}
@@ -358,5 +547,13 @@ export default function IncomeListPage() {
         onCancel={() => setDeleting(null)}
       />
     </div>
+  );
+}
+
+export default function IncomeListPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <IncomeListPageInner />
+    </Suspense>
   );
 }
