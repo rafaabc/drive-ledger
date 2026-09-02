@@ -372,7 +372,7 @@
       "hours": "Horas trabalhadas",
       "workKm": "Km trabalhados",
       "costPerKm": "Custo de combustível / km",
-      "noHoursData": "Registre as horas do turno para ver o líquido por hora.",
+      "noHoursData": "Registre as horas do turno e 2+ abastecimentos para ver o líquido por hora.",
       "noCostData": "Requer 2+ abastecimentos com hodômetro.",
       "needsTwoFills": "O custo de combustível requer 2+ abastecimentos com hodômetro.",
       "unstable": "Baseado em {{count}} abastecimento — dado ainda instável.",

@@ -372,7 +372,7 @@
       "hours": "Hours worked",
       "workKm": "Km worked",
       "costPerKm": "Fuel cost / km",
-      "noHoursData": "Log shift hours to see net per hour.",
+      "noHoursData": "Log shift hours and 2+ fill-ups to see net per hour.",
       "noCostData": "Needs 2+ fill-ups with odometer.",
       "needsTwoFills": "Fuel cost needs 2+ Fuel entries with odometer.",
       "unstable": "Based on {{count}} fill-up — still stabilising.",
