@@ -12,7 +12,7 @@ export const metadata = {
 
 export default async function RootLayout({ children }) {
   // Reading headers() opts every route into dynamic rendering — required so Next
-  // attaches the per-request nonce (set by proxy.js) to its own framework/page
+  // attaches the per-request nonce (set by proxy.mjs) to its own framework/page
   // scripts, which is what lets script-src drop 'unsafe-inline' (see F-08 fix).
   await headers();
 

@@ -8,7 +8,7 @@ const withSerwist = withSerwistInit({
   disable: process.env.NODE_ENV === 'development',
 });
 
-// Content-Security-Policy moved to proxy.js — it needs a fresh nonce per request
+// Content-Security-Policy moved to proxy.mjs — it needs a fresh nonce per request
 // (see F-08 fix), which a static headers() entry here can't provide.
 const securityHeaders = [
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
@@ -21,20 +21,17 @@ const securityHeaders = [
 const nextConfig = {
   devIndicators: false,
   serverExternalPackages: ['@sentry/nextjs', 'require-in-the-middle', 'pdfkit'],
+  // 'mjs' lets Next discover proxy.mjs (its filename convention otherwise only
+  // looks for proxy.{tsx,ts,jsx,js}) — .mjs parses as ESM under every bundler
+  // regardless of package.json's "type": "commonjs", so no bundler-specific
+  // rule is needed to force it, unlike the plain .js this file used to be.
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js', 'mjs'],
   async headers() {
     return [{ source: '/(.*)', headers: securityHeaders }];
   },
   webpack(config) {
     config.module.rules.unshift({
       test: /[\\/](instrumentation(-client)?|sentry\.(client|server|edge)\.config)\.mjs$/,
-      type: 'javascript/esm',
-    });
-    // proxy.js must be a plain .js file (Next's proxy file convention doesn't
-    // recognize .mjs), but package.json's "type": "commonjs" makes webpack parse
-    // .js as CJS by default — force this one file to parse as ESM instead, same
-    // trick as the rule above.
-    config.module.rules.unshift({
-      test: /[\\/]proxy\.js$/,
       type: 'javascript/esm',
     });
     return config;
