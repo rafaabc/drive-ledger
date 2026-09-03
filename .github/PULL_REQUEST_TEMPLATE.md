@@ -1,6 +1,8 @@
 <!--
-This repository is not accepting external pull requests — see CONTRIBUTING.md.
-This template is for the maintainer's own branch → main PRs.
+This repository doesn't accept external pull requests — see CONTRIBUTING.md
+for what kinds of feedback are welcome instead (bugs, UX findings, feature
+ideas — all via Issues). This template is for the maintainer's own
+branch → main PRs.
 -->
 
 ## Summary

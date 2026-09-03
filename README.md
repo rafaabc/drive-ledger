@@ -126,6 +126,15 @@ lint → audit → test-unit → test-integration → test-api → e2e
 
 ---
 
+## Feedback
+
+Found a bug, hit something confusing, or have a feature idea? [Issues](../../issues) are open for
+all three — see [CONTRIBUTING.md](CONTRIBUTING.md) for what's welcome (pull requests aren't, so
+please don't spend time on a patch). Found a vulnerability? See [SECURITY.md](SECURITY.md) instead
+of filing a public issue. Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+---
+
 ## Author
 
 **Rafael** — [LinkedIn](https://www.linkedin.com/in/rafael-albuquerque-qa/) · [GitHub](https://github.com/rafaabc)
@@ -134,4 +143,4 @@ lint → audit → test-unit → test-integration → test-api → e2e
 
 ## License
 
-**Proprietary — all rights reserved.** See [LICENSE](LICENSE). This repository is public for portfolio review only: not open source, and **not accepting outside contributions** — see [CONTRIBUTING.md](CONTRIBUTING.md). Found a bug? [Issues](../../issues) are open. Found a vulnerability? See [SECURITY.md](SECURITY.md) instead of filing a public issue.
+**Proprietary — all rights reserved.** See [LICENSE](LICENSE). This repository is public for portfolio review only: not open source. See [CONTRIBUTING.md](CONTRIBUTING.md) for what kinds of feedback are welcome.
