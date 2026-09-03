@@ -97,6 +97,16 @@
   cursor: pointer;
 }
 
+/* The global `input { width: 100% }` rule stretches a checkbox into a giant
+   square and shoves the label text to the far edge — reset it back to a
+   normal-sized, non-growing box. */
+.shiftToggle input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  flex: none;
+}
+
 .shiftRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
