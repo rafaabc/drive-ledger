@@ -345,6 +345,223 @@ describe('incomeService shift fields', () => {
   });
 });
 
+describe('incomeService multi-block segments', () => {
+  it('sums hours across two non-overlapping blocks', async () => {
+    const u = await proUser('seg1');
+    const income = await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 84.2,
+      source: 'Wolt',
+      segments: [
+        { startTime: '12:00', endTime: '13:00' },
+        { startTime: '15:30', endTime: '16:40' },
+      ],
+    });
+    assert.strictEqual(income.hours, 2.17);
+    assert.strictEqual(income.segments.length, 2);
+    assert.strictEqual(income.startTime, undefined);
+    assert.strictEqual(income.endTime, undefined);
+  });
+
+  it('creates a legacy startTime/endTime entry as a single segment', async () => {
+    const u = await proUser('seg2');
+    const income = await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 100,
+      source: 'Wolt',
+      startTime: '13:00',
+      endTime: '15:00',
+    });
+    assert.strictEqual(income.hours, 2);
+    assert.strictEqual(income.segments.length, 1);
+    assert.strictEqual(income.segments[0].startTime, '13:00');
+    assert.strictEqual(income.segments[0].endTime, '15:00');
+  });
+
+  it('lifts a legacy row into segments when edited without touching times', async () => {
+    const u = await proUser('seg3');
+    const income = await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 100,
+      source: 'Wolt',
+      startTime: '13:00',
+      endTime: '15:00',
+    });
+    const updated = await incomeService.updateIncome(u, income.id, { amount: 120 });
+    assert.strictEqual(updated.amount, 120);
+    assert.strictEqual(updated.hours, 2);
+    assert.strictEqual(updated.segments.length, 1);
+    assert.strictEqual(updated.segments[0].startTime, '13:00');
+  });
+
+  it('replaces segments on update and recomputes hours', async () => {
+    const u = await proUser('seg4');
+    const income = await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 100,
+      source: 'Wolt',
+      segments: [{ startTime: '12:00', endTime: '13:00' }],
+    });
+    const updated = await incomeService.updateIncome(u, income.id, {
+      segments: [
+        { startTime: '12:00', endTime: '13:00' },
+        { startTime: '15:30', endTime: '16:40' },
+      ],
+    });
+    assert.strictEqual(updated.hours, 2.17);
+    assert.strictEqual(updated.segments.length, 2);
+  });
+
+  it('rejects segments combined with startTime/endTime on create', async () => {
+    const u = await proUser('seg5');
+    await assert.rejects(
+      () =>
+        incomeService.createIncome(u, {
+          date: TODAY,
+          amount: 100,
+          source: 'Wolt',
+          segments: [{ startTime: '12:00', endTime: '13:00' }],
+          startTime: '15:00',
+          endTime: '16:00',
+        }),
+      (err) => err.status === 400 && /cannot be combined/i.test(err.message),
+    );
+  });
+
+  it('rejects segments combined with startTime/endTime on update', async () => {
+    const u = await proUser('seg6');
+    const income = await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 100,
+      source: 'Wolt',
+      segments: [{ startTime: '12:00', endTime: '13:00' }],
+    });
+    await assert.rejects(
+      () =>
+        incomeService.updateIncome(u, income.id, {
+          segments: [{ startTime: '09:00', endTime: '10:00' }],
+          startTime: '15:00',
+          endTime: '16:00',
+        }),
+      (err) => err.status === 400 && /cannot be combined/i.test(err.message),
+    );
+  });
+
+  it('rejects overlapping time blocks', async () => {
+    const u = await proUser('seg7');
+    await assert.rejects(
+      () =>
+        incomeService.createIncome(u, {
+          date: TODAY,
+          amount: 100,
+          source: 'Wolt',
+          segments: [
+            { startTime: '12:00', endTime: '14:00' },
+            { startTime: '13:00', endTime: '15:00' },
+          ],
+        }),
+      (err) => err.status === 400 && /overlap/i.test(err.message),
+    );
+  });
+
+  it('rejects an empty segments array', async () => {
+    const u = await proUser('seg8');
+    await assert.rejects(
+      () =>
+        incomeService.createIncome(u, { date: TODAY, amount: 100, source: 'Wolt', segments: [] }),
+      (err) => err.status === 400,
+    );
+  });
+
+  it('rejects more than 12 segments', async () => {
+    const u = await proUser('seg9');
+    const segments = Array.from({ length: 13 }, (_, i) => ({
+      startTime: `0${(i % 9) + 1}:00`.slice(-5),
+      endTime: `0${(i % 9) + 1}:30`.slice(-5),
+    }));
+    await assert.rejects(
+      () => incomeService.createIncome(u, { date: TODAY, amount: 100, source: 'Wolt', segments }),
+      (err) => err.status === 400,
+    );
+  });
+
+  it('rejects an explicit hours alongside segments', async () => {
+    const u = await proUser('seg10');
+    await assert.rejects(
+      () =>
+        incomeService.createIncome(u, {
+          date: TODAY,
+          amount: 100,
+          source: 'Wolt',
+          segments: [{ startTime: '12:00', endTime: '13:00' }],
+          hours: 5,
+        }),
+      (err) => err.status === 400 && /derived/i.test(err.message),
+    );
+  });
+
+  it('rejects a malformed time inside a segment', async () => {
+    const u = await proUser('seg11');
+    await assert.rejects(
+      () =>
+        incomeService.createIncome(u, {
+          date: TODAY,
+          amount: 100,
+          source: 'Wolt',
+          segments: [{ startTime: '12h00', endTime: '13:00' }],
+        }),
+      (err) => err.status === 400 && /HH:MM/i.test(err.message),
+    );
+  });
+
+  it('allows a midnight-crossing block only as the last segment of the day', async () => {
+    const u = await proUser('seg12');
+    const income = await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 100,
+      source: 'Wolt',
+      segments: [
+        { startTime: '20:00', endTime: '22:00' },
+        { startTime: '23:30', endTime: '00:30' },
+      ],
+    });
+    assert.strictEqual(income.hours, 3);
+  });
+
+  it('rejects a midnight-crossing block that is not the last segment of the day', async () => {
+    const u = await proUser('seg13');
+    await assert.rejects(
+      () =>
+        incomeService.createIncome(u, {
+          date: TODAY,
+          amount: 100,
+          source: 'Wolt',
+          segments: [
+            { startTime: '23:30', endTime: '00:30' },
+            { startTime: '23:45', endTime: '23:59' },
+          ],
+        }),
+      (err) => err.status === 400 && /midnight/i.test(err.message),
+    );
+  });
+
+  it('uses summed multi-block hours in the profit summary net/hour', async () => {
+    const u = await proUser('seg14');
+    await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 200,
+      source: 'Wolt',
+      segments: [
+        { startTime: '12:00', endTime: '13:00' },
+        { startTime: '15:30', endTime: '16:40' },
+      ],
+    });
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.strictEqual(summary.hours, 2.17);
+    assert.strictEqual(summary.grossPerHour, Math.round((200 / 2.17) * 100) / 100);
+  });
+});
+
 describe('incomeService.getProfitSummary() with shift data', () => {
   it('reproduces the 2026-09-01 Wolt shift data with a single fill (no cost/km yet)', async () => {
     const u = await proUser('woltday1');
