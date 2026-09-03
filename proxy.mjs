@@ -1,7 +1,10 @@
-// ESM, despite package.json's "type": "commonjs" — Next's proxy file-export
-// detection expects `export`/`export default` syntax. The webpack rule in
-// next.config.mjs forces this specific file to parse as javascript/esm (the same
-// trick already used there for instrumentation(-client).mjs / sentry.*.config.mjs).
+// .mjs (not .js) so this parses as ESM unambiguously under both webpack and
+// Turbopack, regardless of package.json's "type": "commonjs" — Next's proxy
+// file-export detection statically requires `export`/`export default`
+// syntax. Discovering a proxy.mjs file requires 'mjs' in pageExtensions
+// (see next.config.mjs); a plain proxy.js previously needed a bundler-
+// specific rule forcing ESM parsing, which webpack honored but Turbopack
+// (`next dev --turbo`) didn't, so `npm run dev` 500'd on every route.
 import { NextResponse } from 'next/server';
 
 const isDev = process.env.NODE_ENV === 'development';
