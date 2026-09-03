@@ -379,11 +379,42 @@
             "example": "Wolt"
           },
           "note": { "type": "string", "nullable": true },
-          "startTime": { "type": "string", "nullable": true, "example": "13:15" },
-          "endTime": { "type": "string", "nullable": true, "example": "15:00" },
-          "hours": { "type": "number", "nullable": true, "example": 1.75 },
+          "startTime": {
+            "type": "string",
+            "nullable": true,
+            "deprecated": true,
+            "description": "Legacy single-block time; superseded by segments",
+            "example": "13:15"
+          },
+          "endTime": {
+            "type": "string",
+            "nullable": true,
+            "deprecated": true,
+            "description": "Legacy single-block time; superseded by segments",
+            "example": "15:00"
+          },
+          "segments": {
+            "type": "array",
+            "nullable": true,
+            "maxItems": 12,
+            "items": { "$ref": "#/components/schemas/IncomeSegment" }
+          },
+          "hours": {
+            "type": "number",
+            "nullable": true,
+            "description": "Sum of all segment durations",
+            "example": 1.75
+          },
           "km": { "type": "number", "nullable": true, "example": 22.1 },
           "deliveries": { "type": "integer", "nullable": true, "example": 3 }
+        }
+      },
+      "IncomeSegment": {
+        "type": "object",
+        "required": ["startTime", "endTime"],
+        "properties": {
+          "startTime": { "type": "string", "example": "12:00" },
+          "endTime": { "type": "string", "example": "13:00" }
         }
       },
       "IncomeCreate": {
@@ -395,17 +426,30 @@
           "source": { "type": "string", "enum": ["Uber", "99", "iFood", "Wolt", "Other"] },
           "note": { "type": "string", "nullable": true },
           "vehicleId": { "type": "string", "nullable": true },
+          "segments": {
+            "type": "array",
+            "nullable": true,
+            "maxItems": 12,
+            "description": "1-12 non-overlapping HH:MM blocks; hours is derived, not accepted. Cannot be combined with startTime/endTime",
+            "items": { "$ref": "#/components/schemas/IncomeSegment" }
+          },
           "startTime": {
             "type": "string",
             "nullable": true,
-            "description": "HH:MM, provide together with endTime; hours is derived, not accepted",
+            "deprecated": true,
+            "description": "Legacy single-block form; provide together with endTime, and only when segments is absent",
             "example": "13:15"
           },
-          "endTime": { "type": "string", "nullable": true, "example": "15:00" },
+          "endTime": {
+            "type": "string",
+            "nullable": true,
+            "deprecated": true,
+            "example": "15:00"
+          },
           "hours": {
             "type": "number",
             "nullable": true,
-            "description": "Only accepted when startTime/endTime are absent",
+            "description": "Only accepted when segments/startTime/endTime are absent",
             "example": 1.75
           },
           "km": { "type": "number", "nullable": true, "example": 22.1 },
@@ -420,8 +464,14 @@
           "source": { "type": "string", "enum": ["Uber", "99", "iFood", "Wolt", "Other"] },
           "note": { "type": "string", "nullable": true },
           "vehicleId": { "type": "string", "nullable": true },
-          "startTime": { "type": "string", "nullable": true },
-          "endTime": { "type": "string", "nullable": true },
+          "segments": {
+            "type": "array",
+            "nullable": true,
+            "maxItems": 12,
+            "items": { "$ref": "#/components/schemas/IncomeSegment" }
+          },
+          "startTime": { "type": "string", "nullable": true, "deprecated": true },
+          "endTime": { "type": "string", "nullable": true, "deprecated": true },
           "hours": { "type": "number", "nullable": true },
           "km": { "type": "number", "nullable": true },
           "deliveries": { "type": "integer", "nullable": true }

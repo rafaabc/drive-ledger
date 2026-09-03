@@ -24,15 +24,38 @@ function sourceLabel(source, t) {
   return source === 'Other' ? t('income.sources.Other') : source;
 }
 
-function shiftHoursLabel(startTime, endTime) {
+function shiftMinutes(startTime, endTime) {
   if (!startTime || !endTime) return null;
   const [sh, sm] = startTime.split(':').map(Number);
   const [eh, em] = endTime.split(':').map(Number);
   let diffMin = eh * 60 + em - (sh * 60 + sm);
   if (diffMin < 0) diffMin += 24 * 60;
-  const h = Math.floor(diffMin / 60);
-  const m = diffMin % 60;
+  return diffMin;
+}
+
+function minutesLabel(totalMin) {
+  if (totalMin == null) return null;
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
   return `${h}h${String(m).padStart(2, '0')}`;
+}
+
+function shiftHoursLabel(startTime, endTime) {
+  return minutesLabel(shiftMinutes(startTime, endTime));
+}
+
+// A row's segments if present, else its legacy startTime/endTime lifted into one.
+function entrySegments(entry) {
+  if (entry?.segments?.length) return entry.segments;
+  if (entry?.startTime && entry?.endTime)
+    return [{ startTime: entry.startTime, endTime: entry.endTime }];
+  return [];
+}
+
+function totalShiftMinutes(segments) {
+  const mins = segments.map((s) => shiftMinutes(s.startTime, s.endTime)).filter((m) => m != null);
+  if (mins.length === 0) return null;
+  return mins.reduce((a, b) => a + b, 0);
 }
 
 function IncomeFormModal({
@@ -54,13 +77,16 @@ function IncomeFormModal({
     initial?.vehicleId || (vehicles.length > 0 ? vehicles[0].id : ''),
   );
   const [shiftMode, setShiftMode] = useState(() => {
-    if (initial?.startTime || initial?.km) return true;
+    if (initial?.startTime || initial?.segments?.length || initial?.km) return true;
     if (initial) return false;
     if (typeof window === 'undefined') return false;
     return window.localStorage.getItem(SHIFT_MODE_KEY) === '1';
   });
-  const [startTime, setStartTime] = useState(initial?.startTime || '');
-  const [endTime, setEndTime] = useState(initial?.endTime || '');
+  const emptySegments = () => [{ startTime: '', endTime: '' }];
+  const [segments, setSegments] = useState(() => {
+    const existing = entrySegments(initial);
+    return existing.length > 0 ? existing : emptySegments();
+  });
   const [km, setKm] = useState(initial?.km ?? '');
   const [deliveries, setDeliveries] = useState(initial?.deliveries ?? '');
   const [prevOpen, setPrevOpen] = useState(open);
@@ -74,8 +100,8 @@ function IncomeFormModal({
       setSource(initial?.source || defaultSource || SOURCES[0]);
       setNote(initial?.note || '');
       setVehicleId(initial?.vehicleId || (vehicles.length > 0 ? vehicles[0].id : ''));
-      setStartTime(initial?.startTime || '');
-      setEndTime(initial?.endTime || '');
+      const existing = entrySegments(initial);
+      setSegments(existing.length > 0 ? existing : emptySegments());
       setKm(initial?.km ?? '');
       setDeliveries(initial?.deliveries ?? '');
     }
@@ -93,7 +119,20 @@ function IncomeFormModal({
 
   if (!open) return null;
 
-  const durationLabel = shiftMode ? shiftHoursLabel(startTime, endTime) : null;
+  const filledSegments = segments.filter((s) => s.startTime && s.endTime);
+  const totalLabel = shiftMode ? minutesLabel(totalShiftMinutes(filledSegments)) : null;
+
+  function updateSegment(index, field, value) {
+    setSegments(segments.map((s, i) => (i === index ? { ...s, [field]: value } : s)));
+  }
+
+  function addSegment() {
+    setSegments([...segments, { startTime: '', endTime: '' }]);
+  }
+
+  function removeSegment(index) {
+    setSegments(segments.filter((_, i) => i !== index));
+  }
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -103,8 +142,7 @@ function IncomeFormModal({
       source,
       note: note || undefined,
       vehicleId: vehicleId || undefined,
-      startTime: shiftMode && startTime ? startTime : undefined,
-      endTime: shiftMode && endTime ? endTime : undefined,
+      segments: shiftMode && filledSegments.length > 0 ? filledSegments : undefined,
       km: shiftMode && km !== '' ? Number(km) : undefined,
       deliveries: shiftMode && deliveries !== '' ? Number(deliveries) : undefined,
     });
@@ -162,32 +200,50 @@ function IncomeFormModal({
         </div>
         {shiftMode && (
           <>
-            <div className={styles.shiftRow}>
-              <div className="form-group">
-                <label htmlFor="income-start-time">{t('income.fields.startTime')}</label>
-                <input
-                  id="income-start-time"
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="income-end-time">{t('income.fields.endTime')}</label>
-                <input
-                  id="income-end-time"
-                  type="time"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                />
+            <div className="form-group">
+              <label>{t('income.fields.timeBlocks')}</label>
+              <div className={styles.blocks}>
+                {segments.map((seg, i) => (
+                  <div className={styles.blockRow} key={i}>
+                    <input
+                      type="time"
+                      aria-label={t('income.fields.startTime')}
+                      value={seg.startTime}
+                      onChange={(e) => updateSegment(i, 'startTime', e.target.value)}
+                    />
+                    <span className={styles.blockDash}>–</span>
+                    <input
+                      type="time"
+                      aria-label={t('income.fields.endTime')}
+                      value={seg.endTime}
+                      onChange={(e) => updateSegment(i, 'endTime', e.target.value)}
+                    />
+                    <span className={styles.blockDuration}>
+                      {shiftHoursLabel(seg.startTime, seg.endTime) || ''}
+                    </span>
+                    {segments.length > 1 && (
+                      <button
+                        type="button"
+                        className={styles.removeBlock}
+                        onClick={() => removeSegment(i)}
+                        aria-label={t('income.fields.removeBlock')}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button type="button" className={styles.addBlock} onClick={addSegment}>
+                  + {t('income.fields.addBlock')}
+                </button>
+                {totalLabel && (
+                  <div className={styles.blockTotal}>
+                    <span>{t('income.fields.totalWorked')}</span>
+                    <span>{totalLabel}</span>
+                  </div>
+                )}
               </div>
             </div>
-            {durationLabel && (
-              <p className={styles.shiftReadout}>
-                {durationLabel}
-                {km !== '' ? ` · ${km} km` : ''}
-              </p>
-            )}
             <div className={styles.shiftRow}>
               <div className="form-group">
                 <label htmlFor="income-km">{t('income.fields.km')}</label>
@@ -487,7 +543,8 @@ function IncomeListPageInner() {
           ) : (
             <ul className={styles.list}>
               {entries.map((i) => {
-                const duration = shiftHoursLabel(i.startTime, i.endTime);
+                const segs = entrySegments(i);
+                const duration = minutesLabel(totalShiftMinutes(segs));
                 return (
                   <li key={i.id} className={styles.row}>
                     <div className={styles.info}>
@@ -496,6 +553,8 @@ function IncomeListPageInner() {
                       <div className={styles.meta}>
                         {formatDate(i.date)}
                         {duration && ` · ${duration}`}
+                        {segs.length > 1 &&
+                          ` (${t('income.fields.blockCount', { count: segs.length })})`}
                         {i.km != null && ` · ${i.km} km`}
                         {i.note && ` · ${i.note}`}
                       </div>
