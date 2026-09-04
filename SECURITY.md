@@ -26,6 +26,6 @@ the respective vendor.
 ## A note on this repository
 
 This repository is source-available for portfolio review (see
-[LICENSE](LICENSE)) — not open source, and not accepting code contributions
-(see [CONTRIBUTING.md](CONTRIBUTING.md)). Vulnerability reports through the
+[LICENSE](LICENSE)) — not open source; see [CONTRIBUTING.md](CONTRIBUTING.md)
+for what kinds of feedback are welcome. Vulnerability reports through the
 channel above are still very much wanted.
