@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Weekly production-dependency audit so a quiet week of docs-only commits
+    # (which skip test-unit..e2e below) doesn't go a month without a check
+    # against newly-disclosed CVEs.
+    - cron: '0 6 * * 1'
 
 # Serialize all runs that touch the shared Atlas DB so concurrent e2e teardowns
 # cannot delete another run's test users mid-suite.
@@ -14,8 +19,67 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Decides whether this push/PR touches anything besides docs. Deliberately a
+  # job-level `if:` skip on test-unit..e2e below, NOT `paths-ignore` on the
+  # triggers above: main's branch protection requires lint/audit/test-unit/
+  # test-integration/test-api/e2e as status checks with enforce_admins on. If
+  # the workflow never ran at all for a path, those contexts would never
+  # report and the PR would be permanently unmergeable, even for admins. A
+  # *skipped* job still reports success against its required context, so
+  # gating jobs (as the fork-PR guards on test-api/e2e already do below) is
+  # the only safe way to shrink CI for docs-only changes. Don't "simplify"
+  # this back into paths-ignore.
+  changes:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: filter
+        name: Detect whether any non-docs file changed
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -e
+
+          # Docs-only paths: Markdown anywhere, docs/, screenshots/, the issue
+          # templates, and LICENSE. Everything else (including .github/workflows/**,
+          # package*.json, sonar-project.properties) is treated as code.
+          DOCS_PATTERN='^([^/]+\.md|docs/|screenshots/|\.github/ISSUE_TEMPLATE/|LICENSE)'
+
+          code=true
+
+          if [ "$EVENT_NAME" = "pull_request" ] || [ "$EVENT_NAME" = "push" ]; then
+            if [ -n "$BASE_SHA" ] && [ "$BASE_SHA" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$BASE_SHA" 2>/dev/null; then
+              if [ "$EVENT_NAME" = "pull_request" ]; then
+                changed_files="$(git diff --name-only "$BASE_SHA"...HEAD)"
+              else
+                changed_files="$(git diff --name-only "$BASE_SHA" HEAD)"
+              fi
+
+              echo "Changed files:"
+              echo "$changed_files"
+
+              if [ -n "$changed_files" ] && ! echo "$changed_files" | grep -qvE "$DOCS_PATTERN"; then
+                code=false
+              fi
+            else
+              echo "No usable base SHA (new branch or force-push) — running full CI."
+            fi
+          else
+            echo "Event '$EVENT_NAME' isn't push/pull_request — running full CI."
+          fi
+
+          echo "code=$code" | tee -a "$GITHUB_OUTPUT" >> "$GITHUB_STEP_SUMMARY"
+
   lint:
     runs-on: ubuntu-latest
+    # Scheduled run is audit-only (see the `schedule` trigger comment above).
+    if: github.event_name != 'schedule'
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
@@ -39,7 +103,9 @@ jobs:
         run: npm audit --audit-level=high --omit=dev
 
   test-unit:
+    needs: changes
     runs-on: ubuntu-latest
+    if: needs.changes.outputs.code == 'true'
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
