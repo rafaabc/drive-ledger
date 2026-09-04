@@ -107,10 +107,29 @@ jobs:
       - run: npm install -g npm@12.0.2 --ignore-scripts
       - run: npm ci --ignore-scripts
       - name: Audit production dependencies
-        run: npm audit --audit-level=high --omit=dev
+        # npm's audit registry endpoint is prone to transient errors (503s,
+        # occasional 400s) unrelated to our dependency tree — retry a few
+        # times with backoff before failing the job for real.
+        run: |
+          for attempt in 1 2 3 4; do
+            if npm audit --audit-level=high --omit=dev; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 4 ]; then
+              echo "npm audit failed after 4 attempts."
+              exit 1
+            fi
+            echo "npm audit attempt $attempt failed — retrying in $((attempt * 15))s..."
+            sleep $((attempt * 15))
+          done
 
   test-unit:
-    needs: changes
+    # Gated on audit too: a real dependency CVE should fail fast instead of
+    # burning ~10min on tests that were going to be blocked from merging
+    # anyway. GitHub implicitly requires success() on all `needs` here (no
+    # status-check function in the `if` below), so an audit failure or skip
+    # skips this and everything chained after it, same as the docs-only case.
+    needs: [changes, audit]
     runs-on: ubuntu-latest
     if: needs.changes.outputs.code == 'true'
     steps:
