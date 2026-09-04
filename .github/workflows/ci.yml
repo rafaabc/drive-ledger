@@ -46,10 +46,12 @@ jobs:
         run: |
           set -e
 
-          # Docs-only paths: Markdown anywhere, docs/, screenshots/, the issue
-          # templates, and LICENSE. Everything else (including .github/workflows/**,
-          # package*.json, sonar-project.properties) is treated as code.
-          DOCS_PATTERN='^([^/]+\.md|docs/|screenshots/|\.github/ISSUE_TEMPLATE/|LICENSE)'
+          # Docs-only paths: Markdown at any depth (not just repo root — e.g.
+          # .github/PULL_REQUEST_TEMPLATE.md must count), docs/, screenshots/,
+          # the issue templates, and LICENSE. Everything else (including
+          # .github/workflows/**, package*.json, sonar-project.properties) is
+          # treated as code.
+          DOCS_PATTERN='(^|/)[^/]+\.md$|^docs/|^screenshots/|^\.github/ISSUE_TEMPLATE/|^LICENSE$'
 
           code=true
 
@@ -98,6 +100,11 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
+      # npm's registry has been retiring the legacy "quick" audit endpoint;
+      # the npm version bundled with setup-node's Node 22 still calls it and
+      # gets a 400 ("Invalid package tree"). Latest npm uses the bulk
+      # advisory endpoint instead.
+      - run: npm install -g npm@12.0.2 --ignore-scripts
       - run: npm ci --ignore-scripts
       - name: Audit production dependencies
         run: npm audit --audit-level=high --omit=dev
