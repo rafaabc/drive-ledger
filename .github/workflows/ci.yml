@@ -104,7 +104,7 @@ jobs:
       # the npm version bundled with setup-node's Node 22 still calls it and
       # gets a 400 ("Invalid package tree"). Latest npm uses the bulk
       # advisory endpoint instead.
-      - run: npm install -g npm@latest
+      - run: npm install -g npm@12.0.2 --ignore-scripts
       - run: npm ci --ignore-scripts
       - name: Audit production dependencies
         run: npm audit --audit-level=high --omit=dev
