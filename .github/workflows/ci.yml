@@ -139,6 +139,19 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci --ignore-scripts
+      # mongodb-memory-server test files run in parallel under node --test, and each
+      # boots its own MongoMemoryServer. With a cold cache they all race to download
+      # and lock the same mongod binary, which flakes as
+      # "UnableToUnlockLockfileError: Cannot unlock file .../mongodb-binaries/*.lock".
+      # Caching the binary dir and prewarming it once (sequentially, before the
+      # parallel tests start) means every MongoMemoryServer.create() just reads the
+      # cache instead of racing a download/lock.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Prewarm mongodb-memory-server binary
+        run: node -e "const {MongoMemoryServer}=require('mongodb-memory-server');MongoMemoryServer.create().then(s=>s.stop())"
       - run: npm run test:unit:coverage
 
   test-integration:
@@ -151,6 +164,12 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci --ignore-scripts
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+      - name: Prewarm mongodb-memory-server binary
+        run: node -e "const {MongoMemoryServer}=require('mongodb-memory-server');MongoMemoryServer.create().then(s=>s.stop())"
       - run: npm run test:integration:coverage
 
   test-api:
