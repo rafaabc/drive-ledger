@@ -9,27 +9,10 @@ vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k) => k }) }));
 let PWAUpdater;
 
 // Minimal fake ServiceWorkerRegistration/EventTarget the component talks to.
-function makeFakeRegistration({ waiting = null } = {}) {
+function makeEventTarget(extra = {}) {
   const listeners = {};
   return {
-    waiting,
-    installing: null,
-    update: vi.fn(),
-    addEventListener: vi.fn((type, cb) => {
-      listeners[type] = listeners[type] || [];
-      listeners[type].push(cb);
-    }),
-    _emit(type, event) {
-      (listeners[type] || []).forEach((cb) => cb(event));
-    },
-  };
-}
-
-function makeFakeServiceWorkerContainer(reg) {
-  const listeners = {};
-  return {
-    controller: {},
-    ready: Promise.resolve(reg),
+    ...extra,
     addEventListener: vi.fn((type, cb) => {
       listeners[type] = listeners[type] || [];
       listeners[type].push(cb);
@@ -41,6 +24,21 @@ function makeFakeServiceWorkerContainer(reg) {
       (listeners[type] || []).forEach((cb) => cb(event));
     },
   };
+}
+
+// Renders PWAUpdater with a fake navigator.serviceWorker wired up, and waits
+// for the ready-promise microtask so the component's effect has settled.
+async function renderWithServiceWorker({ waiting = null } = {}) {
+  const reg = makeEventTarget({ waiting, installing: null, update: vi.fn() });
+  const sw = makeEventTarget({ controller: {}, ready: Promise.resolve(reg) });
+  Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: sw });
+
+  render(<PWAUpdater />);
+  await act(async () => {
+    await Promise.resolve();
+  });
+
+  return { reg, sw };
 }
 
 describe('PWAUpdater', () => {
@@ -64,30 +62,14 @@ describe('PWAUpdater', () => {
 
   it('shows the update toast when a worker is already waiting on mount', async () => {
     const waitingSW = { postMessage: vi.fn() };
-    const reg = makeFakeRegistration({ waiting: waitingSW });
-    Object.defineProperty(navigator, 'serviceWorker', {
-      configurable: true,
-      value: makeFakeServiceWorkerContainer(reg),
-    });
-
-    render(<PWAUpdater />);
-    await act(async () => {
-      await Promise.resolve();
-    });
+    await renderWithServiceWorker({ waiting: waitingSW });
 
     expect(screen.getByText('pwa.updateAvailable')).toBeInTheDocument();
   });
 
   it('does not reload synchronously on click — waits for controllerchange', async () => {
     const waitingSW = { postMessage: vi.fn() };
-    const reg = makeFakeRegistration({ waiting: waitingSW });
-    const sw = makeFakeServiceWorkerContainer(reg);
-    Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: sw });
-
-    render(<PWAUpdater />);
-    await act(async () => {
-      await Promise.resolve();
-    });
+    await renderWithServiceWorker({ waiting: waitingSW });
 
     fireEvent.click(screen.getByText('pwa.reload'));
 
@@ -97,14 +79,7 @@ describe('PWAUpdater', () => {
 
   it('reloads once controllerchange fires', async () => {
     const waitingSW = { postMessage: vi.fn() };
-    const reg = makeFakeRegistration({ waiting: waitingSW });
-    const sw = makeFakeServiceWorkerContainer(reg);
-    Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: sw });
-
-    render(<PWAUpdater />);
-    await act(async () => {
-      await Promise.resolve();
-    });
+    const { sw } = await renderWithServiceWorker({ waiting: waitingSW });
 
     fireEvent.click(screen.getByText('pwa.reload'));
     act(() => sw._emit('controllerchange'));
@@ -115,14 +90,7 @@ describe('PWAUpdater', () => {
 
   it('falls back to reload if controllerchange never fires', async () => {
     const waitingSW = { postMessage: vi.fn() };
-    const reg = makeFakeRegistration({ waiting: waitingSW });
-    const sw = makeFakeServiceWorkerContainer(reg);
-    Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: sw });
-
-    render(<PWAUpdater />);
-    await act(async () => {
-      await Promise.resolve();
-    });
+    await renderWithServiceWorker({ waiting: waitingSW });
 
     fireEvent.click(screen.getByText('pwa.reload'));
     expect(reload).not.toHaveBeenCalled();
@@ -135,14 +103,7 @@ describe('PWAUpdater', () => {
   });
 
   it('checks for updates when the tab becomes visible again', async () => {
-    const reg = makeFakeRegistration();
-    const sw = makeFakeServiceWorkerContainer(reg);
-    Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: sw });
-
-    render(<PWAUpdater />);
-    await act(async () => {
-      await Promise.resolve();
-    });
+    const { reg } = await renderWithServiceWorker();
 
     Object.defineProperty(document, 'visibilityState', {
       configurable: true,

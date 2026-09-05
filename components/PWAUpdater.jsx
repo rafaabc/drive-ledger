@@ -14,18 +14,18 @@ export default function PWAUpdater() {
   const [showPrompt, setShowPrompt] = useState(false);
   const [waitingSW, setWaitingSW] = useState(null);
   const fallbackTimeoutRef = useRef(null);
+  const reloadRef = useRef(() => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
     let lastUpdateCheck = 0;
     let regRef = null;
-
-    const reload = () => {
-      if (refreshing) return;
-      refreshing = true;
-      window.location.reload();
-    };
+    const reload = () => reloadRef.current();
 
     // Fires once the new worker actually takes control of this page — the
     // only reliable signal that the reload will serve the new build.
@@ -78,13 +78,9 @@ export default function PWAUpdater() {
     }
     // postMessage is async and 'controllerchange' should follow shortly; if
     // it's dropped (or waitingSW never showed up) reload anyway so the user
-    // isn't stuck — the 'reload' guard above still stops a double-reload.
-    fallbackTimeoutRef.current = setTimeout(() => {
-      if (!refreshing) {
-        refreshing = true;
-        window.location.reload();
-      }
-    }, SKIP_WAITING_FALLBACK_MS);
+    // isn't stuck — the 'refreshing' guard inside reloadRef still stops a
+    // double-reload if controllerchange fires around the same time.
+    fallbackTimeoutRef.current = setTimeout(() => reloadRef.current(), SKIP_WAITING_FALLBACK_MS);
   };
 
   if (!showPrompt) return null;
