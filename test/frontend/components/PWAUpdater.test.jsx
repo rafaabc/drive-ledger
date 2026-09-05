@@ -28,9 +28,9 @@ function makeEventTarget(extra = {}) {
 
 // Renders PWAUpdater with a fake navigator.serviceWorker wired up, and waits
 // for the ready-promise microtask so the component's effect has settled.
-async function renderWithServiceWorker({ waiting = null } = {}) {
+async function renderWithServiceWorker({ waiting = null, controller = {} } = {}) {
   const reg = makeEventTarget({ waiting, installing: null, update: vi.fn() });
-  const sw = makeEventTarget({ controller: {}, ready: Promise.resolve(reg) });
+  const sw = makeEventTarget({ controller, ready: Promise.resolve(reg) });
   Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: sw });
 
   render(<PWAUpdater />);
@@ -100,6 +100,14 @@ describe('PWAUpdater', () => {
     });
 
     expect(reload).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not reload on the first-ever controllerchange (initial SW claim, no prior controller)', async () => {
+    const { sw } = await renderWithServiceWorker({ controller: null });
+
+    act(() => sw._emit('controllerchange'));
+
+    expect(reload).not.toHaveBeenCalled();
   });
 
   it('checks for updates when the tab becomes visible again', async () => {

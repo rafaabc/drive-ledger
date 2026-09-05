@@ -25,10 +25,17 @@ export default function PWAUpdater() {
 
     let lastUpdateCheck = 0;
     let regRef = null;
-    const reload = () => reloadRef.current();
 
-    // Fires once the new worker actually takes control of this page — the
-    // only reliable signal that the reload will serve the new build.
+    // 'controllerchange' also fires the first time a worker ever claims this
+    // page (clientsClaim: true in app/sw.ts) — not just on a real update. A
+    // fresh visitor with no prior controller would otherwise get reloaded
+    // out from under them the moment the SW finishes installing. Only treat
+    // it as an update if the page was already controlled beforehand.
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    const reload = () => {
+      if (!hadController) return;
+      reloadRef.current();
+    };
     navigator.serviceWorker.addEventListener('controllerchange', reload);
 
     navigator.serviceWorker.ready.then((reg) => {
