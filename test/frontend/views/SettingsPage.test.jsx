@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import SettingsPage from '@/views/SettingsPage';
 
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k) => k }) }));
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (k) => k, i18n: { language: 'en' } }),
+}));
 vi.mock('@/views/SettingsPage.module.css', () => ({ default: {} }));
 vi.mock('@/components/GoogleSignInButton.jsx', () => ({
   default: ({ onSuccess }) => <button onClick={onSuccess}>google-link</button>,

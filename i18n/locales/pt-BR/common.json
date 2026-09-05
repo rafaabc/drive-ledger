@@ -137,6 +137,12 @@
       "reminderEmails": "Enviar por email um resumo de lembretes atrasados e vencendo em breve",
       "success": "Preferências de notificação atualizadas."
     },
+    "profitTarget": {
+      "heading": "Meta de lucro",
+      "hint": "Defina o valor líquido por hora, após combustível, que faz um turno valer a pena. Deixe em branco para ver apenas positivo x negativo.",
+      "label": "Meta líquida / hora",
+      "success": "Meta de lucro atualizada."
+    },
     "billing": {
       "heading": "Cobrança",
       "upgrade": "Assinar o Pro",
@@ -236,6 +242,7 @@
   },
   "errors": {
     "generic": "Algo deu errado. Tente novamente.",
+    "invalidProfitTarget": "A meta deve ser um número não negativo, ou em branco.",
     "billingNotConfigured": "A cobrança está temporariamente indisponível. Tente novamente mais tarde.",
     "emailNotVerified": "Verifique seu email antes de continuar.",
     "invalidVerificationToken": "Token de verificação inválido ou expirado.",
@@ -362,10 +369,14 @@
     "sources": {
       "Other": "Outro"
     },
+    "filters": {
+      "year": "Ano",
+      "month": "Mês"
+    },
     "summary": {
       "heading": "Vale a pena?",
-      "thisMonth": "Este mês",
-      "thisYear": "Este ano",
+      "breakdown": "detalhamento",
+      "viewMonth": "Ver este mês",
       "totalIncome": "Receita",
       "totalExpenses": "Despesas",
       "profit": "Lucro",
@@ -382,7 +393,14 @@
       "noCostData": "Requer 2+ abastecimentos com hodômetro.",
       "needsTwoFills": "O custo de combustível requer 2+ abastecimentos com hodômetro.",
       "unstable": "Baseado em {{count}} abastecimento — dado ainda instável.",
-      "unstable_other": "Baseado em {{count}} abastecimentos — dado ainda instável."
+      "unstable_other": "Baseado em {{count}} abastecimentos — dado ainda instável.",
+      "fuelOnlyNote": "O líquido desconta apenas combustível — não seguro, manutenção ou depreciação.",
+      "verdict": {
+        "yes": "Sim — você está lucrando após o combustível",
+        "yesVsTarget": "Sim — acima da sua meta de {{target}}/h",
+        "barely": "Quase — positivo, mas abaixo da sua meta de {{target}}/h",
+        "no": "Não — você está perdendo dinheiro após o combustível"
+      }
     },
     "actions": {
       "confirmDelete": "Excluir esta receita?",

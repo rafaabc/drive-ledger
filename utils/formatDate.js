@@ -23,3 +23,12 @@ export function formatDate(dateStr) {
 export function currentYear() {
   return new Date().getFullYear();
 }
+
+/** Full localized month name for a 1-12 month index (e.g. 3 -> "March" / "março"). */
+export function getMonthName(monthIndex) {
+  const lang = i18n?.language;
+  const locale = !lang || lang === 'en' ? 'en-US' : lang;
+  return new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' }).format(
+    new Date(Date.UTC(2000, monthIndex - 1, 1)),
+  );
+}

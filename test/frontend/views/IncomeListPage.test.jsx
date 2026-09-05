@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, within, fireEvent, act } from '@testing-library/react';
 import IncomeListPage from '@/views/IncomeListPage';
 
 const mockLang = vi.fn().mockReturnValue('en');
@@ -16,15 +16,31 @@ vi.mock('react-i18next', () => ({
 vi.mock('@/i18n/index.js', () => ({
   default: { t: (k) => k, changeLanguage: vi.fn(), language: 'en' },
 }));
+const MONTH_NAMES = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 vi.mock('@/utils/formatDate.js', () => ({
   formatDate: (d) => d,
   currentYear: () => 2026,
   todayISO: () => '2026-09-03',
+  getMonthName: (m) => MONTH_NAMES[m - 1],
 }));
 vi.mock('@/utils/formatCurrency.js', () => ({ formatCurrency: (v) => String(v) }));
 
+const mockAuth = vi.fn().mockReturnValue({ currency: 'BRL', plan: 'pro', targetHourlyRate: null });
 vi.mock('@/context/AuthContext.jsx', () => ({
-  useAuth: () => ({ currency: 'BRL', plan: 'pro' }),
+  useAuth: () => mockAuth(),
 }));
 
 const mockList = vi.fn();
@@ -196,5 +212,198 @@ describe('IncomeListPage — decimal separator regression', () => {
       fireEvent.click(screen.getByText('common.save'));
     });
     expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 84.2 }));
+  });
+});
+
+describe('IncomeListPage — year/month filters', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockLang.mockReturnValue('en');
+    mockList.mockResolvedValue([]);
+    mockSummary.mockResolvedValue({
+      totalIncome: 0,
+      fuelCost: null,
+      netEarnings: null,
+      netPerHour: null,
+      hours: null,
+      workKm: null,
+      costPerKm: null,
+      costPerKmSamples: 0,
+    });
+    mockVehiclesList.mockResolvedValue([]);
+  });
+
+  it('fetches the current year with breakdown=monthly on mount', async () => {
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    expect(mockList).toHaveBeenCalledWith({ year: '2026', month: undefined }, expect.anything());
+    expect(mockSummary).toHaveBeenCalledWith(
+      { year: '2026', month: undefined, breakdown: 'monthly' },
+      expect.anything(),
+    );
+  });
+
+  it('refetches with the picked month and drops breakdown', async () => {
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    vi.clearAllMocks();
+    mockList.mockResolvedValue([]);
+    mockSummary.mockResolvedValue({
+      totalIncome: 0,
+      fuelCost: null,
+      netEarnings: null,
+      netPerHour: null,
+      hours: null,
+      workKm: null,
+      costPerKm: null,
+      costPerKmSamples: 0,
+    });
+
+    await act(async () => {
+      fireEvent.change(screen.getByLabelText('income.filters.month'), {
+        target: { name: 'month', value: '3' },
+      });
+    });
+
+    expect(mockList).toHaveBeenCalledWith({ year: '2026', month: '3' }, expect.anything());
+    expect(mockSummary).toHaveBeenCalledWith(
+      { year: '2026', month: '3', breakdown: undefined },
+      expect.anything(),
+    );
+  });
+});
+
+describe('IncomeListPage — month breakdown', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockLang.mockReturnValue('en');
+    mockList.mockResolvedValue([]);
+    mockVehiclesList.mockResolvedValue([]);
+  });
+
+  it('renders the breakdown section only when months data is present and no month is selected', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 500,
+      fuelCost: 50,
+      netEarnings: 450,
+      netPerHour: 45,
+      hours: 10,
+      workKm: 100,
+      costPerKm: 0.5,
+      costPerKmSamples: 3,
+      months: Array.from({ length: 12 }, (_, i) => ({
+        month: i + 1,
+        totalIncome: i === 2 ? 500 : 0,
+        fuelCost: i === 2 ? 50 : null,
+        netEarnings: i === 2 ? 450 : null,
+        netPerHour: i === 2 ? 45 : null,
+        hours: i === 2 ? 10 : null,
+        workKm: i === 2 ? 100 : null,
+      })),
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    const breakdown = within(screen.getByTestId('income-month-breakdown'));
+    expect(breakdown.getByText('March')).toBeInTheDocument();
+  });
+
+  it('hides the breakdown section once a month is selected', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 0,
+      fuelCost: null,
+      netEarnings: null,
+      netPerHour: null,
+      hours: null,
+      workKm: null,
+      costPerKm: null,
+      costPerKmSamples: 0,
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    expect(screen.queryByTestId('income-month-breakdown')).not.toBeInTheDocument();
+  });
+});
+
+describe('IncomeListPage — profit verdict', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockLang.mockReturnValue('en');
+    mockList.mockResolvedValue([]);
+    mockVehiclesList.mockResolvedValue([]);
+    mockAuth.mockReturnValue({ currency: 'BRL', plan: 'pro', targetHourlyRate: null });
+  });
+
+  it('shows the "no" verdict when net earnings are negative, with no target set', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 100,
+      fuelCost: 150,
+      netEarnings: -50,
+      netPerHour: -5,
+      hours: 10,
+      workKm: 100,
+      costPerKm: 1.5,
+      costPerKmSamples: 3,
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    expect(screen.getByText('income.summary.verdict.no')).toBeInTheDocument();
+  });
+
+  it('shows the plain "yes" verdict when net earnings are positive and no target is set', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 500,
+      fuelCost: 50,
+      netEarnings: 450,
+      netPerHour: 45,
+      hours: 10,
+      workKm: 100,
+      costPerKm: 0.5,
+      costPerKmSamples: 3,
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    expect(screen.getByText('income.summary.verdict.yes')).toBeInTheDocument();
+  });
+
+  it('shows the "barely" verdict when net/h is positive but below the target rate', async () => {
+    mockAuth.mockReturnValue({ currency: 'BRL', plan: 'pro', targetHourlyRate: 60 });
+    mockSummary.mockResolvedValue({
+      totalIncome: 500,
+      fuelCost: 50,
+      netEarnings: 450,
+      netPerHour: 45,
+      hours: 10,
+      workKm: 100,
+      costPerKm: 0.5,
+      costPerKmSamples: 3,
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    expect(screen.getByText('income.summary.verdict.barely')).toBeInTheDocument();
+  });
+
+  it('shows the "yes vs target" verdict when net/h meets or beats the target rate', async () => {
+    mockAuth.mockReturnValue({ currency: 'BRL', plan: 'pro', targetHourlyRate: 30 });
+    mockSummary.mockResolvedValue({
+      totalIncome: 500,
+      fuelCost: 50,
+      netEarnings: 450,
+      netPerHour: 45,
+      hours: 10,
+      workKm: 100,
+      costPerKm: 0.5,
+      costPerKmSamples: 3,
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    expect(screen.getByText('income.summary.verdict.yesVsTarget')).toBeInTheDocument();
   });
 });

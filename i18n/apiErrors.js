@@ -25,6 +25,8 @@ export const API_ERROR_MAP = {
   vehicle_limit_reached: 'errors.vehicleLimitReached',
   'name is required': 'errors.vehicleNameRequired',
   'Income not found': 'errors.incomeNotFound',
+  'targetHourlyRate must be a number or null': 'errors.invalidProfitTarget',
+  'targetHourlyRate must be a non-negative number': 'errors.invalidProfitTarget',
   income_feature_locked: 'errors.incomeFeatureLocked',
   reports_feature_locked: 'errors.reportsFeatureLocked',
   billing_not_configured: 'errors.billingNotConfigured',

@@ -11,6 +11,7 @@ import { useAutoClear } from '@/hooks/useAutoClear.js';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import GoogleSignInButton from '@/components/GoogleSignInButton.jsx';
 import PageTitle from '@/components/PageTitle.jsx';
+import NumericInput from '@/components/NumericInput.jsx';
 import { authApi, billingApi } from '@/services/apiService.js';
 import { SUPPORTED_CURRENCIES } from '@/constants/currencies.js';
 import styles from './SettingsPage.module.css';
@@ -54,20 +55,27 @@ export default function SettingsPage() {
     plan,
     reminderEmailsEnabled,
     updateNotificationPrefs,
+    targetHourlyRate,
+    updateProfitTarget,
     refreshPlan,
   } = useAuth();
   const [selected, setSelected] = useState(currency);
   const [selectedLang, setSelectedLang] = useState(language);
+  const [targetInput, setTargetInput] = useState(
+    targetHourlyRate == null ? '' : String(targetHourlyRate),
+  );
 
   const currencyAction = useAsyncAction();
   const langAction = useAsyncAction();
   const notificationsAction = useAsyncAction();
+  const profitTargetAction = useAsyncAction();
   const resendAction = useAsyncAction();
   const billingAction = useAsyncAction();
 
   useAutoClear(currencyAction.success, currencyAction.setSuccess);
   useAutoClear(langAction.success, langAction.setSuccess);
   useAutoClear(notificationsAction.success, notificationsAction.setSuccess);
+  useAutoClear(profitTargetAction.success, profitTargetAction.setSuccess);
   useAutoClear(resendAction.success, resendAction.setSuccess);
 
   const [providers, setProviders] = useState(null);
@@ -107,6 +115,12 @@ export default function SettingsPage() {
 
   async function handleReminderEmailsToggle(e) {
     await notificationsAction.run(() => updateNotificationPrefs(e.target.checked));
+  }
+
+  async function handleProfitTargetSubmit(e) {
+    e.preventDefault();
+    const parsed = targetInput === '' ? null : Number(targetInput);
+    await profitTargetAction.run(() => updateProfitTarget(parsed));
   }
 
   async function handleUnlink() {
@@ -260,6 +274,43 @@ export default function SettingsPage() {
         />
         {t('settings.notifications.reminderEmails')}
       </label>
+
+      <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
+
+      <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem' }}>
+        {t('settings.profitTarget.heading')}
+      </h2>
+      <p style={{ marginBottom: '1rem', color: 'var(--muted)', fontSize: '0.875rem' }}>
+        {t('settings.profitTarget.hint')}
+      </p>
+      {profitTargetAction.success && (
+        <ErrorBanner message={t('settings.profitTarget.success')} type="success" />
+      )}
+      {profitTargetAction.error && <ErrorBanner message={profitTargetAction.error} />}
+      <form onSubmit={handleProfitTargetSubmit} style={{ maxWidth: '400px' }}>
+        <div className="form-group">
+          <label htmlFor="settings-profit-target">{t('settings.profitTarget.label')}</label>
+          <NumericInput
+            id="settings-profit-target"
+            value={targetInput}
+            onChange={(e) => {
+              setTargetInput(e.target.value);
+              profitTargetAction.setSuccess(false);
+            }}
+            min="0"
+          />
+        </div>
+        <button
+          type="submit"
+          className="btn-primary"
+          disabled={
+            profitTargetAction.loading ||
+            targetInput === (targetHourlyRate == null ? '' : String(targetHourlyRate))
+          }
+        >
+          {profitTargetAction.loading ? t('common.saving') : t('common.save')}
+        </button>
+      </form>
 
       <hr style={{ margin: '2rem 0', borderColor: 'var(--border)' }} />
 
