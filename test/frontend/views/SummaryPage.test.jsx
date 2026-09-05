@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import SummaryPage from '@/views/SummaryPage';
 
 vi.mock('react-i18next', () => ({
@@ -102,5 +102,20 @@ describe('SummaryPage', () => {
     });
     expect(screen.getByTestId('bar-chart')).toBeInTheDocument();
     expect(screen.getByTestId('donut-chart')).toBeInTheDocument();
+  });
+
+  it('should render mobile month breakdown with all 12 months and correct totals', async () => {
+    await act(async () => {
+      render(<SummaryPage />);
+    });
+    const mobile = within(screen.getByTestId('mobile-month-breakdown'));
+    expect(mobile.getByText(/summary\.breakdown/)).toBeInTheDocument();
+    // 2 months with data (Jan, Feb) rendered as expandable <details>, 10 empty
+    expect(mobile.getAllByText('200').length).toBeGreaterThan(0);
+    expect(mobile.getAllByText('300').length).toBeGreaterThan(0);
+    expect(mobile.getAllByText('—')).toHaveLength(10);
+    // grand total footer within this section
+    expect(mobile.getByText(/summary\.total 2026/)).toBeInTheDocument();
+    expect(mobile.getAllByText('500')).toHaveLength(1);
   });
 });
