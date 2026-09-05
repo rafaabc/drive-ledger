@@ -13,122 +13,80 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-describe('NumericInput — EN', () => {
-  it('should render type=text with inputMode=decimal', () => {
-    render(<NumericInput id="x" name="x" value="5.5" onChange={vi.fn()} />);
-    const input = screen.getByRole('textbox');
-    expect(input).toHaveAttribute('type', 'text');
-    expect(input).toHaveAttribute('inputmode', 'decimal');
+function typeAndCapture(props, typedValue) {
+  const onChange = vi.fn();
+  render(<NumericInput id="x" name="x" value="" onChange={onChange} {...props} />);
+  fireEvent.change(screen.getByRole('textbox'), { target: { value: typedValue } });
+  return onChange;
+}
+
+function expectAccepted(onChange, expectedValue) {
+  expect(onChange).toHaveBeenCalledWith(
+    expect.objectContaining({
+      target: expect.objectContaining({ name: 'x', value: expectedValue }),
+    }),
+  );
+}
+
+describe('NumericInput — locale-tolerant separator', () => {
+  it.each([
+    ['en', '5.5', '5.5'],
+    ['en', '5,5', '5.5'],
+    ['pt-BR', '5,55', '5.55'],
+    ['pt-BR', '5.55', '5.55'], // mismatched keyboard still accepted
+  ])('accepts %s typing "%s" and normalizes to "%s"', (lang, typed, expected) => {
+    mockLang.mockReturnValue(lang);
+    expectAccepted(typeAndCapture({}, typed), expected);
   });
 
-  it('should display stored value with a period', () => {
-    render(<NumericInput id="x" name="x" value="5.5" onChange={vi.fn()} />);
-    expect(screen.getByRole('textbox')).toHaveValue('5.5');
-  });
-
-  it('should call onChange with normalized value when typing a period', () => {
-    const onChange = vi.fn();
-    render(<NumericInput id="x" name="x" value="" onChange={onChange} />);
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '5.5' } });
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: expect.objectContaining({ name: 'x', value: '5.5' }) }),
-    );
-  });
-
-  it('should accept a comma and normalize it to a period', () => {
-    const onChange = vi.fn();
-    render(<NumericInput id="x" name="x" value="" onChange={onChange} />);
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '5,5' } });
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: expect.objectContaining({ name: 'x', value: '5.5' }) }),
-    );
-  });
-
-  it('should render placeholder unchanged', () => {
-    render(<NumericInput id="x" name="x" value="" onChange={vi.fn()} placeholder="e.g. 5.50" />);
-    expect(screen.getByPlaceholderText('e.g. 5.50')).toBeInTheDocument();
-  });
-});
-
-describe('NumericInput — PT-BR', () => {
-  beforeEach(() => mockLang.mockReturnValue('pt-BR'));
-  afterEach(() => mockLang.mockReturnValue('en'));
-
-  it('should render type=text with inputMode=decimal', () => {
+  it.each(['en', 'pt-BR'])('renders type=text with inputMode=decimal under %s', (lang) => {
+    mockLang.mockReturnValue(lang);
     render(<NumericInput id="x" name="x" value="" onChange={vi.fn()} />);
     const input = screen.getByRole('textbox');
     expect(input).toHaveAttribute('type', 'text');
     expect(input).toHaveAttribute('inputmode', 'decimal');
   });
 
-  it('should display stored period as comma', () => {
-    render(<NumericInput id="x" name="x" value="5.50" onChange={vi.fn()} />);
-    expect(screen.getByRole('textbox')).toHaveValue('5,50');
+  it.each([
+    ['en', '5.5', '5.5'],
+    ['pt-BR', '5.50', '5,50'],
+  ])('displays a stored value under %s as "%s"', (lang, stored, displayed) => {
+    mockLang.mockReturnValue(lang);
+    render(<NumericInput id="x" name="x" value={stored} onChange={vi.fn()} />);
+    expect(screen.getByRole('textbox')).toHaveValue(displayed);
   });
 
-  it('should normalize comma to period in onChange', () => {
-    const onChange = vi.fn();
-    render(<NumericInput id="x" name="x" value="" onChange={onChange} />);
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '5,55' } });
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        target: expect.objectContaining({ name: 'x', value: '5.55' }),
-      }),
-    );
-  });
-
-  it('should accept a period too (mismatched keyboard) and normalize it', () => {
-    const onChange = vi.fn();
-    render(<NumericInput id="x" name="x" value="" onChange={onChange} />);
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '5.55' } });
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        target: expect.objectContaining({ name: 'x', value: '5.55' }),
-      }),
-    );
-  });
-
-  it('should reject non-numeric characters', () => {
-    const onChange = vi.fn();
-    render(<NumericInput id="x" name="x" value="" onChange={onChange} />);
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'abc' } });
-    expect(onChange).not.toHaveBeenCalled();
-  });
-
-  it('should reject more than one separator', () => {
-    const onChange = vi.fn();
-    render(<NumericInput id="x" name="x" value="5,5" onChange={onChange} />);
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '5,5,' } });
-    expect(onChange).not.toHaveBeenCalled();
-  });
-
-  it('should convert placeholder dots to commas', () => {
+  it.each([
+    ['en', 'e.g. 5.50'],
+    ['pt-BR', 'e.g. 5,50'],
+  ])('renders the placeholder separator for %s', (lang, expectedPlaceholder) => {
+    mockLang.mockReturnValue(lang);
     render(<NumericInput id="x" name="x" value="" onChange={vi.fn()} placeholder="e.g. 5.50" />);
-    expect(screen.getByPlaceholderText('e.g. 5,50')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(expectedPlaceholder)).toBeInTheDocument();
+  });
+
+  describe('rejections (pt-BR)', () => {
+    beforeEach(() => mockLang.mockReturnValue('pt-BR'));
+    afterEach(() => mockLang.mockReturnValue('en'));
+
+    it.each([
+      ['non-numeric characters', '5,5', 'abc'],
+      ['more than one separator', '5,5', '5,5,'],
+    ])('rejects %s', (_label, initial, typed) => {
+      const onChange = vi.fn();
+      render(<NumericInput id="x" name="x" value={initial} onChange={onChange} />);
+      fireEvent.change(screen.getByRole('textbox'), { target: { value: typed } });
+      expect(onChange).not.toHaveBeenCalled();
+    });
   });
 });
 
 describe('NumericInput — integer mode', () => {
-  it('should reject a comma', () => {
-    const onChange = vi.fn();
-    render(<NumericInput id="x" name="x" value="" onChange={onChange} integer />);
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '5,5' } });
-    expect(onChange).not.toHaveBeenCalled();
+  it.each(['5,5', '5.5'])('rejects a decimal separator ("%s")', (typed) => {
+    expect(typeAndCapture({ integer: true }, typed)).not.toHaveBeenCalled();
   });
 
-  it('should reject a period', () => {
-    const onChange = vi.fn();
-    render(<NumericInput id="x" name="x" value="" onChange={onChange} integer />);
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '5.5' } });
-    expect(onChange).not.toHaveBeenCalled();
-  });
-
-  it('should accept digits only', () => {
-    const onChange = vi.fn();
-    render(<NumericInput id="x" name="x" value="" onChange={onChange} integer />);
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: '12500' } });
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ target: expect.objectContaining({ name: 'x', value: '12500' }) }),
-    );
+  it('accepts digits only', () => {
+    expectAccepted(typeAndCapture({ integer: true }, '12500'), '12500');
   });
 });

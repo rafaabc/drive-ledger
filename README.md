@@ -4,7 +4,7 @@
 
 **Live:** https://app.norevify.com
 
-A full-stack vehicle expense tracker — built to practise and demonstrate production-grade Next.js development **and QA/test engineering**, covering the full stack from database modelling to a four-layer automated test suite and CI/CD.
+A full-stack vehicle expense tracker — built to practise and demonstrate production-grade Next.js development **and QA/test engineering**, covering the full stack from database modelling to a five-layer automated test suite and CI/CD.
 
 This repository is **source-available for portfolio review** — see the [License](#license) note below.
 
@@ -16,13 +16,13 @@ The test suite mirrors the practical test pyramid: fast, numerous unit tests at 
 
 | Layer         | Files | Cases | Tooling                                  | What it answers                                                                      |
 | ------------- | ----: | ----: | ---------------------------------------- | ------------------------------------------------------------------------------------ |
-| Backend unit  |    26 |   399 | Node test runner + `node:assert`         | Does each service/model function behave correctly in isolation?                      |
-| Frontend unit |    55 |   367 | Vitest + Testing Library                 | Do components and hooks render/behave correctly given props and state?               |
+| Backend unit  |    29 |   462 | Node test runner + `node:assert`         | Does each service/model function behave correctly in isolation?                      |
+| Frontend unit |    57 |   389 | Vitest + Testing Library                 | Do components and hooks render/behave correctly given props and state?               |
 | Integration   |    12 |     — | Node test runner, in-memory Mongo        | Do services + models + middleware collaborate correctly through real internal flows? |
 | API           |     9 |     — | Mocha + Chai + Supertest                 | Does the live HTTP contract (status codes, payloads, auth) hold end-to-end?          |
 | E2E           |    14 |     — | Playwright (Chromium), Page Object Model | Do real user journeys work in a real browser against a real deployment?              |
 
-**116 test files** across the four layers. Backend and frontend unit suites run with coverage in CI (`c8` / `vitest --coverage`); integration tests boot an in-memory MongoDB per file so they run with zero external dependencies; API and E2E run against a real built-and-started Next.js server.
+**121 test files** across the five layers. Backend and frontend unit suites run with coverage in CI (`c8` / `vitest --coverage`); integration tests boot an in-memory MongoDB per file so they run with zero external dependencies; API and E2E run against a real built-and-started Next.js server.
 
 CI enforces this pipeline in order — each stage gates the next, so a broken foundation never wastes time on the layers above it:
 
