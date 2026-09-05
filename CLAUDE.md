@@ -75,7 +75,7 @@ Sentry gotcha: `instrumentation.js` and `instrumentation-client.js` use CJS (`re
 
 **Numeric inputs**: every numeric field uses `components/NumericInput.jsx`, never raw `<input type="number">` — the browser rejects a comma as a value character, silently truncating the decimal on a pt-BR keyboard. It renders `type="text" inputMode="decimal"` (or `inputMode="numeric"` with the `integer` prop), accepts both `,` and `.` regardless of app language, displays the separator matching the user's locale, and always emits a canonical `.`-decimal string via `onChange`. Because it renders as text, `min`/`step` no longer constrain input client-side — range validation is enforced server-side by the services (`typeof === 'number'` checks in `lib/services/*.service.js`).
 
-**PWA**: dev uses Turbopack, prod uses Webpack (`next build --webpack`). PWA assets generated at build time and committed; `.map` files gitignored.
+**PWA**: dev uses Turbopack, prod uses Webpack (`next build --webpack`). PWA assets (`public/sw.js`, `.map` files) generated at build time, gitignored — not committed. `components/PWAUpdater.jsx` reloads on `controllerchange` (with a timeout fallback in case the `SKIP_WAITING` message is dropped) rather than reloading synchronously after posting it — a synchronous reload can tear the page down before the message reaches the waiting worker, leaving it stuck and the update toast reappearing on every later deploy.
 
 ## API
 
