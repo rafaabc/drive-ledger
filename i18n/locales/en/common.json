@@ -198,7 +198,7 @@
       "amount": "Amount",
       "amountTooltip": "Calculated automatically from litres × price per litre",
       "litres": "Litres",
-      "decimalHint": "Use a dot (.) as the decimal separator — e.g. 5.50",
+      "decimalHint": "Use a dot (.) or a comma (,) as the decimal separator — e.g. 5.50",
       "pricePerLitre": "Price per litre",
       "odometer": "Odometer (km)",
       "odometerHint": "Current vehicle reading in km. Logging fuel with an odometer updates your vehicle's total km."

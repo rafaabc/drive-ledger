@@ -13,6 +13,7 @@ import PageTitle from '@/components/PageTitle.jsx';
 import Modal from '@/components/Modal.jsx';
 import VehicleSelect from '@/components/VehicleSelect.jsx';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.jsx';
+import NumericInput from '@/components/NumericInput.jsx';
 import { formatDate, currentYear, todayISO } from '@/utils/formatDate.js';
 import { formatCurrency } from '@/utils/formatCurrency.js';
 import styles from './IncomeListPage.module.css';
@@ -177,10 +178,9 @@ function IncomeFormModal({
         </div>
         <div className="form-group">
           <label htmlFor="income-amount">{t('income.fields.amount')}</label>
-          <input
+          <NumericInput
             id="income-amount"
-            type="number"
-            inputMode="decimal"
+            name="amount"
             min="0.01"
             step="0.01"
             value={amount}
@@ -247,10 +247,9 @@ function IncomeFormModal({
             <div className={styles.shiftRow}>
               <div className="form-group">
                 <label htmlFor="income-km">{t('income.fields.km')}</label>
-                <input
+                <NumericInput
                   id="income-km"
-                  type="number"
-                  inputMode="decimal"
+                  name="km"
                   min="0"
                   step="0.1"
                   value={km}
@@ -259,12 +258,11 @@ function IncomeFormModal({
               </div>
               <div className="form-group">
                 <label htmlFor="income-deliveries">{t('income.fields.deliveries')}</label>
-                <input
+                <NumericInput
                   id="income-deliveries"
-                  type="number"
-                  inputMode="numeric"
+                  name="deliveries"
+                  integer
                   min="0"
-                  step="1"
                   value={deliveries}
                   onChange={(e) => setDeliveries(e.target.value)}
                 />

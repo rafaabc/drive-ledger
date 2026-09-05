@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import SummaryPage from '@/views/SummaryPage';
 
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k) => k }) }));
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (k) => k, i18n: { language: 'en' } }),
+}));
 vi.mock('@/views/SummaryPage.module.css', () => ({ default: {} }));
 vi.mock('@/components/Loading.jsx', () => ({ default: () => <div data-testid="loading" /> }));
 vi.mock('@/components/CategorySelect.jsx', () => ({

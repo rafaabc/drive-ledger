@@ -2,7 +2,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import IncomeListPage from '@/views/IncomeListPage';
 
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k) => k }) }));
+const mockLang = vi.fn().mockReturnValue('en');
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (k) => k,
+    i18n: {
+      get language() {
+        return mockLang();
+      },
+    },
+  }),
+}));
 vi.mock('@/i18n/index.js', () => ({
   default: { t: (k) => k, changeLanguage: vi.fn(), language: 'en' },
 }));
@@ -35,6 +45,7 @@ vi.mock('@/services/apiService.js', () => ({
 describe('IncomeListPage — shift time blocks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockLang.mockReturnValue('en');
     mockList.mockResolvedValue([]);
     mockSummary.mockResolvedValue({
       totalIncome: 0,
@@ -135,5 +146,55 @@ describe('IncomeListPage — shift time blocks', () => {
     const submitted = mockCreate.mock.calls[0][0];
     expect(submitted.startTime).toBeUndefined();
     expect(submitted.endTime).toBeUndefined();
+  });
+});
+
+describe('IncomeListPage — decimal separator regression', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockLang.mockReturnValue('en');
+    mockList.mockResolvedValue([]);
+    mockSummary.mockResolvedValue({
+      totalIncome: 0,
+      fuelCost: null,
+      netEarnings: null,
+      netPerHour: null,
+      hours: null,
+      workKm: null,
+      costPerKm: null,
+      costPerKmSamples: 0,
+    });
+    mockVehiclesList.mockResolvedValue([]);
+    mockCreate.mockResolvedValue({});
+  });
+
+  async function openNewIncomeForm() {
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    fireEvent.click(screen.getByText(/common\.new/));
+  }
+
+  it('sends a comma-decimal amount as a well-formed number under pt-BR', async () => {
+    mockLang.mockReturnValue('pt-BR');
+    await openNewIncomeForm();
+    fireEvent.change(screen.getByLabelText('income.fields.amount'), {
+      target: { value: '84,2' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText('common.save'));
+    });
+    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 84.2 }));
+  });
+
+  it('sends a period-decimal amount as a well-formed number under en', async () => {
+    await openNewIncomeForm();
+    fireEvent.change(screen.getByLabelText('income.fields.amount'), {
+      target: { value: '84.2' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText('common.save'));
+    });
+    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 84.2 }));
   });
 });

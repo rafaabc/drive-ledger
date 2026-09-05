@@ -237,7 +237,9 @@ select option {
   color: var(--text);
 }
 
-input[type='number'] {
+input[type='number'],
+input[inputmode='decimal'],
+input[inputmode='numeric'] {
   font-family: var(--font-mono);
   font-size: 0.875rem;
 }

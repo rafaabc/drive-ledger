@@ -73,6 +73,8 @@ Sentry gotcha: `instrumentation.js` and `instrumentation-client.js` use CJS (`re
 
 **`useSearchParams`** must be wrapped in `<Suspense>` at route level.
 
+**Numeric inputs**: every numeric field uses `components/NumericInput.jsx`, never raw `<input type="number">` — the browser rejects a comma as a value character, silently truncating the decimal on a pt-BR keyboard. It renders `type="text" inputMode="decimal"` (or `inputMode="numeric"` with the `integer` prop), accepts both `,` and `.` regardless of app language, displays the separator matching the user's locale, and always emits a canonical `.`-decimal string via `onChange`. Because it renders as text, `min`/`step` no longer constrain input client-side — range validation is enforced server-side by the services (`typeof === 'number'` checks in `lib/services/*.service.js`).
+
 **PWA**: dev uses Turbopack, prod uses Webpack (`next build --webpack`). PWA assets generated at build time and committed; `.map` files gitignored.
 
 ## API

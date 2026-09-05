@@ -7,6 +7,7 @@ import VehicleSelect from '@/components/VehicleSelect.jsx';
 import ErrorBanner from '@/components/ErrorBanner.jsx';
 import FieldLabelWithHint from '@/components/FieldLabelWithHint.jsx';
 import PageTitle from '@/components/PageTitle.jsx';
+import NumericInput from '@/components/NumericInput.jsx';
 import { remindersApi } from '@/services/apiService.js';
 import { useAsyncAction } from '@/hooks/useAsyncAction.js';
 import { useVehicleOptions } from '@/hooks/useVehicleOptions.js';
@@ -120,10 +121,10 @@ export default function ReminderFormPage() {
             label={t('reminders.fields.dueKm')}
             hint={t('reminders.fields.dueHint')}
           />
-          <input
+          <NumericInput
             id="field-dueKm"
             name="dueKm"
-            type="number"
+            integer
             min="0"
             value={form.dueKm}
             onChange={handleChange}
@@ -135,10 +136,10 @@ export default function ReminderFormPage() {
             label={t('reminders.fields.intervalMonths')}
             hint={t('reminders.fields.intervalHint')}
           />
-          <input
+          <NumericInput
             id="field-intervalMonths"
             name="intervalMonths"
-            type="number"
+            integer
             min="0"
             value={form.intervalMonths}
             onChange={handleChange}
@@ -150,10 +151,10 @@ export default function ReminderFormPage() {
             label={t('reminders.fields.intervalKm')}
             hint={t('reminders.fields.intervalHint')}
           />
-          <input
+          <NumericInput
             id="field-intervalKm"
             name="intervalKm"
-            type="number"
+            integer
             min="0"
             value={form.intervalKm}
             onChange={handleChange}

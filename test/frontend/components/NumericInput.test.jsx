@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import NumericInput from '@/components/NumericInput';
 
@@ -14,16 +14,34 @@ vi.mock('react-i18next', () => ({
 }));
 
 describe('NumericInput — EN', () => {
-  it('should render type=number', () => {
+  it('should render type=text with inputMode=decimal', () => {
     render(<NumericInput id="x" name="x" value="5.5" onChange={vi.fn()} />);
-    expect(screen.getByRole('spinbutton')).toBeInTheDocument();
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveAttribute('type', 'text');
+    expect(input).toHaveAttribute('inputmode', 'decimal');
   });
 
-  it('should call onChange with original event', () => {
+  it('should display stored value with a period', () => {
+    render(<NumericInput id="x" name="x" value="5.5" onChange={vi.fn()} />);
+    expect(screen.getByRole('textbox')).toHaveValue('5.5');
+  });
+
+  it('should call onChange with normalized value when typing a period', () => {
     const onChange = vi.fn();
     render(<NumericInput id="x" name="x" value="" onChange={onChange} />);
-    fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '5.5' } });
-    expect(onChange).toHaveBeenCalled();
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '5.5' } });
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ target: expect.objectContaining({ name: 'x', value: '5.5' }) }),
+    );
+  });
+
+  it('should accept a comma and normalize it to a period', () => {
+    const onChange = vi.fn();
+    render(<NumericInput id="x" name="x" value="" onChange={onChange} />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '5,5' } });
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ target: expect.objectContaining({ name: 'x', value: '5.5' }) }),
+    );
   });
 
   it('should render placeholder unchanged', () => {
@@ -59,11 +77,15 @@ describe('NumericInput — PT-BR', () => {
     );
   });
 
-  it('should reject period input', () => {
+  it('should accept a period too (mismatched keyboard) and normalize it', () => {
     const onChange = vi.fn();
     render(<NumericInput id="x" name="x" value="" onChange={onChange} />);
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '5.55' } });
-    expect(onChange).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        target: expect.objectContaining({ name: 'x', value: '5.55' }),
+      }),
+    );
   });
 
   it('should reject non-numeric characters', () => {
@@ -73,7 +95,7 @@ describe('NumericInput — PT-BR', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('should reject more than one comma', () => {
+  it('should reject more than one separator', () => {
     const onChange = vi.fn();
     render(<NumericInput id="x" name="x" value="5,5" onChange={onChange} />);
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '5,5,' } });
@@ -83,5 +105,30 @@ describe('NumericInput — PT-BR', () => {
   it('should convert placeholder dots to commas', () => {
     render(<NumericInput id="x" name="x" value="" onChange={vi.fn()} placeholder="e.g. 5.50" />);
     expect(screen.getByPlaceholderText('e.g. 5,50')).toBeInTheDocument();
+  });
+});
+
+describe('NumericInput — integer mode', () => {
+  it('should reject a comma', () => {
+    const onChange = vi.fn();
+    render(<NumericInput id="x" name="x" value="" onChange={onChange} integer />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '5,5' } });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('should reject a period', () => {
+    const onChange = vi.fn();
+    render(<NumericInput id="x" name="x" value="" onChange={onChange} integer />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '5.5' } });
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('should accept digits only', () => {
+    const onChange = vi.fn();
+    render(<NumericInput id="x" name="x" value="" onChange={onChange} integer />);
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '12500' } });
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ target: expect.objectContaining({ name: 'x', value: '12500' }) }),
+    );
   });
 });
