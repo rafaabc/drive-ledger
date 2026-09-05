@@ -17,6 +17,7 @@ frontend/test-results/
 .env.sentry-build-plugin
 
 # PWA build artifacts
+public/sw.js
 public/sw.js.map
 public/swe-worker-*.js.map
 public/workbox-*.js.map

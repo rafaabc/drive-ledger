@@ -25,7 +25,6 @@ export default defineConfig({
       ],
       exclude: [
         'components/charts/**',
-        'components/PWAUpdater.jsx',
         'components/UpdatePrompt.jsx',
         'components/GoogleSignInButton.jsx',
         'components/PostHogProvider.jsx',
