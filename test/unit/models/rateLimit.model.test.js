@@ -43,5 +43,28 @@ describe('rateLimitModel.incrementWindow()', () => {
     );
     const counts = results.map((r) => r.count).sort((a, b) => a - b);
     assert.deepStrictEqual(counts, [1, 2, 3, 4, 5]);
+
+    // The five concurrent calls must all have landed on the *same* stored
+    // document, not five separate ones — a follow-up call keeps counting up.
+    const { count } = await rateLimitModel.incrementWindow('login:race', 60_000);
+    assert.strictEqual(count, 6);
+  });
+
+  it('should not drop concurrent first-time increments even before the unique index has built', async () => {
+    // Regression test for #169: incrementWindow's concurrency handling relies
+    // on the `key` unique index existing (it detects a race via E11000). Drop
+    // the collection to remove that index and reset the memoized "indexes
+    // ready" promise, reproducing the pre-index-build window a cold connection
+    // can hit — then require ensureIndexes() to close it before any write.
+    await rateLimitModel._reset();
+    const RateLimitEntry = require('mongoose').model('RateLimitEntry');
+    await RateLimitEntry.collection.drop();
+    rateLimitModel._resetIndexCache();
+
+    const results = await Promise.all(
+      Array.from({ length: 5 }, () => rateLimitModel.incrementWindow('login:race-cold', 60_000)),
+    );
+    const counts = results.map((r) => r.count).sort((a, b) => a - b);
+    assert.deepStrictEqual(counts, [1, 2, 3, 4, 5]);
   });
 });
