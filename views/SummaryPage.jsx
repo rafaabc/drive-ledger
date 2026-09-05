@@ -248,7 +248,7 @@ export default function SummaryPage() {
               <div className={styles.catBars}>
                 {donutData
                   .slice()
-                  .sort((a, b) => b.amount - a.amount)
+                  .sort((a, b) => b.total - a.total)
                   .map(({ category, total }) => {
                     const max = donutData.reduce((m, d) => Math.max(m, d.total), 0);
                     const pct = max > 0 ? (total / max) * 100 : 0;
@@ -280,6 +280,56 @@ export default function SummaryPage() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Mobile month breakdown */}
+          <div className={`card ${styles.pivotMobile}`} data-testid="mobile-month-breakdown">
+            <h3 className={styles.sectionTitle}>
+              {filters.year} {t('summary.breakdown')}
+            </h3>
+            <div className={styles.monthList}>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
+                const row = monthly[m];
+                const total = rowTotal(row);
+                const hasRow = total > 0;
+                if (!hasRow) {
+                  return (
+                    <div key={m} className={styles.monthEmpty}>
+                      <span>{getMonthName(m)}</span>
+                      <span className={styles.catBarValue}>—</span>
+                    </div>
+                  );
+                }
+                return (
+                  <details key={m} className={styles.monthRow}>
+                    <summary className={styles.monthSummary}>
+                      <span>{getMonthName(m)}</span>
+                      <span className={styles.catBarValue}>{formatCurrency(total, currency)}</span>
+                    </summary>
+                    <div className={styles.monthDetail}>
+                      {targetCategories
+                        .filter((cat) => row[cat] > 0)
+                        .map((cat) => (
+                          <div key={cat} className={styles.monthDetailRow}>
+                            <span className="badge" data-cat={cat}>
+                              {categoryLabel(cat, t)}
+                            </span>
+                            <span className={styles.catBarValue}>
+                              {formatCurrency(row[cat], currency)}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </details>
+                );
+              })}
+              <div className={styles.catBarTotal}>
+                <span>
+                  {t('summary.total')} {filters.year}
+                </span>
+                <span className={styles.catBarValue}>{formatCurrency(grandTotal, currency)}</span>
+              </div>
+            </div>
           </div>
         </>
       )}
