@@ -9,7 +9,9 @@ vi.mock('next/navigation', () => ({
   useSearchParams: vi.fn(() => new URLSearchParams()),
 }));
 
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k) => k }) }));
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (k) => k, i18n: { language: 'en' } }),
+}));
 vi.mock('@/i18n/index.js', () => ({
   default: { t: (k) => k, changeLanguage: vi.fn(), language: 'en' },
 }));

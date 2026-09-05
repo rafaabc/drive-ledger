@@ -67,6 +67,7 @@ export function AuthProvider({ children }) {
   const plan = decoded?.plan ?? 'free';
   const role = decoded?.role ?? 'user';
   const reminderEmailsEnabled = decoded?.reminderEmailsEnabled ?? true;
+  const targetHourlyRate = decoded?.targetHourlyRate ?? null;
 
   const updateCurrency = useCallback(async (newCurrency) => {
     const { token: newToken } = await authApi.updateCurrency({ currency: newCurrency });
@@ -85,6 +86,14 @@ export function AuthProvider({ children }) {
   const updateNotificationPrefs = useCallback(async (enabled) => {
     const { token: newToken } = await authApi.updateNotificationPrefs({
       reminderEmailsEnabled: enabled,
+    });
+    localStorage.setItem('token', newToken);
+    setToken(newToken);
+  }, []);
+
+  const updateProfitTarget = useCallback(async (newTargetHourlyRate) => {
+    const { token: newToken } = await authApi.updateProfitTarget({
+      targetHourlyRate: newTargetHourlyRate,
     });
     localStorage.setItem('token', newToken);
     setToken(newToken);
@@ -109,9 +118,11 @@ export function AuthProvider({ children }) {
         plan,
         role,
         reminderEmailsEnabled,
+        targetHourlyRate,
         updateCurrency,
         updateLanguage,
         updateNotificationPrefs,
+        updateProfitTarget,
         refreshPlan,
         login,
         logout,

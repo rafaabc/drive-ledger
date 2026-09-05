@@ -252,6 +252,77 @@ describe('incomeService.getProfitSummary()', () => {
   });
 });
 
+describe('incomeService.getProfitSummary() monthly breakdown', () => {
+  it('omits months when breakdown is not requested', async () => {
+    const u = await proUser('breakdown1');
+    await incomeService.createIncome(u, { date: TODAY, amount: 500, source: 'Uber' });
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.strictEqual(summary.months, undefined);
+  });
+
+  it('omits months when a specific month is requested', async () => {
+    const u = await proUser('breakdown2');
+    await incomeService.createIncome(u, { date: TODAY, amount: 500, source: 'Uber' });
+    const summary = await incomeService.getProfitSummary(u, {
+      year: String(YEAR),
+      month: '1',
+      breakdown: 'monthly',
+    });
+    assert.strictEqual(summary.months, undefined);
+  });
+
+  it('returns 12 rows with zeroed/null fields for empty months', async () => {
+    const u = await proUser('breakdown3');
+    await incomeService.createIncome(u, { date: TODAY, amount: 500, source: 'Uber' });
+    const summary = await incomeService.getProfitSummary(u, {
+      year: String(YEAR),
+      breakdown: 'monthly',
+    });
+    assert.strictEqual(summary.months.length, 12);
+    const thisMonth = new Date(TODAY).getUTCMonth() + 1;
+    for (const row of summary.months) {
+      assert.strictEqual(row.month >= 1 && row.month <= 12, true);
+      if (row.month !== thisMonth) {
+        assert.strictEqual(row.totalIncome, 0);
+        assert.strictEqual(row.netEarnings, null);
+        assert.strictEqual(row.hours, null);
+      }
+    }
+    const currentRow = summary.months.find((r) => r.month === thisMonth);
+    assert.strictEqual(currentRow.totalIncome, 500);
+  });
+
+  it('anchors each month cost-per-km on the last fill before that month', async () => {
+    const u = await proUser('breakdown4');
+    const jan = `${YEAR}-01-10`;
+    const feb = `${YEAR}-02-10`;
+    await incomeService.createIncome(u, { date: feb, amount: 500, source: 'Uber', km: 100 });
+    await expensesService.createExpense(u, {
+      date: jan,
+      category: 'Fuel',
+      litres: 10,
+      price_per_litre: 5,
+      odometer: 1000,
+    });
+    await expensesService.createExpense(u, {
+      date: feb,
+      category: 'Fuel',
+      litres: 10,
+      price_per_litre: 5,
+      odometer: 1100,
+    });
+
+    const summary = await incomeService.getProfitSummary(u, {
+      year: String(YEAR),
+      breakdown: 'monthly',
+    });
+    const febRow = summary.months.find((r) => r.month === 2);
+    assert.strictEqual(febRow.costPerKm, 0.5);
+    assert.strictEqual(febRow.fuelCost, 50);
+    assert.strictEqual(febRow.netEarnings, 450);
+  });
+});
+
 describe('incomeService shift fields', () => {
   it('derives hours from startTime/endTime', async () => {
     const u = await proUser('shift1');

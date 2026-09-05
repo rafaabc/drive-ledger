@@ -184,6 +184,17 @@
           "reminderEmailsEnabled": { "type": "boolean" }
         }
       },
+      "ProfitTargetRequest": {
+        "type": "object",
+        "properties": {
+          "targetHourlyRate": {
+            "type": "number",
+            "minimum": 0,
+            "nullable": true,
+            "description": "Target net-per-hour rate used to render the income \"does it pay?\" verdict. Omit or pass null to clear it."
+          }
+        }
+      },
       "OdometerRequest": {
         "type": "object",
         "required": ["currentKm"],
@@ -516,7 +527,25 @@
           "netEarnings": { "type": "number", "nullable": true, "example": 339.02 },
           "netPerHour": { "type": "number", "nullable": true, "example": 114.92 },
           "netPerKm": { "type": "number", "nullable": true, "example": 8.27 },
-          "grossPerHour": { "type": "number", "nullable": true, "example": 133.68 }
+          "grossPerHour": { "type": "number", "nullable": true, "example": 133.68 },
+          "months": {
+            "type": "array",
+            "description": "Present only when `breakdown=monthly` was requested and no `month` filter was given. One profit row per calendar month of `period.year`.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "month": { "type": "integer", "example": 4 },
+                "totalIncome": { "type": "number", "example": 500.0 },
+                "costPerKm": { "type": "number", "nullable": true, "example": 1.35 },
+                "costPerKmSamples": { "type": "integer", "example": 2 },
+                "fuelCost": { "type": "number", "nullable": true, "example": 55.35 },
+                "netEarnings": { "type": "number", "nullable": true, "example": 339.02 },
+                "netPerHour": { "type": "number", "nullable": true, "example": 114.92 },
+                "hours": { "type": "number", "nullable": true, "example": 2.95 },
+                "workKm": { "type": "number", "nullable": true, "example": 41.0 }
+              }
+            }
+          }
         }
       },
       "RecurringRule": {
@@ -1096,6 +1125,37 @@
           "content": {
             "application/json": {
               "schema": { "$ref": "#/components/schemas/NotificationPrefsRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Preference updated — returns a fresh JWT",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/TokenResponse" } }
+            }
+          },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/profit-target": {
+      "patch": {
+        "summary": "Update the income profit-target hourly rate",
+        "tags": ["Auth"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ProfitTargetRequest" }
             }
           }
         },
@@ -1702,7 +1762,13 @@
             "schema": { "type": "integer", "minimum": 1, "maximum": 12 },
             "example": 4
           },
-          { "name": "vehicleId", "in": "query", "schema": { "type": "string" } }
+          { "name": "vehicleId", "in": "query", "schema": { "type": "string" } },
+          {
+            "name": "breakdown",
+            "in": "query",
+            "description": "Pass 'monthly' (with no month param) to also return a `months` array — one profit row per calendar month of `year`.",
+            "schema": { "type": "string", "enum": ["monthly"] }
+          }
         ],
         "responses": {
           "200": {

@@ -1185,6 +1185,82 @@ describe('authService.updateCurrency()', () => {
   });
 });
 
+describe('authService.updateProfitTarget()', () => {
+  it('should throw 400 for a negative rate', async () => {
+    const user = await authService.register({
+      username: 'target1',
+      password: STRONG_PASSWORD,
+      email: 'target1@x.com',
+      ...VALID_CONSENT,
+    });
+    await assert.rejects(
+      () => authService.updateProfitTarget({ id: user.id, targetHourlyRate: -5 }),
+      (err) => {
+        assert.strictEqual(err.status, 400);
+        return true;
+      },
+    );
+  });
+
+  it('should throw 400 for a non-numeric rate', async () => {
+    const user = await authService.register({
+      username: 'target2',
+      password: STRONG_PASSWORD,
+      email: 'target2@x.com',
+      ...VALID_CONSENT,
+    });
+    await assert.rejects(
+      () => authService.updateProfitTarget({ id: user.id, targetHourlyRate: 'a lot' }),
+      (err) => {
+        assert.strictEqual(err.status, 400);
+        return true;
+      },
+    );
+  });
+
+  it('should clear the target when passed null', async () => {
+    const user = await authService.register({
+      username: 'target3',
+      password: STRONG_PASSWORD,
+      email: 'target3@x.com',
+      ...VALID_CONSENT,
+    });
+    await authService.updateProfitTarget({ id: user.id, targetHourlyRate: 20 });
+    const { token } = await authService.updateProfitTarget({
+      id: user.id,
+      targetHourlyRate: null,
+    });
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    assert.strictEqual(payload.targetHourlyRate, null);
+  });
+
+  it('should return a JWT carrying the new target rate', async () => {
+    const user = await authService.register({
+      username: 'target4',
+      password: STRONG_PASSWORD,
+      email: 'target4@x.com',
+      ...VALID_CONSENT,
+    });
+    const { token } = await authService.updateProfitTarget({
+      id: user.id,
+      targetHourlyRate: 25.5,
+    });
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    assert.strictEqual(payload.targetHourlyRate, 25.5);
+  });
+
+  it('should throw 404 when user does not exist', async () => {
+    await assert.rejects(
+      () =>
+        authService.updateProfitTarget({ id: '000000000000000000000001', targetHourlyRate: 10 }),
+      (err) => {
+        assert.strictEqual(err.status, 404);
+        return true;
+      },
+    );
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Email verification
 // ---------------------------------------------------------------------------

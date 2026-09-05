@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import i18n from '@/i18n/index.js';
 import { expensesApi } from '@/services/apiService.js';
 import { useAuth } from '@/context/AuthContext.jsx';
 import CategorySelect from '@/components/CategorySelect.jsx';
@@ -11,19 +10,13 @@ import PageTitle from '@/components/PageTitle.jsx';
 import StackedMonthlyBar from '@/components/charts/StackedMonthlyBar.jsx';
 import CategoryDonut from '@/components/charts/CategoryDonut.jsx';
 import NumericInput from '@/components/NumericInput.jsx';
-import { currentYear } from '@/utils/formatDate.js';
+import MonthBreakdown from '@/components/MonthBreakdown.jsx';
+import breakdownStyles from '@/components/MonthBreakdown.module.css';
+import { currentYear, getMonthName } from '@/utils/formatDate.js';
 import { CATEGORIES, categoryLabel } from '@/utils/categories.js';
 import { aggregateByCategory } from '@/utils/aggregations.js';
 import { formatCurrency } from '@/utils/formatCurrency.js';
 import styles from './SummaryPage.module.css';
-
-function getMonthName(monthIndex) {
-  const lang = i18n?.language;
-  const locale = !lang || lang === 'en' ? 'en-US' : lang;
-  return new Intl.DateTimeFormat(locale, { month: 'long', timeZone: 'UTC' }).format(
-    new Date(Date.UTC(2000, monthIndex - 1, 1)),
-  );
-}
 
 function buildPivot(expenses, visibleCategories) {
   const monthly = {};
@@ -287,49 +280,40 @@ export default function SummaryPage() {
             <h3 className={styles.sectionTitle}>
               {filters.year} {t('summary.breakdown')}
             </h3>
-            <div className={styles.monthList}>
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
+            <MonthBreakdown
+              rows={Array.from({ length: 12 }, (_, i) => i + 1).map((m) => {
                 const row = monthly[m];
                 const total = rowTotal(row);
                 const hasRow = total > 0;
-                if (!hasRow) {
-                  return (
-                    <div key={m} className={styles.monthEmpty}>
-                      <span>{getMonthName(m)}</span>
-                      <span className={styles.catBarValue}>—</span>
-                    </div>
-                  );
-                }
-                return (
-                  <details key={m} className={styles.monthRow}>
-                    <summary className={styles.monthSummary}>
-                      <span>{getMonthName(m)}</span>
-                      <span className={styles.catBarValue}>{formatCurrency(total, currency)}</span>
-                    </summary>
-                    <div className={styles.monthDetail}>
-                      {targetCategories
-                        .filter((cat) => row[cat] > 0)
-                        .map((cat) => (
-                          <div key={cat} className={styles.monthDetailRow}>
-                            <span className="badge" data-cat={cat}>
-                              {categoryLabel(cat, t)}
-                            </span>
-                            <span className={styles.catBarValue}>
-                              {formatCurrency(row[cat], currency)}
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  </details>
-                );
+                if (!hasRow) return { month: m, empty: true };
+                return {
+                  month: m,
+                  headlineValue: formatCurrency(total, currency),
+                  details: targetCategories
+                    .filter((cat) => row[cat] > 0)
+                    .map((cat) => (
+                      <div key={cat} className={breakdownStyles.monthDetailRow}>
+                        <span className="badge" data-cat={cat}>
+                          {categoryLabel(cat, t)}
+                        </span>
+                        <span className={breakdownStyles.value}>
+                          {formatCurrency(row[cat], currency)}
+                        </span>
+                      </div>
+                    )),
+                };
               })}
-              <div className={styles.catBarTotal}>
-                <span>
-                  {t('summary.total')} {filters.year}
-                </span>
-                <span className={styles.catBarValue}>{formatCurrency(grandTotal, currency)}</span>
-              </div>
-            </div>
+              footer={
+                <>
+                  <span>
+                    {t('summary.total')} {filters.year}
+                  </span>
+                  <span className={breakdownStyles.value}>
+                    {formatCurrency(grandTotal, currency)}
+                  </span>
+                </>
+              }
+            />
           </div>
         </>
       )}

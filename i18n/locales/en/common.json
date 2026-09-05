@@ -137,6 +137,12 @@
       "reminderEmails": "Email me a digest of overdue and due-soon reminders",
       "success": "Notification preferences updated."
     },
+    "profitTarget": {
+      "heading": "Profit target",
+      "hint": "Set the hourly rate you need to earn, after fuel, for a shift to feel worth it. Leave blank to just see positive vs. negative.",
+      "label": "Target net / hour",
+      "success": "Profit target updated."
+    },
     "billing": {
       "heading": "Billing",
       "upgrade": "Upgrade to Pro",
@@ -236,6 +242,7 @@
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
+    "invalidProfitTarget": "Target rate must be a non-negative number, or blank.",
     "billingNotConfigured": "Billing is temporarily unavailable. Please try again later.",
     "emailNotVerified": "Please verify your email before continuing.",
     "invalidVerificationToken": "Invalid or expired verification token.",
@@ -362,10 +369,14 @@
     "sources": {
       "Other": "Other"
     },
+    "filters": {
+      "year": "Year",
+      "month": "Month"
+    },
     "summary": {
       "heading": "Does it pay?",
-      "thisMonth": "This month",
-      "thisYear": "This year",
+      "breakdown": "breakdown",
+      "viewMonth": "View this month",
       "totalIncome": "Income",
       "totalExpenses": "Expenses",
       "profit": "Profit",
@@ -382,7 +393,14 @@
       "noCostData": "Needs 2+ fill-ups with odometer.",
       "needsTwoFills": "Fuel cost needs 2+ Fuel entries with odometer.",
       "unstable": "Based on {{count}} fill-up — still stabilising.",
-      "unstable_other": "Based on {{count}} fill-ups — still stabilising."
+      "unstable_other": "Based on {{count}} fill-ups — still stabilising.",
+      "fuelOnlyNote": "Net subtracts fuel only — not insurance, maintenance, or depreciation.",
+      "verdict": {
+        "yes": "Yes — you're earning after fuel",
+        "yesVsTarget": "Yes — above your {{target}}/h target",
+        "barely": "Barely — positive, but below your {{target}}/h target",
+        "no": "No — you're losing money after fuel"
+      }
     },
     "actions": {
       "confirmDelete": "Delete this income entry?",

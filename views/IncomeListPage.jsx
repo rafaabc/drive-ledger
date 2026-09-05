@@ -14,7 +14,9 @@ import Modal from '@/components/Modal.jsx';
 import VehicleSelect from '@/components/VehicleSelect.jsx';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.jsx';
 import NumericInput from '@/components/NumericInput.jsx';
-import { formatDate, currentYear, todayISO } from '@/utils/formatDate.js';
+import MonthBreakdown from '@/components/MonthBreakdown.jsx';
+import breakdownStyles from '@/components/MonthBreakdown.module.css';
+import { formatDate, currentYear, getMonthName, todayISO } from '@/utils/formatDate.js';
 import { formatCurrency } from '@/utils/formatCurrency.js';
 import styles from './IncomeListPage.module.css';
 
@@ -298,36 +300,45 @@ IncomeFormModal.propTypes = {
   loading: PropTypes.bool,
 };
 
-function netEarningsClass(netEarnings) {
-  if (netEarnings == null) return '';
-  return netEarnings >= 0 ? styles.profitPositive : styles.profitNegative;
+/**
+ * Turns the raw net numbers into a plain "does it pay?" verdict.
+ * - null netEarnings: no verdict yet (not enough data — the caveat hints
+ *   rendered below already explain why).
+ * - negative netEarnings: always a "no", regardless of any target.
+ * - a target set and netPerHour below it: "barely" — positive, but not worth it.
+ * - otherwise: "yes", optionally phrased against the target.
+ */
+function profitVerdict(summary, target, currency, t) {
+  if (summary.netEarnings == null) return null;
+  if (summary.netEarnings < 0) return { level: 'bad', text: t('income.summary.verdict.no') };
+
+  const targetLabel = target != null ? `${formatCurrency(target, currency)}` : null;
+  if (target != null && summary.netPerHour != null && summary.netPerHour < target) {
+    return { level: 'warn', text: t('income.summary.verdict.barely', { target: targetLabel }) };
+  }
+  if (target != null) {
+    return {
+      level: 'good',
+      text: t('income.summary.verdict.yesVsTarget', { target: targetLabel }),
+    };
+  }
+  return { level: 'good', text: t('income.summary.verdict.yes') };
 }
 
-function ProfitSummaryCard({ summary, currency, period, onPeriodChange, t }) {
+const VERDICT_CLASS = {
+  bad: 'profitNegative',
+  warn: 'profitWarn',
+  good: 'profitPositive',
+};
+
+function ProfitSummaryCard({ summary, currency, targetHourlyRate, t }) {
   if (!summary) return null;
-  const netClass = netEarningsClass(summary.netEarnings);
+  const verdict = profitVerdict(summary, targetHourlyRate, currency, t);
+  const netClass = verdict ? styles[VERDICT_CLASS[verdict.level]] : '';
 
   return (
     <div className={`card ${styles.summaryCard}`}>
-      <div className={styles.summaryHeader}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>{t('income.summary.heading')}</h3>
-        <div className={styles.periodSwitch}>
-          <button
-            type="button"
-            className={period === 'month' ? 'btn-primary' : 'btn-secondary'}
-            onClick={() => onPeriodChange('month')}
-          >
-            {t('income.summary.thisMonth')}
-          </button>
-          <button
-            type="button"
-            className={period === 'year' ? 'btn-primary' : 'btn-secondary'}
-            onClick={() => onPeriodChange('year')}
-          >
-            {t('income.summary.thisYear')}
-          </button>
-        </div>
-      </div>
+      <h3 style={{ fontSize: '1rem', fontWeight: 600 }}>{t('income.summary.heading')}</h3>
 
       <div className={styles.headline}>
         <span className={styles.headlineLabel}>{t('income.summary.netPerHour')}</span>
@@ -336,6 +347,7 @@ function ProfitSummaryCard({ summary, currency, period, onPeriodChange, t }) {
             ? t('income.summary.noHoursData')
             : `${formatCurrency(summary.netPerHour, currency)}/h`}
         </span>
+        {verdict && <p className={`${styles.verdict} ${netClass}`}>{verdict.text}</p>}
       </div>
 
       <div className={styles.summaryGrid}>
@@ -387,6 +399,7 @@ function ProfitSummaryCard({ summary, currency, period, onPeriodChange, t }) {
       {summary.costPerKm == null && (
         <p className={styles.unstableHint}>{t('income.summary.needsTwoFills')}</p>
       )}
+      <p className={styles.unstableHint}>{t('income.summary.fuelOnlyNote')}</p>
     </div>
   );
 }
@@ -394,8 +407,7 @@ function ProfitSummaryCard({ summary, currency, period, onPeriodChange, t }) {
 ProfitSummaryCard.propTypes = {
   summary: PropTypes.object,
   currency: PropTypes.string,
-  period: PropTypes.string.isRequired,
-  onPeriodChange: PropTypes.func.isRequired,
+  targetHourlyRate: PropTypes.number,
   t: PropTypes.func.isRequired,
 };
 
@@ -414,7 +426,7 @@ UpgradePrompt.propTypes = {
 
 function IncomeListPageInner() {
   const { t } = useTranslation();
-  const { currency, plan } = useAuth();
+  const { currency, plan, targetHourlyRate } = useAuth();
   const isPro = plan === 'pro';
   const searchParams = useSearchParams();
 
@@ -424,7 +436,7 @@ function IncomeListPageInner() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [vehicles, setVehicles] = useState([]);
-  const [period, setPeriod] = useState('year');
+  const [filters, setFilters] = useState({ year: String(currentYear()), month: '' });
 
   const [editing, setEditing] = useState(null);
   const [formError, setFormError] = useState('');
@@ -433,34 +445,48 @@ function IncomeListPageInner() {
 
   useAutoClear(successMsg, setSuccessMsg);
 
-  const year = currentYear();
-  const month = period === 'month' ? new Date().getMonth() + 1 : undefined;
-
-  const load = useCallback(async () => {
+  const load = useCallback(async (f, signal) => {
+    if (!f.year || f.year.length < 4 || Number(f.year) > currentYear()) return;
     setLoading(true);
     try {
+      const year = f.year;
+      const month = f.month || undefined;
       const [list, sum] = await Promise.all([
-        incomeApi.list({ year, month }),
-        incomeApi.summary({ year, month }),
+        incomeApi.list({ year, month }, signal),
+        incomeApi.summary({ year, month, breakdown: month ? undefined : 'monthly' }, signal),
       ]);
       setEntries(list.sort((a, b) => new Date(b.date) - new Date(a.date)));
       setSummary(sum);
     } catch (e) {
-      setError(e.message);
+      if (e.name !== 'AbortError') setError(e.message);
     } finally {
       setLoading(false);
     }
-  }, [year, month]);
+  }, []);
 
   useEffect(() => {
     if (!isPro) return;
+    const controller = new AbortController();
     // eslint-disable-next-line react-hooks/set-state-in-effect -- load is async, setState only after await
-    load();
+    load(filters, controller.signal);
+    return () => controller.abort();
+  }, [isPro, filters, load]);
+
+  useEffect(() => {
+    if (!isPro) return;
     vehiclesApi
       .list()
       .then((list) => setVehicles(list))
       .catch(() => {});
-  }, [isPro, load]);
+  }, [isPro]);
+
+  function handleFilterChange(e) {
+    setFilters((f) => ({ ...f, [e.target.name]: e.target.value }));
+  }
+
+  function viewMonth(m) {
+    setFilters((f) => ({ ...f, month: String(m) }));
+  }
 
   useEffect(() => {
     if (isPro && searchParams.get('new') === '1') {
@@ -483,7 +509,7 @@ function IncomeListPageInner() {
         setSuccessMsg(t('income.actions.updateSuccess'));
       }
       setEditing(null);
-      load();
+      load(filters);
     } catch (e) {
       setFormError(e.message);
     } finally {
@@ -496,7 +522,7 @@ function IncomeListPageInner() {
       await incomeApi.remove(deleting.id);
       setDeleting(null);
       setSuccessMsg(t('income.actions.deleteSuccess'));
-      load();
+      load(filters);
     } catch (e) {
       setError(e.message);
       setDeleting(null);
@@ -521,6 +547,39 @@ function IncomeListPageInner() {
         </button>
       </div>
 
+      <div className={`card ${styles.filterCard}`}>
+        <div className={styles.filterForm}>
+          <div className={styles.filterField}>
+            <label htmlFor="income-year">{t('income.filters.year')}</label>
+            <NumericInput
+              id="income-year"
+              name="year"
+              integer
+              value={filters.year}
+              onChange={handleFilterChange}
+              min="2000"
+              max={currentYear()}
+            />
+          </div>
+          <div className={styles.filterField}>
+            <label htmlFor="income-month">{t('income.filters.month')}</label>
+            <select
+              id="income-month"
+              name="month"
+              value={filters.month}
+              onChange={handleFilterChange}
+            >
+              <option value="">{t('summary.allMonths')}</option>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                <option key={m} value={m}>
+                  {getMonthName(m)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
       {successMsg && <ErrorBanner type="success" message={successMsg} />}
       {error && <ErrorBanner message={error} />}
 
@@ -531,10 +590,67 @@ function IncomeListPageInner() {
           <ProfitSummaryCard
             summary={summary}
             currency={currency}
-            period={period}
-            onPeriodChange={setPeriod}
+            targetHourlyRate={targetHourlyRate}
             t={t}
           />
+
+          {!filters.month && summary?.months && (
+            <div className={`card ${styles.breakdownCard}`} data-testid="income-month-breakdown">
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>
+                {filters.year} {t('income.summary.breakdown')}
+              </h3>
+              <MonthBreakdown
+                rows={summary.months.map((row) => {
+                  if (!row.totalIncome) return { month: row.month, empty: true };
+                  const verdict = profitVerdict(row, targetHourlyRate, currency, t);
+                  const rowClass = verdict ? styles[VERDICT_CLASS[verdict.level]] : '';
+                  return {
+                    month: row.month,
+                    headlineValue: (
+                      <span className={rowClass}>
+                        {row.netEarnings == null
+                          ? t('income.summary.noCostData')
+                          : formatCurrency(row.netEarnings, currency)}
+                      </span>
+                    ),
+                    details: (
+                      <>
+                        <div className={breakdownStyles.monthDetailRow}>
+                          <span>{t('income.summary.totalIncome')}</span>
+                          <span className={breakdownStyles.value}>
+                            {formatCurrency(row.totalIncome, currency)}
+                          </span>
+                        </div>
+                        <div className={breakdownStyles.monthDetailRow}>
+                          <span>{t('income.summary.fuelCost')}</span>
+                          <span className={breakdownStyles.value}>
+                            {row.fuelCost == null
+                              ? t('income.summary.noCostData')
+                              : formatCurrency(row.fuelCost, currency)}
+                          </span>
+                        </div>
+                        <div className={breakdownStyles.monthDetailRow}>
+                          <span>{t('income.summary.netPerHour')}</span>
+                          <span className={breakdownStyles.value}>
+                            {row.netPerHour == null
+                              ? t('income.summary.noHoursData')
+                              : `${formatCurrency(row.netPerHour, currency)}/h`}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn-secondary"
+                          onClick={() => viewMonth(row.month)}
+                        >
+                          {t('income.summary.viewMonth')}
+                        </button>
+                      </>
+                    ),
+                  };
+                })}
+              />
+            </div>
+          )}
 
           {entries.length === 0 ? (
             <p style={{ color: 'var(--muted)' }}>{t('income.noIncome')}</p>

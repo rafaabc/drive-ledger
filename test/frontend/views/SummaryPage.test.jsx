@@ -21,7 +21,24 @@ vi.mock('@/components/charts/StackedMonthlyBar.jsx', () => ({
 vi.mock('@/components/charts/CategoryDonut.jsx', () => ({
   default: () => <svg data-testid="donut-chart" />,
 }));
-vi.mock('@/utils/formatDate.js', () => ({ currentYear: () => 2026 }));
+vi.mock('@/utils/formatDate.js', () => ({
+  currentYear: () => 2026,
+  getMonthName: (m) =>
+    [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ][m - 1],
+}));
 vi.mock('@/utils/formatCurrency.js', () => ({ formatCurrency: (v) => String(v) }));
 vi.mock('@/i18n/index.js', () => ({ default: { language: 'en' } }));
 

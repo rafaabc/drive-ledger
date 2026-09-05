@@ -90,6 +90,8 @@ export const authApi = {
   updateLanguage: (data) => request('/auth/language', { method: 'PATCH', body: data, auth: true }),
   updateNotificationPrefs: (data) =>
     request('/auth/notifications', { method: 'PATCH', body: data, auth: true }),
+  updateProfitTarget: (data) =>
+    request('/auth/profit-target', { method: 'PATCH', body: data, auth: true }),
   forgotPassword: (data) =>
     request('/auth/forgot-password', { method: 'POST', body: data, auth: false }),
   resetPassword: (data) =>
@@ -159,12 +161,13 @@ export const incomeApi = {
   create: (data) => request('/income', { method: 'POST', body: data }),
   update: (id, data) => request(`/income/${id}`, { method: 'PUT', body: data }),
   remove: (id) => request(`/income/${id}`, { method: 'DELETE' }),
-  summary: ({ year, month, vehicleId } = {}) => {
+  summary: ({ year, month, vehicleId, breakdown } = {}, signal = null) => {
     const params = new URLSearchParams();
     if (year) params.set('year', year);
     if (month) params.set('month', month);
     if (vehicleId) params.set('vehicleId', vehicleId);
-    return request(`/income/summary?${params.toString()}`);
+    if (breakdown) params.set('breakdown', breakdown);
+    return request(`/income/summary?${params.toString()}`, { signal });
   },
 };
 
