@@ -10,6 +10,7 @@ import Loading from '@/components/Loading.jsx';
 import PageTitle from '@/components/PageTitle.jsx';
 import StackedMonthlyBar from '@/components/charts/StackedMonthlyBar.jsx';
 import CategoryDonut from '@/components/charts/CategoryDonut.jsx';
+import NumericInput from '@/components/NumericInput.jsx';
 import { currentYear } from '@/utils/formatDate.js';
 import { CATEGORIES, categoryLabel } from '@/utils/categories.js';
 import { aggregateByCategory } from '@/utils/aggregations.js';
@@ -139,10 +140,10 @@ export default function SummaryPage() {
                 *
               </span>
             </label>
-            <input
+            <NumericInput
               id="summary-year"
-              type="number"
               name="year"
+              integer
               value={filters.year}
               onChange={handleChange}
               min="2000"

@@ -10,6 +10,7 @@ import Loading from '@/components/Loading.jsx';
 import PageTitle from '@/components/PageTitle.jsx';
 import Modal from '@/components/Modal.jsx';
 import DeleteConfirmDialog from '@/components/DeleteConfirmDialog.jsx';
+import NumericInput from '@/components/NumericInput.jsx';
 import styles from './VehiclesListPage.module.css';
 
 function VehicleFormModal({ open, initial, onSubmit, onCancel, error, loading }) {
@@ -51,11 +52,11 @@ function VehicleFormModal({ open, initial, onSubmit, onCancel, error, loading })
         </div>
         <div className="form-group">
           <label htmlFor="vehicle-current-km">{t('vehicles.fields.currentKm')}</label>
-          <input
+          <NumericInput
             id="vehicle-current-km"
-            type="number"
+            name="currentKm"
+            integer
             min="0"
-            step="1"
             value={currentKm}
             onChange={(e) => setCurrentKm(e.target.value)}
           />

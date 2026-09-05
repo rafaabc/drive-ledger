@@ -50,7 +50,7 @@ const mockGet = vi.fn();
 const mockVehiclesList = vi.fn();
 vi.mock('@/services/apiService.js', () => ({
   expensesApi: {
-    create: () => mockCreate(),
+    create: (...a) => mockCreate(...a),
     update: (...a) => mockUpdate(...a),
     get: (id) => mockGet(id),
   },
@@ -106,7 +106,7 @@ describe('ExpenseFormPage', () => {
     await act(async () => {
       fireEvent.submit(document.querySelector('form'));
     });
-    expect(mockCreate).toHaveBeenCalledOnce();
+    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ amount: 100 }));
     expect(mockPush).toHaveBeenCalledWith('/expenses');
   });
 
@@ -122,7 +122,9 @@ describe('ExpenseFormPage', () => {
     await act(async () => {
       fireEvent.submit(document.querySelector('form'));
     });
-    expect(mockCreate).toHaveBeenCalledOnce();
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({ litres: 40, price_per_litre: 5.5 }),
+    );
     expect(mockPush).toHaveBeenCalledWith('/expenses');
   });
 

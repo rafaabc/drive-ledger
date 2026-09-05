@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import CompleteReminderDialog from '@/components/CompleteReminderDialog';
 
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k) => k }) }));
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (k) => k, i18n: { language: 'en' } }),
+}));
 vi.mock('@/utils/formatDate.js', () => ({ formatDate: (d) => d }));
 
 const reminder = { id: 'r1', title: 'Oil change', dueDate: '2026-06-01' };
@@ -50,7 +52,7 @@ describe('CompleteReminderDialog', () => {
     render(
       <CompleteReminderDialog open reminder={reminder} onSubmit={vi.fn()} onCancel={vi.fn()} />,
     );
-    fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '12000' } });
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '12000' } });
     expect(screen.getByText('common.save')).not.toBeDisabled();
   });
 
@@ -59,7 +61,7 @@ describe('CompleteReminderDialog', () => {
     render(
       <CompleteReminderDialog open reminder={reminder} onSubmit={onSubmit} onCancel={vi.fn()} />,
     );
-    fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '12000' } });
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '12000' } });
     fireEvent.submit(screen.getByRole('dialog').querySelector('form'));
     expect(onSubmit).toHaveBeenCalledWith(12000);
   });
@@ -82,7 +84,7 @@ describe('CompleteReminderDialog', () => {
         onCancel={vi.fn()}
       />,
     );
-    fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '10000' } });
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '10000' } });
     expect(screen.getByText(/completePreview/)).toBeInTheDocument();
   });
 });

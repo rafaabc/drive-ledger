@@ -198,7 +198,7 @@
       "amount": "Valor",
       "amountTooltip": "Calculado automaticamente a partir de litros × preço por litro",
       "litres": "Litros",
-      "decimalHint": "Use ponto (.) como separador decimal — ex.: 5.50",
+      "decimalHint": "Use vírgula (,) ou ponto (.) como separador decimal — ex.: 5,50",
       "pricePerLitre": "Preço por litro",
       "odometer": "Hodômetro (km)",
       "odometerHint": "Leitura atual do hodômetro em km. Registrar combustível com hodômetro atualiza a quilometragem total do veículo."

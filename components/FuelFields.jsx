@@ -57,14 +57,13 @@ export default function FuelFields({ litres, pricePerLitre, odometer = '', onCha
           label={t('expenses.fields.odometer')}
           hint={t('expenses.fields.odometerHint')}
         />
-        <input
+        <NumericInput
           id="field-odometer"
-          type="number"
           name="odometer"
           value={odometer}
           onChange={onChange}
+          integer
           min="0"
-          step="1"
           placeholder="e.g. 12500"
         />
       </div>

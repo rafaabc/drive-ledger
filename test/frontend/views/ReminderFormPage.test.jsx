@@ -2,7 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import ReminderFormPage from '@/views/ReminderFormPage';
 
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (k) => k }) }));
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (k) => k, i18n: { language: 'en' } }),
+}));
 vi.mock('@/components/ReminderTypeSelect.jsx', () => ({
   default: ({ value, onChange }) => (
     <select name="type" value={value} onChange={onChange} data-testid="type-select">
