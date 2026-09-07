@@ -23,6 +23,21 @@ export default function PWAUpdater() {
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
+    // Serwist is disabled in dev (next.config.mjs) and public/sw.js isn't built, but a
+    // worker registered by an earlier `npm run build && npm start` on this same origin
+    // outlives that build — it keeps intercepting fetches (breaking cross-origin
+    // requests like the Google Fonts stylesheet) and serving its stale precache. Wipe
+    // it and bail out; there's nothing for this component to manage in dev.
+    if (process.env.NODE_ENV === 'development') {
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((reg) => reg.unregister());
+      });
+      if ('caches' in window) {
+        caches.keys().then((keys) => keys.forEach((key) => caches.delete(key)));
+      }
+      return;
+    }
+
     let lastUpdateCheck = 0;
     let regRef = null;
 

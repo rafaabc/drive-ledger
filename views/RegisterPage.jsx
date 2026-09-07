@@ -88,6 +88,7 @@ export default function RegisterPage() {
               <input
                 id="reg-username"
                 name="username"
+                autoComplete="username"
                 value={form.username}
                 onChange={handleChange}
                 required
@@ -103,6 +104,7 @@ export default function RegisterPage() {
                 id="reg-email"
                 type="email"
                 name="email"
+                autoComplete="email"
                 value={form.email}
                 onChange={handleChange}
                 required
@@ -118,6 +120,7 @@ export default function RegisterPage() {
                 id="reg-password"
                 type="password"
                 name="password"
+                autoComplete="new-password"
                 value={form.password}
                 onChange={handleChange}
                 required

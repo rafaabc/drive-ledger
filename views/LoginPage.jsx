@@ -111,6 +111,7 @@ export default function LoginPage() {
               <input
                 id="login-username"
                 name="username"
+                autoComplete="username"
                 value={form.username}
                 onChange={handleChange}
                 required
@@ -123,6 +124,7 @@ export default function LoginPage() {
                 id="login-password"
                 type="password"
                 name="password"
+                autoComplete="current-password"
                 value={form.password}
                 onChange={handleChange}
                 required

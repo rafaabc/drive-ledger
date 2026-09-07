@@ -17,6 +17,10 @@ vi.mock('@/i18n/index.js', () => ({
   default: { changeLanguage: vi.fn() },
 }));
 
+vi.mock('@/utils/languageCookie.js', () => ({
+  setLanguageCookie: vi.fn(),
+}));
+
 vi.mock('@/constants/currencies.js', () => ({
   DEFAULT_CURRENCY: 'BRL',
 }));
@@ -127,6 +131,8 @@ describe('AuthProvider', () => {
       screen.getByRole('button', { name: 'login' }).click();
     });
     expect(i18n.changeLanguage).toHaveBeenCalledWith('en');
+    const { setLanguageCookie } = await import('@/utils/languageCookie.js');
+    expect(setLanguageCookie).toHaveBeenCalledWith('en');
   });
 
   it('should not override language from token when i18nextLng already set', async () => {
@@ -260,6 +266,8 @@ describe('AuthProvider', () => {
     expect(authApi.updateLanguage).toHaveBeenCalledWith({ language: 'en' });
     expect(localStorage.getItem('i18nextLng')).toBe('en');
     expect(i18n.changeLanguage).toHaveBeenCalledWith('en');
+    const { setLanguageCookie } = await import('@/utils/languageCookie.js');
+    expect(setLanguageCookie).toHaveBeenCalledWith('en');
   });
 
   it('should update emailVerified when another tab sets a new token via storage event', async () => {
