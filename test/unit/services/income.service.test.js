@@ -39,6 +39,23 @@ async function freeUser(username) {
   return u;
 }
 
+function fuelExpense(userId, { litres, pricePerLitre, odometer, date = TODAY }) {
+  const expense = { date, category: 'Fuel', litres, price_per_litre: pricePerLitre };
+  if (odometer != null) expense.odometer = odometer;
+  return expensesService.createExpense(userId, expense);
+}
+
+function shiftIncome(userId, { amount, km, startTime, endTime, date = TODAY }) {
+  return incomeService.createIncome(userId, {
+    date,
+    amount,
+    source: 'Wolt',
+    startTime,
+    endTime,
+    km,
+  });
+}
+
 describe('incomeService.createIncome()', () => {
   it('rejects for a free-plan user with 402', async () => {
     const u = await freeUser('freeinc1');
@@ -707,6 +724,53 @@ describe('incomeService.getProfitSummary() with shift data', () => {
     assert.strictEqual(summary.fuelCost, expectedFuelCost);
     assert.strictEqual(summary.netEarnings, Math.round((400 - expectedFuelCost) * 100) / 100);
     assert.strictEqual(summary.netPerHour, Math.round((summary.netEarnings / 2) * 100) / 100);
+  });
+
+  it('flags costPerKm as suspect when the implied consumption is physically impossible', async () => {
+    const u = await proUser('woltimplausible');
+    await shiftIncome(u, { amount: 400, km: 40, startTime: '13:00', endTime: '15:00' });
+    await fuelExpense(u, { litres: 27.12, pricePerLitre: 17.99, odometer: 1000 });
+    // 1488km span on a 27.12L fill implies ~55 km/L (1.8 L/100km) — impossible for a car.
+    await fuelExpense(u, { litres: 5, pricePerLitre: 17.79, odometer: 2488 });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.strictEqual(summary.costPerKm, Math.round((88.95 / 1488) * 10000) / 10000);
+    assert.ok(summary.costPerKmFlags.includes('impliedRangeTooHigh'));
+    assert.strictEqual(summary.costPerKmSpanKm, 1488);
+  });
+
+  it('reproduces the real reported case: 27.12L over a 1488km span must be flagged', async () => {
+    const u = await proUser('woltreal');
+    await shiftIncome(u, { amount: 3464.87, km: 279.1, startTime: '09:00', endTime: '10:00' });
+    await fuelExpense(u, { litres: 27.12, pricePerLitre: 17.99, odometer: 1000 });
+    await fuelExpense(u, { litres: 5, pricePerLitre: 17.79, odometer: 2488 });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.ok(summary.costPerKmFlags.includes('impliedRangeTooHigh'));
+  });
+
+  it('flags costPerKm when a Fuel expense inside the span has no odometer', async () => {
+    const u = await proUser('woltmissingodo');
+    await shiftIncome(u, { amount: 400, km: 40, startTime: '13:00', endTime: '15:00' });
+    await fuelExpense(u, { litres: 10, pricePerLitre: 17, odometer: 1000 });
+    // Un-odometered fill in between — invisible to the fill-to-fill calc, but real fuel spend.
+    await fuelExpense(u, { litres: 8, pricePerLitre: 17 });
+    await fuelExpense(u, { litres: 10, pricePerLitre: 17, odometer: 1200 });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.ok(summary.costPerKmFlags.includes('missingOdometer'));
+  });
+
+  it('does not flag a normal 2-fill window with plausible consumption', async () => {
+    const u = await proUser('woltnormal');
+    await shiftIncome(u, { amount: 400, km: 40, startTime: '13:00', endTime: '15:00' });
+    await fuelExpense(u, { litres: 27.12, pricePerLitre: 17.39, odometer: 1000 });
+    await fuelExpense(u, { litres: 10, pricePerLitre: 17, odometer: 1200 });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    // Same fixture as the existing fill-to-fill test above — must stay unflagged and unchanged.
+    assert.strictEqual(summary.costPerKm, Math.round((170 / 200) * 10000) / 10000);
+    assert.deepStrictEqual(summary.costPerKmFlags, []);
   });
 
   it('keeps plain (non-shift) income rows working: hours/workKm null, no crash', async () => {

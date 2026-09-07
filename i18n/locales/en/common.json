@@ -394,6 +394,9 @@
       "needsTwoFills": "Fuel cost needs 2+ Fuel entries with odometer.",
       "unstable": "Based on {{count}} fill-up — still stabilising.",
       "unstable_other": "Based on {{count}} fill-ups — still stabilising.",
+      "costPerKmSuspect": "This looks off — a fill-up in this period may be missing an odometer reading, so fuel cost is understated.",
+      "costPerKmProvenance": "Based on {{count}} fill-up over {{spanKm}} km.",
+      "costPerKmProvenance_other": "Based on {{count}} fill-ups over {{spanKm}} km.",
       "fuelOnlyNote": "Net subtracts fuel only — not insurance, maintenance, or depreciation.",
       "verdict": {
         "yes": "Yes — you're earning after fuel",

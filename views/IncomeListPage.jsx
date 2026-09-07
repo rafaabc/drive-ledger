@@ -391,9 +391,22 @@ function ProfitSummaryCard({ summary, currency, targetHourlyRate, t }) {
         </div>
       </div>
 
+      {summary.costPerKm != null && summary.costPerKmFlags?.length > 0 && (
+        <p className={`${styles.unstableHint} ${styles.suspectHint}`}>
+          {t('income.summary.costPerKmSuspect')}
+        </p>
+      )}
       {summary.costPerKm != null && summary.costPerKmSamples < 3 && (
         <p className={styles.unstableHint}>
           {t('income.summary.unstable', { count: summary.costPerKmSamples })}
+        </p>
+      )}
+      {summary.costPerKm != null && summary.costPerKmSpanKm != null && (
+        <p className={styles.unstableHint}>
+          {t('income.summary.costPerKmProvenance', {
+            count: summary.costPerKmSamples,
+            spanKm: summary.costPerKmSpanKm,
+          })}
         </p>
       )}
       {summary.costPerKm == null && (
@@ -629,6 +642,11 @@ function IncomeListPageInner() {
                               : formatCurrency(row.fuelCost, currency)}
                           </span>
                         </div>
+                        {row.fuelCost != null && row.costPerKmFlags?.length > 0 && (
+                          <p className={`${styles.unstableHint} ${styles.suspectHint}`}>
+                            {t('income.summary.costPerKmSuspect')}
+                          </p>
+                        )}
                         <div className={breakdownStyles.monthDetailRow}>
                           <span>{t('income.summary.netPerHour')}</span>
                           <span className={breakdownStyles.value}>

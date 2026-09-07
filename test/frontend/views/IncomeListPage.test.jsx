@@ -326,6 +326,44 @@ describe('IncomeListPage — month breakdown', () => {
     });
     expect(screen.queryByTestId('income-month-breakdown')).not.toBeInTheDocument();
   });
+
+  it('shows a suspect warning when costPerKmFlags is non-empty', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 3464.87,
+      fuelCost: 87.41,
+      netEarnings: 3377.46,
+      netPerHour: 214.17,
+      hours: 15.77,
+      workKm: 279.1,
+      costPerKm: 0.31,
+      costPerKmSamples: 1,
+      costPerKmSpanKm: 1488,
+      costPerKmFlags: ['impliedRangeTooHigh'],
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    expect(screen.getByText('income.summary.costPerKmSuspect')).toBeInTheDocument();
+  });
+
+  it('does not show the suspect warning when costPerKmFlags is empty', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 500,
+      fuelCost: 50,
+      netEarnings: 450,
+      netPerHour: 45,
+      hours: 10,
+      workKm: 100,
+      costPerKm: 0.5,
+      costPerKmSamples: 3,
+      costPerKmSpanKm: 200,
+      costPerKmFlags: [],
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    expect(screen.queryByText('income.summary.costPerKmSuspect')).not.toBeInTheDocument();
+  });
 });
 
 describe('IncomeListPage — profit verdict', () => {

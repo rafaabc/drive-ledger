@@ -394,6 +394,9 @@
       "needsTwoFills": "O custo de combustível requer 2+ abastecimentos com hodômetro.",
       "unstable": "Baseado em {{count}} abastecimento — dado ainda instável.",
       "unstable_other": "Baseado em {{count}} abastecimentos — dado ainda instável.",
+      "costPerKmSuspect": "Isso parece errado — um abastecimento neste período pode estar sem o hodômetro, subestimando o custo de combustível.",
+      "costPerKmProvenance": "Baseado em {{count}} abastecimento ao longo de {{spanKm}} km.",
+      "costPerKmProvenance_other": "Baseado em {{count}} abastecimentos ao longo de {{spanKm}} km.",
       "fuelOnlyNote": "O líquido desconta apenas combustível — não seguro, manutenção ou depreciação.",
       "verdict": {
         "yes": "Sim — você está lucrando após o combustível",
