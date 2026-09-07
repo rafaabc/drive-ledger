@@ -114,6 +114,11 @@
   color: var(--muted);
 }
 
+.suspectHint {
+  color: var(--warning, #b45309);
+  font-weight: 600;
+}
+
 .shiftToggle {
   display: flex;
   align-items: center;

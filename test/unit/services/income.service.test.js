@@ -709,6 +709,134 @@ describe('incomeService.getProfitSummary() with shift data', () => {
     assert.strictEqual(summary.netPerHour, Math.round((summary.netEarnings / 2) * 100) / 100);
   });
 
+  it('flags costPerKm as suspect when the implied consumption is physically impossible', async () => {
+    const u = await proUser('woltimplausible');
+    await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 400,
+      source: 'Wolt',
+      startTime: '13:00',
+      endTime: '15:00',
+      km: 40,
+    });
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 27.12,
+      price_per_litre: 17.99,
+      odometer: 1000,
+    });
+    // 1488km span on a 27.12L fill implies ~55 km/L (1.8 L/100km) — impossible for a car.
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 5,
+      price_per_litre: 17.79,
+      odometer: 2488,
+    });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.strictEqual(summary.costPerKm, Math.round((88.95 / 1488) * 10000) / 10000);
+    assert.ok(summary.costPerKmFlags.includes('impliedRangeTooHigh'));
+    assert.strictEqual(summary.costPerKmSpanKm, 1488);
+  });
+
+  it('reproduces the real reported case: 27.12L over a 1488km span must be flagged', async () => {
+    const u = await proUser('woltreal');
+    await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 3464.87,
+      source: 'Wolt',
+      startTime: '09:00',
+      endTime: '10:00',
+      km: 279.1,
+    });
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 27.12,
+      price_per_litre: 17.99,
+      odometer: 1000,
+    });
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 5,
+      price_per_litre: 17.79,
+      odometer: 2488,
+    });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.ok(summary.costPerKmFlags.includes('impliedRangeTooHigh'));
+  });
+
+  it('flags costPerKm when a Fuel expense inside the span has no odometer', async () => {
+    const u = await proUser('woltmissingodo');
+    await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 400,
+      source: 'Wolt',
+      startTime: '13:00',
+      endTime: '15:00',
+      km: 40,
+    });
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 10,
+      price_per_litre: 17,
+      odometer: 1000,
+    });
+    // Un-odometered fill in between — invisible to the fill-to-fill calc, but real fuel spend.
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 8,
+      price_per_litre: 17,
+    });
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 10,
+      price_per_litre: 17,
+      odometer: 1200,
+    });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.ok(summary.costPerKmFlags.includes('missingOdometer'));
+  });
+
+  it('does not flag a normal 2-fill window with plausible consumption', async () => {
+    const u = await proUser('woltnormal');
+    await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 400,
+      source: 'Wolt',
+      startTime: '13:00',
+      endTime: '15:00',
+      km: 40,
+    });
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 27.12,
+      price_per_litre: 17.39,
+      odometer: 1000,
+    });
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 10,
+      price_per_litre: 17,
+      odometer: 1200,
+    });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    // Same fixture as the existing fill-to-fill test above — must stay unflagged and unchanged.
+    assert.strictEqual(summary.costPerKm, Math.round((170 / 200) * 10000) / 10000);
+    assert.deepStrictEqual(summary.costPerKmFlags, []);
+  });
+
   it('keeps plain (non-shift) income rows working: hours/workKm null, no crash', async () => {
     const u = await proUser('plaininc');
     await incomeService.createIncome(u, { date: TODAY, amount: 500, source: 'Uber' });
