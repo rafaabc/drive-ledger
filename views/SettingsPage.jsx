@@ -490,6 +490,7 @@ export default function SettingsPage() {
                 <input
                   id="delete-password"
                   type="password"
+                  autoComplete="current-password"
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                 />

@@ -1,22 +1,23 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import i18n from '@/i18n/index.js';
 import I18nProvider from '@/components/I18nProvider';
+import { setLanguageCookie, readLanguageCookie } from '@/utils/languageCookie.js';
 
 vi.mock('@/i18n/index.js', () => ({
-  default: { language: 'pt-BR', changeLanguage: vi.fn() },
+  default: { language: 'pt-BR', changeLanguage: vi.fn(), cloneInstance: vi.fn() },
+}));
+
+vi.mock('@/utils/languageCookie.js', () => ({
+  setLanguageCookie: vi.fn(),
+  readLanguageCookie: vi.fn(),
 }));
 
 describe('I18nProvider', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.runOnlyPendingTimers();
-    vi.useRealTimers();
+    i18n.language = 'pt-BR';
   });
 
   it('should render children', () => {
@@ -28,49 +29,53 @@ describe('I18nProvider', () => {
     expect(screen.getByText('hello')).toBeInTheDocument();
   });
 
-  it('should call changeLanguage when localStorage has a different language', async () => {
-    localStorage.setItem('i18nextLng', 'en');
-    await act(async () => {
-      render(
-        <I18nProvider>
-          <span>x</span>
-        </I18nProvider>,
-      );
-    });
-    // The apply is deferred to a macrotask (see I18nProvider.jsx) so it doesn't
-    // race Suspense-boundary hydration elsewhere in the tree.
-    act(() => {
-      vi.runAllTimers();
-    });
+  it('syncs the singleton to initialLanguage on the client when it differs', () => {
+    render(
+      <I18nProvider initialLanguage="en">
+        <span>x</span>
+      </I18nProvider>,
+    );
     expect(i18n.changeLanguage).toHaveBeenCalledWith('en');
   });
 
-  it('should not call changeLanguage when localStorage matches i18n.language', async () => {
-    localStorage.setItem('i18nextLng', 'pt-BR');
-    await act(async () => {
-      render(
-        <I18nProvider>
-          <span>x</span>
-        </I18nProvider>,
-      );
-    });
-    act(() => {
-      vi.runAllTimers();
-    });
+  it('does not call changeLanguage when i18n.language already matches initialLanguage', () => {
+    render(
+      <I18nProvider initialLanguage="pt-BR">
+        <span>x</span>
+      </I18nProvider>,
+    );
     expect(i18n.changeLanguage).not.toHaveBeenCalled();
   });
 
-  it('should not call changeLanguage when localStorage is empty', async () => {
-    await act(async () => {
-      render(
-        <I18nProvider>
-          <span>x</span>
-        </I18nProvider>,
-      );
-    });
-    act(() => {
-      vi.runAllTimers();
-    });
-    expect(i18n.changeLanguage).not.toHaveBeenCalled();
+  it('migrates a saved localStorage preference to the cookie when the cookie is missing', () => {
+    readLanguageCookie.mockReturnValue(null);
+    localStorage.setItem('i18nextLng', 'en');
+    render(
+      <I18nProvider initialLanguage="pt-BR">
+        <span>x</span>
+      </I18nProvider>,
+    );
+    expect(setLanguageCookie).toHaveBeenCalledWith('en');
+  });
+
+  it('does not migrate when the cookie is already set', () => {
+    readLanguageCookie.mockReturnValue('pt-BR');
+    localStorage.setItem('i18nextLng', 'en');
+    render(
+      <I18nProvider initialLanguage="pt-BR">
+        <span>x</span>
+      </I18nProvider>,
+    );
+    expect(setLanguageCookie).not.toHaveBeenCalled();
+  });
+
+  it('does not migrate when localStorage is empty', () => {
+    readLanguageCookie.mockReturnValue(null);
+    render(
+      <I18nProvider initialLanguage="pt-BR">
+        <span>x</span>
+      </I18nProvider>,
+    );
+    expect(setLanguageCookie).not.toHaveBeenCalled();
   });
 });

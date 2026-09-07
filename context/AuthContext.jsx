@@ -5,6 +5,7 @@ import { decodeJwt } from '@/utils/decodeJwt.js';
 import { authApi } from '@/services/apiService.js';
 import { DEFAULT_CURRENCY } from '@/constants/currencies.js';
 import i18n from '@/i18n/index.js';
+import { setLanguageCookie } from '@/utils/languageCookie.js';
 import posthog from 'posthog-js';
 
 const AuthContext = createContext(null);
@@ -37,6 +38,7 @@ export function AuthProvider({ children }) {
     const payload = decodeJwt(newToken);
     if (payload?.language && !localStorage.getItem('i18nextLng')) {
       localStorage.setItem('i18nextLng', payload.language);
+      setLanguageCookie(payload.language);
       i18n.changeLanguage(payload.language);
     }
     if (payload?.id) posthog.identify(payload.id, { username: payload.username });
@@ -80,6 +82,7 @@ export function AuthProvider({ children }) {
     localStorage.setItem('token', newToken);
     setToken(newToken);
     localStorage.setItem('i18nextLng', newLanguage);
+    setLanguageCookie(newLanguage);
     i18n.changeLanguage(newLanguage);
   }, []);
 

@@ -1,9 +1,12 @@
-import { headers } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 import '@/styles/globals.css';
 import { AuthProvider } from '@/context/AuthContext.jsx';
 import I18nProvider from '@/components/I18nProvider.jsx';
 import PWAUpdater from '@/components/PWAUpdater.jsx';
 import PostHogProvider from '@/components/PostHogProvider.jsx';
+import { LANG_COOKIE } from '@/utils/languageCookie.js';
+
+const SUPPORTED_LANGUAGES = ['pt-BR', 'en'];
 
 export const metadata = {
   title: 'Norevify',
@@ -16,14 +19,21 @@ export default async function RootLayout({ children }) {
   // scripts, which is what lets script-src drop 'unsafe-inline' (see F-08 fix).
   await headers();
 
+  // 'lang' cookie (see utils/languageCookie.js) mirrors localStorage['i18nextLng'] so SSR
+  // renders in the visitor's actual language — otherwise the server always rendered
+  // pt-BR while an 'en' client hydrated in English, a mismatch on every page.
+  const cookieLang = (await cookies()).get(LANG_COOKIE)?.value;
+  const lang = SUPPORTED_LANGUAGES.includes(cookieLang) ? cookieLang : 'pt-BR';
+
   return (
-    <html lang="pt-BR">
+    <html lang={lang}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <link rel="manifest" href="/manifest.webmanifest" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
         <meta name="theme-color" content="#0c0d0f" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Norevify" />
@@ -36,7 +46,7 @@ export default async function RootLayout({ children }) {
       </head>
       <body suppressHydrationWarning>
         <PostHogProvider>
-          <I18nProvider>
+          <I18nProvider initialLanguage={lang}>
             <AuthProvider>
               <PWAUpdater />
               {children}

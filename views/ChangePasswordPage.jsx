@@ -49,6 +49,7 @@ export default function ChangePasswordPage() {
             id="cp-currentPassword"
             type="password"
             name="currentPassword"
+            autoComplete="current-password"
             value={form.currentPassword}
             onChange={handleChange}
             required
@@ -65,6 +66,7 @@ export default function ChangePasswordPage() {
             id="cp-newPassword"
             type="password"
             name="newPassword"
+            autoComplete="new-password"
             value={form.newPassword}
             onChange={handleChange}
             required
@@ -82,6 +84,7 @@ export default function ChangePasswordPage() {
             id="cp-confirmPassword"
             type="password"
             name="confirmPassword"
+            autoComplete="new-password"
             value={form.confirmPassword}
             onChange={handleChange}
             required

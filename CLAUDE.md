@@ -67,7 +67,7 @@ Sentry gotcha: `instrumentation.js` and `instrumentation-client.js` use CJS (`re
 
 **Auth**: JWT in `localStorage['token']`. `AuthContext` decodes payload client-side (no `/me` call). 401/403 dispatches `window` event `'auth:logout'` → context clears token and redirects to `/login`.
 
-**i18n**: `pt-BR` default, `en` supported. Language detection: `localStorage['i18nextLng']` → `navigator.language`. JWT carries `language`; `AuthContext.login()` applies it only if no localStorage key exists (client pref wins). New backend error strings need a mapping in `i18n/apiErrors.js`.
+**i18n**: `pt-BR` default, `en` supported. `localStorage['i18nextLng']` is the client source of truth; a mirrored `lang` cookie (`utils/languageCookie.js`) lets `app/layout.jsx` render SSR HTML in the right language on the first request — without it, SSR always rendered `pt-BR` while an `en` client hydrated in English, a hydration mismatch on every page. `I18nProvider` takes `initialLanguage` from that cookie, clones the i18n instance per-request on the server, and syncs the client singleton before hydration; a mount effect migrates legacy visitors (cookie missing, localStorage set) by writing the cookie once. JWT carries `language`; `AuthContext.login()` applies it (and writes the cookie) only if no localStorage key exists (client pref wins). `updateLanguage()` also writes the cookie. New backend error strings need a mapping in `i18n/apiErrors.js`.
 
 **Modal pattern**: `.modal-backdrop` + `.modal` (global CSS). `ReminderStatusBadge` puts `data-testid` and `data-status` on the **same** element — E2E selector: `[data-testid="reminder-status-badge"][data-status="upcoming"]` (no space).
 
@@ -75,7 +75,7 @@ Sentry gotcha: `instrumentation.js` and `instrumentation-client.js` use CJS (`re
 
 **Numeric inputs**: every numeric field uses `components/NumericInput.jsx`, never raw `<input type="number">` — the browser rejects a comma as a value character, silently truncating the decimal on a pt-BR keyboard. It renders `type="text" inputMode="decimal"` (or `inputMode="numeric"` with the `integer` prop), accepts both `,` and `.` regardless of app language, displays the separator matching the user's locale, and always emits a canonical `.`-decimal string via `onChange`. Because it renders as text, `min`/`step` no longer constrain input client-side — range validation is enforced server-side by the services (`typeof === 'number'` checks in `lib/services/*.service.js`).
 
-**PWA**: dev uses Turbopack, prod uses Webpack (`next build --webpack`). PWA assets (`public/sw.js`, `.map` files) generated at build time, gitignored — not committed. `components/PWAUpdater.jsx` reloads on `controllerchange` (with a timeout fallback in case the `SKIP_WAITING` message is dropped) rather than reloading synchronously after posting it — a synchronous reload can tear the page down before the message reaches the waiting worker, leaving it stuck and the update toast reappearing on every later deploy.
+**PWA**: dev uses Turbopack, prod uses Webpack (`next build --webpack`). PWA assets (`public/sw.js`, `.map` files) generated at build time, gitignored — not committed. `components/PWAUpdater.jsx` reloads on `controllerchange` (with a timeout fallback in case the `SKIP_WAITING` message is dropped) rather than reloading synchronously after posting it — a synchronous reload can tear the page down before the message reaches the waiting worker, leaving it stuck and the update toast reappearing on every later deploy. In dev, `PWAUpdater` instead unregisters any existing service worker and clears caches — Serwist is disabled in dev and `public/sw.js` isn't built, but a worker registered by an earlier `npm run build && npm start` on the same origin outlives that build and intercepts fetches (breaking cross-origin requests like the Google Fonts stylesheet).
 
 ## API
 
@@ -143,3 +143,13 @@ Non-obvious rule decisions:
 | `e2e`              | `test-api`         | Playwright Chromium against `next build && next start` |
 
 `test-api` and `e2e` require `JWT_SECRET` + `MONGODB_URI` GitHub Secrets. Dependabot: weekly npm + github-actions updates (`.github/dependabot.yml`).
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

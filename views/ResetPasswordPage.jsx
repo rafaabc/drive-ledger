@@ -76,6 +76,7 @@ export default function ResetPasswordPage() {
                 id="reset-password"
                 type="password"
                 name="newPassword"
+                autoComplete="new-password"
                 value={form.newPassword}
                 onChange={handleChange}
                 required
@@ -94,6 +95,7 @@ export default function ResetPasswordPage() {
                 id="reset-confirm"
                 type="password"
                 name="confirmPassword"
+                autoComplete="new-password"
                 value={form.confirmPassword}
                 onChange={handleChange}
                 required
