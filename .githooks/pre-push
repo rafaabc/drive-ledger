@@ -1,0 +1,13 @@
+#!/bin/sh
+# Fast pre-push guard for the two checks that most often fail a PR after CI
+# has already started. Deliberately does NOT run tests — those belong in CI.
+# Skip a one-off with: git push --no-verify
+set -e
+
+echo "pre-push: eslint…"
+npm run lint
+
+echo "pre-push: prettier…"
+npm run format:check
+
+echo "pre-push: OK"

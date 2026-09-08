@@ -14,6 +14,8 @@ npm run test:api     # Requires running server + Atlas
 npm run test:e2e     # Playwright Chromium; requires running server
 ```
 
+Git hooks live in `.githooks/` (`core.hooksPath`, wired via the `prepare` script on `npm install`). `pre-push` runs lint + format:check only — no tests — so CI's `test-unit`/`test-integration`/`test-api`/`e2e` chain still needs `lint` and `audit` to pass (see `.github/workflows/ci.yml`); skip a one-off push guard with `git push --no-verify`.
+
 ## Environment
 
 Copy `.env.example` to `.env`. Key vars:
