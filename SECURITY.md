@@ -20,7 +20,7 @@ reasonable window to investigate and ship a fix before any public disclosure.
 
 In scope: the application and API at `app.norevify.com` and this repository.
 Out of scope: third-party services this app depends on (Vercel, MongoDB
-Atlas, Stripe, Resend, Sentry, PostHog) — please report those directly to
+Atlas, Stripe, Resend, Sentry, Vercel) — please report those directly to
 the respective vendor.
 
 ## A note on this repository
