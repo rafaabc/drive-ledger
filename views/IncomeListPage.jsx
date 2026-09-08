@@ -27,6 +27,23 @@ function sourceLabel(source, t) {
   return source === 'Other' ? t('income.sources.Other') : source;
 }
 
+/**
+ * Explainer sentence under the four main tiles: names the actual money paid
+ * at the pump and, when there's enough odometer data, the work/personal
+ * split applied to it. Falls back to a plain "no fuel logged" line, and to a
+ * "charged in full" line when a split isn't possible yet (see
+ * computeWorkShare in income.service.js for the fallback basis values).
+ */
+function fuelExplainer(summary, currency, t) {
+  if (summary.fuelSpend == null) return t('income.summary.noFuelLogged');
+  const amount = formatCurrency(summary.fuelSpend, currency);
+  if (summary.workShare == null) {
+    return t('income.summary.fuelExplainerNoSplit', { amount });
+  }
+  const percent = Math.round(summary.workShare * 100);
+  return t('income.summary.fuelExplainerSplit', { amount, percent });
+}
+
 /** Translated text for one costPerKm flag detail; falls back to the generic message. */
 function suspectMessage(detail, t) {
   if (detail?.flag === 'missingOdometer') {
@@ -38,9 +55,10 @@ function suspectMessage(detail, t) {
   }
   if (detail?.flag === 'impliedRangeTooHigh') {
     return t('income.summary.costPerKmSuspectImpliedRange', {
-      kmBetween: detail.kmBetween,
+      spanKm: detail.spanKm,
       litres: detail.litres,
-      date: formatDate(detail.date),
+      startDate: formatDate(detail.startDate),
+      endDate: formatDate(detail.endDate),
     });
   }
   return t('income.summary.costPerKmSuspect');
@@ -111,6 +129,7 @@ function IncomeFormModal({
   });
   const [km, setKm] = useState(initial?.km ?? '');
   const [deliveries, setDeliveries] = useState(initial?.deliveries ?? '');
+  const [tips, setTips] = useState(initial?.tips ?? '');
   const [prevOpen, setPrevOpen] = useState(open);
 
   // Derived-state reset: re-seed fields whenever the modal is (re)opened.
@@ -126,6 +145,7 @@ function IncomeFormModal({
       setSegments(existing.length > 0 ? existing : emptySegments());
       setKm(initial?.km ?? '');
       setDeliveries(initial?.deliveries ?? '');
+      setTips(initial?.tips ?? '');
     }
   }
 
@@ -167,6 +187,7 @@ function IncomeFormModal({
       segments: shiftMode && filledSegments.length > 0 ? filledSegments : undefined,
       km: shiftMode && km !== '' ? Number(km) : undefined,
       deliveries: shiftMode && deliveries !== '' ? Number(deliveries) : undefined,
+      tips: shiftMode && tips !== '' ? Number(tips) : undefined,
     });
   }
 
@@ -288,6 +309,17 @@ function IncomeFormModal({
                   onChange={(e) => setDeliveries(e.target.value)}
                 />
               </div>
+              <div className="form-group">
+                <label htmlFor="income-tips">{t('income.fields.tips')}</label>
+                <NumericInput
+                  id="income-tips"
+                  name="tips"
+                  min="0"
+                  step="0.01"
+                  value={tips}
+                  onChange={(e) => setTips(e.target.value)}
+                />
+              </div>
             </div>
           </>
         )}
@@ -377,7 +409,7 @@ function ProfitSummaryCard({ summary, currency, targetHourlyRate, t }) {
           </span>
         </div>
         <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>{t('income.summary.fuelCost')}</span>
+          <span className={styles.summaryLabel}>{t('income.summary.fuelCostWork')}</span>
           <span className={styles.summaryValue}>
             {summary.fuelCost == null
               ? t('income.summary.noCostData')
@@ -396,50 +428,75 @@ function ProfitSummaryCard({ summary, currency, targetHourlyRate, t }) {
           <span className={styles.summaryLabel}>{t('income.summary.hours')}</span>
           <span className={styles.summaryValue}>{summary.hours ?? '—'}</span>
         </div>
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>{t('income.summary.workKm')}</span>
-          <span className={styles.summaryValue}>{summary.workKm ?? '—'}</span>
-        </div>
-        <div className={styles.summaryItem}>
-          <span className={styles.summaryLabel}>{t('income.summary.costPerKm')}</span>
-          <span className={styles.summaryValue}>
-            {summary.costPerKm == null
-              ? t('income.summary.noCostData')
-              : `${formatCurrency(summary.costPerKm, currency)}/km`}
-          </span>
-        </div>
       </div>
 
-      {summary.costPerKm != null &&
-        summary.costPerKmFlags?.length > 0 &&
-        (summary.costPerKmFlagDetails?.length > 0 ? (
-          summary.costPerKmFlagDetails.map((detail, i) => (
-            <p key={i} className={`${styles.unstableHint} ${styles.suspectHint}`}>
-              {suspectMessage(detail, t)}
-            </p>
-          ))
-        ) : (
-          <p className={`${styles.unstableHint} ${styles.suspectHint}`}>
-            {t('income.summary.costPerKmSuspect')}
-          </p>
-        ))}
-      {summary.costPerKm != null && summary.costPerKmSamples < 3 && (
-        <p className={styles.unstableHint}>
-          {t('income.summary.unstable', { count: summary.costPerKmSamples })}
-        </p>
-      )}
-      {summary.costPerKm != null && summary.costPerKmSpanKm != null && (
-        <p className={styles.unstableHint}>
-          {t('income.summary.costPerKmProvenance', {
-            count: summary.costPerKmSamples,
-            spanKm: summary.costPerKmSpanKm,
-          })}
-        </p>
-      )}
-      {summary.costPerKm == null && (
-        <p className={styles.unstableHint}>{t('income.summary.needsTwoFills')}</p>
-      )}
+      <p className={styles.unstableHint}>{fuelExplainer(summary, currency, t)}</p>
       <p className={styles.unstableHint}>{t('income.summary.fuelOnlyNote')}</p>
+
+      <details className={styles.detailsSection}>
+        <summary>{t('income.summary.howCalculated')}</summary>
+
+        <div className={styles.summaryGrid}>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>{t('income.summary.totalKm')}</span>
+            <span className={styles.summaryValue}>{summary.totalKm ?? '—'}</span>
+          </div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>{t('income.summary.workKm')}</span>
+            <span className={styles.summaryValue}>{summary.workKm ?? '—'}</span>
+          </div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>{t('income.summary.personalKm')}</span>
+            <span className={styles.summaryValue}>{summary.personalKm ?? '—'}</span>
+          </div>
+          <div className={styles.summaryItem}>
+            <span className={styles.summaryLabel}>{t('income.summary.costPerKm')}</span>
+            <span className={styles.summaryValue}>
+              {summary.costPerKm == null
+                ? t('income.summary.noCostData')
+                : `${formatCurrency(summary.costPerKm, currency)}/km`}
+            </span>
+          </div>
+        </div>
+
+        {summary.tips != null && summary.netPerHourExcludingTips != null && (
+          <p className={styles.unstableHint}>
+            {t('income.summary.netPerHourExcludingTips', {
+              value: `${formatCurrency(summary.netPerHourExcludingTips, currency)}/h`,
+            })}
+          </p>
+        )}
+
+        {summary.costPerKm != null &&
+          summary.costPerKmFlags?.length > 0 &&
+          (summary.costPerKmFlagDetails?.length > 0 ? (
+            summary.costPerKmFlagDetails.map((detail, i) => (
+              <p key={i} className={`${styles.unstableHint} ${styles.suspectHint}`}>
+                {suspectMessage(detail, t)}
+              </p>
+            ))
+          ) : (
+            <p className={`${styles.unstableHint} ${styles.suspectHint}`}>
+              {t('income.summary.costPerKmSuspect')}
+            </p>
+          ))}
+        {summary.costPerKm != null && summary.costPerKmSamples < 3 && (
+          <p className={styles.unstableHint}>
+            {t('income.summary.unstable', { count: summary.costPerKmSamples })}
+          </p>
+        )}
+        {summary.costPerKm != null && summary.costPerKmSpanKm != null && (
+          <p className={styles.unstableHint}>
+            {t('income.summary.costPerKmProvenance', {
+              count: summary.costPerKmSamples,
+              spanKm: summary.costPerKmSpanKm,
+            })}
+          </p>
+        )}
+        {summary.costPerKm == null && (
+          <p className={styles.unstableHint}>{t('income.summary.needsTwoFills')}</p>
+        )}
+      </details>
     </div>
   );
 }
@@ -669,19 +726,6 @@ function IncomeListPageInner() {
                               : formatCurrency(row.fuelCost, currency)}
                           </span>
                         </div>
-                        {row.fuelCost != null &&
-                          row.costPerKmFlags?.length > 0 &&
-                          (row.costPerKmFlagDetails?.length > 0 ? (
-                            row.costPerKmFlagDetails.map((detail, i) => (
-                              <p key={i} className={`${styles.unstableHint} ${styles.suspectHint}`}>
-                                {suspectMessage(detail, t)}
-                              </p>
-                            ))
-                          ) : (
-                            <p className={`${styles.unstableHint} ${styles.suspectHint}`}>
-                              {t('income.summary.costPerKmSuspect')}
-                            </p>
-                          ))}
                         <div className={breakdownStyles.monthDetailRow}>
                           <span>{t('income.summary.netPerHour')}</span>
                           <span className={breakdownStyles.value}>
@@ -723,6 +767,8 @@ function IncomeListPageInner() {
                         {segs.length > 1 &&
                           ` (${t('income.fields.blockCount', { count: segs.length })})`}
                         {i.km != null && ` · ${i.km} km`}
+                        {i.tips != null &&
+                          ` · +${formatCurrency(i.tips, currency)} ${t('income.fields.tips')}`}
                         {i.note && ` · ${i.note}`}
                       </div>
                     </div>

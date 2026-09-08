@@ -651,7 +651,7 @@ describe('incomeService multi-block segments', () => {
 });
 
 describe('incomeService.getProfitSummary() with shift data', () => {
-  it('reproduces the 2026-09-01 Wolt shift data with a single fill (no cost/km yet)', async () => {
+  it('charges full fuel spend to work when there is not enough odometer data to split it', async () => {
     const u = await proUser('woltday1');
     await incomeService.createIncome(u, {
       date: TODAY,
@@ -684,10 +684,15 @@ describe('incomeService.getProfitSummary() with shift data', () => {
     assert.strictEqual(summary.hours, 2.95);
     assert.strictEqual(summary.workKm, 41);
     assert.strictEqual(summary.deliveries, 7);
-    // Only one fill-up so far: fill-to-fill cost/km needs a second anchor.
+    // Only one fill-up so far: fill-to-fill cost/km needs a second anchor —
+    // that display-only metric stays null, but the cash-based fuel cost does
+    // not: real money was spent, and with no odometer split available it is
+    // conservatively charged 100% to work (workShare falls back to null).
     assert.strictEqual(summary.costPerKm, null);
-    assert.strictEqual(summary.fuelCost, null);
-    assert.strictEqual(summary.netEarnings, null);
+    assert.strictEqual(summary.workShare, null);
+    assert.strictEqual(summary.fuelSpend, 471.62);
+    assert.strictEqual(summary.fuelCost, 471.62);
+    assert.strictEqual(summary.netEarnings, Math.round((394.37 - 471.62) * 100) / 100);
     assert.strictEqual(summary.grossPerHour, Math.round((394.37 / 2.95) * 100) / 100);
   });
 
@@ -717,10 +722,18 @@ describe('incomeService.getProfitSummary() with shift data', () => {
     });
 
     const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
-    // Only the second fill's cost (170) pays for the 200km span since the first fill.
+    // costPerKm is still the fill-to-fill display metric (details-section only):
+    // only the second fill's cost (170) pays for the 200km span since the first fill.
     assert.strictEqual(summary.costPerKm, Math.round((170 / 200) * 10000) / 10000);
     assert.strictEqual(summary.costPerKmSamples, 1);
-    const expectedFuelCost = Math.round(summary.costPerKm * 40 * 100) / 100;
+
+    // fuelCost is now cash-based: total money paid at the pump (471.62 + 170 = 641.62)
+    // times the work share of km driven. With no prior anchor, the two in-period
+    // odometer readings (1000 -> 1200) give totalKm = 200; workKm = 40 (Wolt km).
+    assert.strictEqual(summary.fuelSpend, 641.62);
+    assert.strictEqual(summary.totalKm, 200);
+    assert.strictEqual(summary.workShare, 0.2);
+    const expectedFuelCost = Math.round(summary.fuelSpend * summary.workShare * 100) / 100;
     assert.strictEqual(summary.fuelCost, expectedFuelCost);
     assert.strictEqual(summary.netEarnings, Math.round((400 - expectedFuelCost) * 100) / 100);
     assert.strictEqual(summary.netPerHour, Math.round((summary.netEarnings / 2) * 100) / 100);
@@ -739,9 +752,25 @@ describe('incomeService.getProfitSummary() with shift data', () => {
     assert.strictEqual(summary.costPerKmSpanKm, 1488);
     const detail = summary.costPerKmFlagDetails.find((d) => d.flag === 'impliedRangeTooHigh');
     assert.ok(detail, 'expected an impliedRangeTooHigh detail entry');
-    assert.strictEqual(detail.kmBetween, 1488);
+    assert.strictEqual(detail.spanKm, 1488);
     assert.strictEqual(detail.litres, 5);
-    assert.strictEqual(new Date(detail.date).toISOString().slice(0, 10), TODAY);
+    assert.strictEqual(new Date(detail.startDate).toISOString().slice(0, 10), TODAY);
+    assert.strictEqual(new Date(detail.endDate).toISOString().slice(0, 10), TODAY);
+  });
+
+  it('does not flag a partial top-up as implausible when the window average is normal', async () => {
+    const u = await proUser('woltpartialfill');
+    await shiftIncome(u, { amount: 400, km: 40, startTime: '13:00', endTime: '15:00' });
+    // Anchor + two prior fills establish a normal-consumption window...
+    await fuelExpense(u, { litres: 30, pricePerLitre: 17, odometer: 1000 });
+    await fuelExpense(u, { litres: 30, pricePerLitre: 17, odometer: 1500 });
+    // ...then a small partial top-up (6L for 287km) that would trip a
+    // pairwise check but is unremarkable averaged over the whole window.
+    await fuelExpense(u, { litres: 6, pricePerLitre: 17, odometer: 1787 });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.deepStrictEqual(summary.costPerKmFlags, []);
+    assert.deepStrictEqual(summary.costPerKmFlagDetails, []);
   });
 
   it('reproduces the real reported case: 27.12L over a 1488km span must be flagged', async () => {
@@ -806,6 +835,87 @@ describe('incomeService.getProfitSummary() with shift data', () => {
     assert.strictEqual(summary.workKm, null);
     assert.strictEqual(summary.netPerHour, null);
     assert.strictEqual(summary.totalIncome, 500);
+  });
+
+  it('splits fuel cost by odometer-derived work share, leaving personal driving unfueled', async () => {
+    const u = await proUser('woltworkshare');
+    // Anchor fill before the period, then two in-period fills spanning 500km total.
+    await fuelExpense(u, { litres: 20, pricePerLitre: 17, odometer: 500, date: '2025-12-20' });
+    await shiftIncome(u, { amount: 400, km: 40, startTime: '13:00', endTime: '15:00' });
+    await fuelExpense(u, { litres: 10, pricePerLitre: 17, odometer: 700 });
+    await fuelExpense(u, { litres: 10, pricePerLitre: 17, odometer: 1000 });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    // totalKm = 1000 (last in-period) - 500 (anchor) = 500; workKm = 40 (Wolt).
+    assert.strictEqual(summary.totalKm, 500);
+    assert.strictEqual(summary.workKm, 40);
+    assert.strictEqual(summary.personalKm, 460);
+    assert.strictEqual(summary.workShare, Math.round((40 / 500) * 10000) / 10000);
+    assert.strictEqual(summary.workShareBasis, 'odometerSplit');
+    assert.strictEqual(summary.fuelSpend, 340); // 10*17 + 10*17
+    const expectedFuelCost = Math.round(summary.fuelSpend * summary.workShare * 100) / 100;
+    assert.strictEqual(summary.fuelCost, expectedFuelCost);
+  });
+
+  it('clamps workShare to 1 when Wolt km exceeds the odometer-derived total', async () => {
+    const u = await proUser('woltclamped');
+    await shiftIncome(u, { amount: 400, km: 500, startTime: '13:00', endTime: '15:00' });
+    await fuelExpense(u, { litres: 10, pricePerLitre: 17, odometer: 1000 });
+    await fuelExpense(u, { litres: 10, pricePerLitre: 17, odometer: 1050 });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.strictEqual(summary.workShare, 1);
+    assert.strictEqual(summary.workShareBasis, 'clamped');
+    assert.strictEqual(summary.personalKm, 0);
+    assert.strictEqual(summary.fuelCost, summary.fuelSpend);
+  });
+
+  it('falls back to 100% fuel charged to work when there is no Wolt km at all', async () => {
+    const u = await proUser('woltnokm');
+    await incomeService.createIncome(u, { date: TODAY, amount: 400, source: 'Wolt' });
+    await fuelExpense(u, { litres: 10, pricePerLitre: 17, odometer: 1000 });
+    await fuelExpense(u, { litres: 10, pricePerLitre: 17, odometer: 1200 });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.strictEqual(summary.workShare, null);
+    assert.strictEqual(summary.workShareBasis, 'noOdometerData');
+    assert.strictEqual(summary.fuelCost, summary.fuelSpend);
+  });
+
+  it('accepts and sums tips, and derives netPerHourExcludingTips', async () => {
+    const u = await proUser('wolttips');
+    await incomeService.createIncome(u, {
+      date: TODAY,
+      amount: 200,
+      source: 'Wolt',
+      startTime: '13:00',
+      endTime: '15:00',
+      km: 40,
+      tips: 20,
+    });
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.strictEqual(summary.tips, 20);
+    assert.strictEqual(summary.netEarnings, 200);
+    assert.strictEqual(
+      summary.netPerHourExcludingTips,
+      Math.round(((summary.netEarnings - 20) / 2) * 100) / 100,
+    );
+  });
+
+  it('rejects tips greater than amount', async () => {
+    const u = await proUser('wolttipsreject');
+    await assert.rejects(
+      incomeService.createIncome(u, { date: TODAY, amount: 100, source: 'Wolt', tips: 150 }),
+      (err) => err.status === 400 && /tips/i.test(err.message),
+    );
+  });
+
+  it('rejects negative tips', async () => {
+    const u = await proUser('wolttipsneg');
+    await assert.rejects(
+      incomeService.createIncome(u, { date: TODAY, amount: 100, source: 'Wolt', tips: -5 }),
+      (err) => err.status === 400 && /tips/i.test(err.message),
+    );
   });
 });
 

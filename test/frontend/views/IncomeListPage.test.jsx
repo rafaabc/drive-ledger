@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, within, fireEvent, act } from '@testing-library/react';
+import { render, screen, within, fireEvent, act, waitFor } from '@testing-library/react';
 import IncomeListPage from '@/views/IncomeListPage';
 
 const mockLang = vi.fn().mockReturnValue('en');
@@ -162,6 +162,20 @@ describe('IncomeListPage — shift time blocks', () => {
     const submitted = mockCreate.mock.calls[0][0];
     expect(submitted.startTime).toBeUndefined();
     expect(submitted.endTime).toBeUndefined();
+  });
+
+  it('submits tips alongside km/deliveries in shift mode', async () => {
+    await openNewIncomeForm();
+    fireEvent.change(screen.getByLabelText('income.fields.amount'), {
+      target: { value: '200' },
+    });
+    fireEvent.change(screen.getByLabelText('income.fields.tips'), {
+      target: { value: '20' },
+    });
+    fireEvent.click(screen.getByText('common.save'));
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ tips: 20 }));
+    });
   });
 });
 
@@ -382,7 +396,13 @@ describe('IncomeListPage — month breakdown', () => {
       costPerKmSpanKm: 1488,
       costPerKmFlags: ['impliedRangeTooHigh'],
       costPerKmFlagDetails: [
-        { flag: 'impliedRangeTooHigh', date: '2026-09-03', kmBetween: 1488, litres: 5 },
+        {
+          flag: 'impliedRangeTooHigh',
+          startDate: '2026-08-01',
+          endDate: '2026-09-03',
+          spanKm: 1488,
+          litres: 5,
+        },
       ],
     });
     await act(async () => {
@@ -409,6 +429,53 @@ describe('IncomeListPage — month breakdown', () => {
       render(<IncomeListPage />);
     });
     expect(screen.queryByText('income.summary.costPerKmSuspect')).not.toBeInTheDocument();
+  });
+
+  it('shows the work-share explainer and the fuel (work) tile label on the main panel', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 4188.5,
+      fuelSpend: 640.39,
+      fuelCost: 512.31,
+      netEarnings: 3676.19,
+      netPerHour: 172.6,
+      hours: 21.3,
+      workKm: 355.2,
+      totalKm: 444,
+      personalKm: 88.8,
+      workShare: 0.8,
+      workShareBasis: 'odometerSplit',
+      costPerKm: null,
+      costPerKmSamples: 0,
+      costPerKmFlags: [],
+    });
+    render(<IncomeListPage />);
+    await screen.findByText('income.summary.fuelCostWork');
+    expect(screen.getByText('income.summary.fuelCostWork')).toBeInTheDocument();
+    expect(screen.getByText('income.summary.fuelExplainerSplit')).toBeInTheDocument();
+    expect(screen.getByText('income.summary.howCalculated')).toBeInTheDocument();
+    // Work km moved into the details disclosure rather than the top-level tiles.
+    expect(screen.getByText('income.summary.workKm')).toBeInTheDocument();
+  });
+
+  it('shows the no-split explainer when workShare is null', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 394.37,
+      fuelSpend: 471.62,
+      fuelCost: 471.62,
+      netEarnings: -77.25,
+      netPerHour: null,
+      hours: 2.95,
+      workKm: 41,
+      totalKm: null,
+      personalKm: null,
+      workShare: null,
+      workShareBasis: 'noOdometerData',
+      costPerKm: null,
+      costPerKmSamples: 0,
+      costPerKmFlags: [],
+    });
+    render(<IncomeListPage />);
+    expect(await screen.findByText('income.summary.fuelExplainerNoSplit')).toBeInTheDocument();
   });
 });
 
