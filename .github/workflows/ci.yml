@@ -124,12 +124,13 @@ jobs:
           done
 
   test-unit:
-    # Gated on audit too: a real dependency CVE should fail fast instead of
-    # burning ~10min on tests that were going to be blocked from merging
-    # anyway. GitHub implicitly requires success() on all `needs` here (no
-    # status-check function in the `if` below), so an audit failure or skip
-    # skips this and everything chained after it, same as the docs-only case.
-    needs: [changes, audit]
+    # Gated on lint and audit too: a lint/format failure or a real dependency
+    # CVE should fail fast instead of burning ~10min on tests that were going
+    # to be blocked from merging anyway. GitHub implicitly requires success()
+    # on all `needs` here (no status-check function in the `if` below), so a
+    # lint or audit failure/skip skips this and everything chained after it,
+    # same as the docs-only case.
+    needs: [changes, lint, audit]
     runs-on: ubuntu-latest
     if: needs.changes.outputs.code == 'true'
     steps:
