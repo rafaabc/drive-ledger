@@ -401,7 +401,7 @@
       "costPerKmSuspect": "This looks off — a fill-up in this period may be missing an odometer reading, so fuel cost is understated.",
       "costPerKmSuspectMissingOdometer": "This looks off — the fill-up on {{date}} has no odometer reading, so fuel cost is understated. Edit that expense and add the odometer to clear this.",
       "costPerKmSuspectMissingOdometer_other": "This looks off — {{count}} fill-ups between {{date}} and {{lastDate}} have no odometer reading, so fuel cost is understated. Edit them and add the odometer.",
-      "costPerKmSuspectImpliedRange": "This looks off — {{kmBetween}} km on {{litres}} L before the fill-up on {{date}} isn't achievable, so a fill-up is probably missing from that stretch.",
+      "costPerKmSuspectImpliedRange": "This looks off — {{spanKm}} km on {{litres}} L across your fill-ups between {{startDate}} and {{endDate}} isn't achievable, so a fill-up is probably missing from that period.",
       "costPerKmProvenance": "Based on {{count}} fill-up over {{spanKm}} km.",
       "costPerKmProvenance_other": "Based on {{count}} fill-ups over {{spanKm}} km.",
       "fuelOnlyNote": "Net subtracts fuel only — not insurance, maintenance, or depreciation.",

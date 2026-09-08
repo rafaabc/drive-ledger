@@ -382,7 +382,13 @@ describe('IncomeListPage — month breakdown', () => {
       costPerKmSpanKm: 1488,
       costPerKmFlags: ['impliedRangeTooHigh'],
       costPerKmFlagDetails: [
-        { flag: 'impliedRangeTooHigh', date: '2026-09-03', kmBetween: 1488, litres: 5 },
+        {
+          flag: 'impliedRangeTooHigh',
+          startDate: '2026-08-01',
+          endDate: '2026-09-03',
+          spanKm: 1488,
+          litres: 5,
+        },
       ],
     });
     await act(async () => {

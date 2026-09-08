@@ -583,11 +583,32 @@
                   "type": "string",
                   "enum": ["impliedRangeTooHigh", "missingOdometer"]
                 },
-                "date": { "type": "string", "format": "date-time" },
-                "lastDate": { "type": "string", "format": "date-time" },
-                "count": { "type": "integer" },
-                "kmBetween": { "type": "number" },
-                "litres": { "type": "number" }
+                "date": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "missingOdometer only: date of the earliest un-odometered fill in the span"
+                },
+                "lastDate": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "missingOdometer only: date of the latest un-odometered fill in the span"
+                },
+                "count": { "type": "integer", "description": "missingOdometer only" },
+                "startDate": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "impliedRangeTooHigh only: date of the first fill in the window"
+                },
+                "endDate": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "impliedRangeTooHigh only: date of the last fill in the window"
+                },
+                "spanKm": { "type": "number", "description": "impliedRangeTooHigh only" },
+                "litres": {
+                  "type": "number",
+                  "description": "impliedRangeTooHigh only: total litres bought across the window"
+                }
               }
             }
           },

@@ -752,9 +752,25 @@ describe('incomeService.getProfitSummary() with shift data', () => {
     assert.strictEqual(summary.costPerKmSpanKm, 1488);
     const detail = summary.costPerKmFlagDetails.find((d) => d.flag === 'impliedRangeTooHigh');
     assert.ok(detail, 'expected an impliedRangeTooHigh detail entry');
-    assert.strictEqual(detail.kmBetween, 1488);
+    assert.strictEqual(detail.spanKm, 1488);
     assert.strictEqual(detail.litres, 5);
-    assert.strictEqual(new Date(detail.date).toISOString().slice(0, 10), TODAY);
+    assert.strictEqual(new Date(detail.startDate).toISOString().slice(0, 10), TODAY);
+    assert.strictEqual(new Date(detail.endDate).toISOString().slice(0, 10), TODAY);
+  });
+
+  it('does not flag a partial top-up as implausible when the window average is normal', async () => {
+    const u = await proUser('woltpartialfill');
+    await shiftIncome(u, { amount: 400, km: 40, startTime: '13:00', endTime: '15:00' });
+    // Anchor + two prior fills establish a normal-consumption window...
+    await fuelExpense(u, { litres: 30, pricePerLitre: 17, odometer: 1000 });
+    await fuelExpense(u, { litres: 30, pricePerLitre: 17, odometer: 1500 });
+    // ...then a small partial top-up (6L for 287km) that would trip a
+    // pairwise check but is unremarkable averaged over the whole window.
+    await fuelExpense(u, { litres: 6, pricePerLitre: 17, odometer: 1787 });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.deepStrictEqual(summary.costPerKmFlags, []);
+    assert.deepStrictEqual(summary.costPerKmFlagDetails, []);
   });
 
   it('reproduces the real reported case: 27.12L over a 1488km span must be flagged', async () => {

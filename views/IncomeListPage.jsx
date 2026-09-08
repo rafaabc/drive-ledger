@@ -55,9 +55,10 @@ function suspectMessage(detail, t) {
   }
   if (detail?.flag === 'impliedRangeTooHigh') {
     return t('income.summary.costPerKmSuspectImpliedRange', {
-      kmBetween: detail.kmBetween,
+      spanKm: detail.spanKm,
       litres: detail.litres,
-      date: formatDate(detail.date),
+      startDate: formatDate(detail.startDate),
+      endDate: formatDate(detail.endDate),
     });
   }
   return t('income.summary.costPerKmSuspect');
