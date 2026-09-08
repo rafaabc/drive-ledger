@@ -416,8 +416,14 @@
             "description": "Sum of all segment durations",
             "example": 1.75
           },
-          "km": { "type": "number", "nullable": true, "example": 22.1 },
-          "deliveries": { "type": "integer", "nullable": true, "example": 3 }
+          "km": {
+            "type": "number",
+            "nullable": true,
+            "description": "Distance on- and off-task reported by the delivery platform (e.g. Wolt)",
+            "example": 22.1
+          },
+          "deliveries": { "type": "integer", "nullable": true, "example": 3 },
+          "tips": { "type": "number", "nullable": true, "example": 10.0 }
         }
       },
       "IncomeSegment": {
@@ -464,7 +470,13 @@
             "example": 1.75
           },
           "km": { "type": "number", "nullable": true, "example": 22.1 },
-          "deliveries": { "type": "integer", "nullable": true, "example": 3 }
+          "deliveries": { "type": "integer", "nullable": true, "example": 3 },
+          "tips": {
+            "type": "number",
+            "nullable": true,
+            "description": "Must not exceed amount",
+            "example": 10.0
+          }
         }
       },
       "IncomeUpdate": {
@@ -485,7 +497,8 @@
           "endTime": { "type": "string", "nullable": true, "deprecated": true },
           "hours": { "type": "number", "nullable": true },
           "km": { "type": "number", "nullable": true },
-          "deliveries": { "type": "integer", "nullable": true }
+          "deliveries": { "type": "integer", "nullable": true },
+          "tips": { "type": "number", "nullable": true }
         }
       },
       "ProfitSummary": {
@@ -503,6 +516,38 @@
           "profit": { "type": "number", "example": 1500.0 },
           "profitPerKm": { "type": "number", "nullable": true, "example": 1.2 },
           "profitPerDay": { "type": "number", "example": 50.0 },
+          "fuelSpend": {
+            "type": "number",
+            "nullable": true,
+            "description": "Actual Fuel expense total for the period (money paid at the pump)",
+            "example": 640.39
+          },
+          "totalKm": {
+            "type": "number",
+            "nullable": true,
+            "description": "True physical distance from odometer readings on Fuel expenses",
+            "example": 444
+          },
+          "personalKm": {
+            "type": "number",
+            "nullable": true,
+            "description": "totalKm minus workKm; the driving fuelCost is not charged for",
+            "example": 88.8
+          },
+          "workShare": {
+            "type": "number",
+            "nullable": true,
+            "description": "workKm / totalKm, applied to fuelSpend to get fuelCost. Null means not enough odometer data to split, so fuelCost charges 100% of fuelSpend",
+            "example": 0.8
+          },
+          "workShareBasis": {
+            "type": "string",
+            "enum": ["odometerSplit", "noAnchor", "noOdometerData", "clamped"],
+            "description": "Which fallback produced workShare",
+            "example": "odometerSplit"
+          },
+          "tips": { "type": "number", "nullable": true, "example": 20.0 },
+          "netPerHourExcludingTips": { "type": "number", "nullable": true, "example": 145.5 },
           "kmDriven": {
             "type": "number",
             "nullable": true,
@@ -551,7 +596,12 @@
             "nullable": true,
             "description": "Fill-to-fill odometer span the costPerKm figure was computed over"
           },
-          "fuelCost": { "type": "number", "nullable": true, "example": 55.35 },
+          "fuelCost": {
+            "type": "number",
+            "nullable": true,
+            "description": "fuelSpend x workShare (100% of fuelSpend when workShare is null) — the cash figure netEarnings subtracts",
+            "example": 512.31
+          },
           "netEarnings": { "type": "number", "nullable": true, "example": 339.02 },
           "netPerHour": { "type": "number", "nullable": true, "example": 114.92 },
           "netPerKm": { "type": "number", "nullable": true, "example": 8.27 },
@@ -575,11 +625,17 @@
                   "items": { "type": "object" }
                 },
                 "costPerKmSpanKm": { "type": "number", "nullable": true },
+                "fuelSpend": { "type": "number", "nullable": true, "example": 55.35 },
+                "totalKm": { "type": "number", "nullable": true },
+                "personalKm": { "type": "number", "nullable": true },
+                "workShare": { "type": "number", "nullable": true },
+                "workShareBasis": { "type": "string", "nullable": true },
                 "fuelCost": { "type": "number", "nullable": true, "example": 55.35 },
                 "netEarnings": { "type": "number", "nullable": true, "example": 339.02 },
                 "netPerHour": { "type": "number", "nullable": true, "example": 114.92 },
                 "hours": { "type": "number", "nullable": true, "example": 2.95 },
-                "workKm": { "type": "number", "nullable": true, "example": 41.0 }
+                "workKm": { "type": "number", "nullable": true, "example": 41.0 },
+                "tips": { "type": "number", "nullable": true }
               }
             }
           }

@@ -410,6 +410,99 @@ describe('IncomeListPage — month breakdown', () => {
     });
     expect(screen.queryByText('income.summary.costPerKmSuspect')).not.toBeInTheDocument();
   });
+
+  it('shows the work-share explainer and the fuel (work) tile label on the main panel', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 4188.5,
+      fuelSpend: 640.39,
+      fuelCost: 512.31,
+      netEarnings: 3676.19,
+      netPerHour: 172.6,
+      hours: 21.3,
+      workKm: 355.2,
+      totalKm: 444,
+      personalKm: 88.8,
+      workShare: 0.8,
+      workShareBasis: 'odometerSplit',
+      costPerKm: null,
+      costPerKmSamples: 0,
+      costPerKmFlags: [],
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    expect(screen.getByText('income.summary.fuelCostWork')).toBeInTheDocument();
+    expect(screen.getByText('income.summary.fuelExplainerSplit')).toBeInTheDocument();
+    expect(screen.getByText('income.summary.howCalculated')).toBeInTheDocument();
+    // Work km moved into the details disclosure rather than the top-level tiles.
+    expect(screen.getByText('income.summary.workKm')).toBeInTheDocument();
+  });
+
+  it('shows the no-split explainer when workShare is null', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 394.37,
+      fuelSpend: 471.62,
+      fuelCost: 471.62,
+      netEarnings: -77.25,
+      netPerHour: null,
+      hours: 2.95,
+      workKm: 41,
+      totalKm: null,
+      personalKm: null,
+      workShare: null,
+      workShareBasis: 'noOdometerData',
+      costPerKm: null,
+      costPerKmSamples: 0,
+      costPerKmFlags: [],
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    expect(screen.getByText('income.summary.fuelExplainerNoSplit')).toBeInTheDocument();
+  });
+});
+
+describe('IncomeListPage — income form tips field', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockLang.mockReturnValue('en');
+    mockList.mockResolvedValue([]);
+    mockSummary.mockResolvedValue({
+      totalIncome: 0,
+      fuelCost: null,
+      netEarnings: null,
+      netPerHour: null,
+      hours: null,
+      workKm: null,
+      costPerKm: null,
+      costPerKmSamples: 0,
+    });
+    mockVehiclesList.mockResolvedValue([]);
+    mockCreate.mockResolvedValue({});
+    try {
+      window.localStorage.clear();
+    } catch {
+      /* not available in this environment */
+    }
+  });
+
+  it('submits tips alongside km/deliveries in shift mode', async () => {
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    fireEvent.click(screen.getByText(/common\.new/));
+    fireEvent.click(screen.getByLabelText('income.fields.shiftMode'));
+    fireEvent.change(screen.getByLabelText('income.fields.amount'), {
+      target: { value: '200' },
+    });
+    fireEvent.change(screen.getByLabelText('income.fields.tips'), {
+      target: { value: '20' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByText('common.save'));
+    });
+    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ tips: 20 }));
+  });
 });
 
 describe('IncomeListPage — profit verdict', () => {
