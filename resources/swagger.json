@@ -523,6 +523,34 @@
             "example": 2,
             "description": "Number of fill-ups used in costPerKm (excludes the anchor fill)"
           },
+          "costPerKmFlags": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["impliedRangeTooHigh", "missingOdometer"] },
+            "description": "Reasons the costPerKm figure may be unreliable"
+          },
+          "costPerKmFlagDetails": {
+            "type": "array",
+            "description": "One entry per flag in costPerKmFlags, with the data needed to name the offending fill-up(s)",
+            "items": {
+              "type": "object",
+              "properties": {
+                "flag": {
+                  "type": "string",
+                  "enum": ["impliedRangeTooHigh", "missingOdometer"]
+                },
+                "date": { "type": "string", "format": "date-time" },
+                "lastDate": { "type": "string", "format": "date-time" },
+                "count": { "type": "integer" },
+                "kmBetween": { "type": "number" },
+                "litres": { "type": "number" }
+              }
+            }
+          },
+          "costPerKmSpanKm": {
+            "type": "number",
+            "nullable": true,
+            "description": "Fill-to-fill odometer span the costPerKm figure was computed over"
+          },
           "fuelCost": { "type": "number", "nullable": true, "example": 55.35 },
           "netEarnings": { "type": "number", "nullable": true, "example": 339.02 },
           "netPerHour": { "type": "number", "nullable": true, "example": 114.92 },
@@ -538,6 +566,15 @@
                 "totalIncome": { "type": "number", "example": 500.0 },
                 "costPerKm": { "type": "number", "nullable": true, "example": 1.35 },
                 "costPerKmSamples": { "type": "integer", "example": 2 },
+                "costPerKmFlags": {
+                  "type": "array",
+                  "items": { "type": "string", "enum": ["impliedRangeTooHigh", "missingOdometer"] }
+                },
+                "costPerKmFlagDetails": {
+                  "type": "array",
+                  "items": { "type": "object" }
+                },
+                "costPerKmSpanKm": { "type": "number", "nullable": true },
                 "fuelCost": { "type": "number", "nullable": true, "example": 55.35 },
                 "netEarnings": { "type": "number", "nullable": true, "example": 339.02 },
                 "netPerHour": { "type": "number", "nullable": true, "example": 114.92 },

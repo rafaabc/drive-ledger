@@ -346,6 +346,52 @@ describe('IncomeListPage — month breakdown', () => {
     expect(screen.getByText('income.summary.costPerKmSuspect')).toBeInTheDocument();
   });
 
+  it('shows the missingOdometer-specific warning when flag details are present', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 4188.5,
+      fuelCost: 640.39,
+      netEarnings: 3548.11,
+      netPerHour: 166.58,
+      hours: 21.3,
+      workKm: 355.2,
+      costPerKm: 1.8,
+      costPerKmSamples: 3,
+      costPerKmSpanKm: 416,
+      costPerKmFlags: ['missingOdometer'],
+      costPerKmFlagDetails: [
+        { flag: 'missingOdometer', count: 1, date: '2026-08-28', lastDate: '2026-08-28' },
+      ],
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    expect(screen.getByText('income.summary.costPerKmSuspectMissingOdometer')).toBeInTheDocument();
+    expect(screen.queryByText('income.summary.costPerKmSuspect')).not.toBeInTheDocument();
+  });
+
+  it('shows the impliedRangeTooHigh-specific warning when flag details are present', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 3464.87,
+      fuelCost: 87.41,
+      netEarnings: 3377.46,
+      netPerHour: 214.17,
+      hours: 15.77,
+      workKm: 279.1,
+      costPerKm: 0.31,
+      costPerKmSamples: 1,
+      costPerKmSpanKm: 1488,
+      costPerKmFlags: ['impliedRangeTooHigh'],
+      costPerKmFlagDetails: [
+        { flag: 'impliedRangeTooHigh', date: '2026-09-03', kmBetween: 1488, litres: 5 },
+      ],
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    expect(screen.getByText('income.summary.costPerKmSuspectImpliedRange')).toBeInTheDocument();
+    expect(screen.queryByText('income.summary.costPerKmSuspect')).not.toBeInTheDocument();
+  });
+
   it('does not show the suspect warning when costPerKmFlags is empty', async () => {
     mockSummary.mockResolvedValue({
       totalIncome: 500,

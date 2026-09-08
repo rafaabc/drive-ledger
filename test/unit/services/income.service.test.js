@@ -737,6 +737,11 @@ describe('incomeService.getProfitSummary() with shift data', () => {
     assert.strictEqual(summary.costPerKm, Math.round((88.95 / 1488) * 10000) / 10000);
     assert.ok(summary.costPerKmFlags.includes('impliedRangeTooHigh'));
     assert.strictEqual(summary.costPerKmSpanKm, 1488);
+    const detail = summary.costPerKmFlagDetails.find((d) => d.flag === 'impliedRangeTooHigh');
+    assert.ok(detail, 'expected an impliedRangeTooHigh detail entry');
+    assert.strictEqual(detail.kmBetween, 1488);
+    assert.strictEqual(detail.litres, 5);
+    assert.strictEqual(new Date(detail.date).toISOString().slice(0, 10), TODAY);
   });
 
   it('reproduces the real reported case: 27.12L over a 1488km span must be flagged', async () => {
@@ -759,6 +764,25 @@ describe('incomeService.getProfitSummary() with shift data', () => {
 
     const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
     assert.ok(summary.costPerKmFlags.includes('missingOdometer'));
+    const detail = summary.costPerKmFlagDetails.find((d) => d.flag === 'missingOdometer');
+    assert.ok(detail, 'expected a missingOdometer detail entry');
+    assert.strictEqual(detail.count, 1);
+    assert.strictEqual(new Date(detail.date).toISOString().slice(0, 10), TODAY);
+    assert.strictEqual(new Date(detail.lastDate).toISOString().slice(0, 10), TODAY);
+  });
+
+  it('reports the count and date range when multiple no-odometer fills sit in the span', async () => {
+    const u = await proUser('woltmissingodo2');
+    await shiftIncome(u, { amount: 400, km: 40, startTime: '13:00', endTime: '15:00' });
+    await fuelExpense(u, { litres: 10, pricePerLitre: 17, odometer: 1000 });
+    await fuelExpense(u, { litres: 8, pricePerLitre: 17 });
+    await fuelExpense(u, { litres: 6, pricePerLitre: 17 });
+    await fuelExpense(u, { litres: 10, pricePerLitre: 17, odometer: 1200 });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    const detail = summary.costPerKmFlagDetails.find((d) => d.flag === 'missingOdometer');
+    assert.ok(detail, 'expected a missingOdometer detail entry');
+    assert.strictEqual(detail.count, 2);
   });
 
   it('does not flag a normal 2-fill window with plausible consumption', async () => {
@@ -771,6 +795,7 @@ describe('incomeService.getProfitSummary() with shift data', () => {
     // Same fixture as the existing fill-to-fill test above — must stay unflagged and unchanged.
     assert.strictEqual(summary.costPerKm, Math.round((170 / 200) * 10000) / 10000);
     assert.deepStrictEqual(summary.costPerKmFlags, []);
+    assert.deepStrictEqual(summary.costPerKmFlagDetails, []);
   });
 
   it('keeps plain (non-shift) income rows working: hours/workKm null, no crash', async () => {

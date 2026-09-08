@@ -27,6 +27,25 @@ function sourceLabel(source, t) {
   return source === 'Other' ? t('income.sources.Other') : source;
 }
 
+/** Translated text for one costPerKm flag detail; falls back to the generic message. */
+function suspectMessage(detail, t) {
+  if (detail?.flag === 'missingOdometer') {
+    return t('income.summary.costPerKmSuspectMissingOdometer', {
+      count: detail.count,
+      date: formatDate(detail.date),
+      lastDate: formatDate(detail.lastDate),
+    });
+  }
+  if (detail?.flag === 'impliedRangeTooHigh') {
+    return t('income.summary.costPerKmSuspectImpliedRange', {
+      kmBetween: detail.kmBetween,
+      litres: detail.litres,
+      date: formatDate(detail.date),
+    });
+  }
+  return t('income.summary.costPerKmSuspect');
+}
+
 function shiftMinutes(startTime, endTime) {
   if (!startTime || !endTime) return null;
   const [sh, sm] = startTime.split(':').map(Number);
@@ -391,11 +410,19 @@ function ProfitSummaryCard({ summary, currency, targetHourlyRate, t }) {
         </div>
       </div>
 
-      {summary.costPerKm != null && summary.costPerKmFlags?.length > 0 && (
-        <p className={`${styles.unstableHint} ${styles.suspectHint}`}>
-          {t('income.summary.costPerKmSuspect')}
-        </p>
-      )}
+      {summary.costPerKm != null &&
+        summary.costPerKmFlags?.length > 0 &&
+        (summary.costPerKmFlagDetails?.length > 0 ? (
+          summary.costPerKmFlagDetails.map((detail, i) => (
+            <p key={i} className={`${styles.unstableHint} ${styles.suspectHint}`}>
+              {suspectMessage(detail, t)}
+            </p>
+          ))
+        ) : (
+          <p className={`${styles.unstableHint} ${styles.suspectHint}`}>
+            {t('income.summary.costPerKmSuspect')}
+          </p>
+        ))}
       {summary.costPerKm != null && summary.costPerKmSamples < 3 && (
         <p className={styles.unstableHint}>
           {t('income.summary.unstable', { count: summary.costPerKmSamples })}
@@ -642,11 +669,19 @@ function IncomeListPageInner() {
                               : formatCurrency(row.fuelCost, currency)}
                           </span>
                         </div>
-                        {row.fuelCost != null && row.costPerKmFlags?.length > 0 && (
-                          <p className={`${styles.unstableHint} ${styles.suspectHint}`}>
-                            {t('income.summary.costPerKmSuspect')}
-                          </p>
-                        )}
+                        {row.fuelCost != null &&
+                          row.costPerKmFlags?.length > 0 &&
+                          (row.costPerKmFlagDetails?.length > 0 ? (
+                            row.costPerKmFlagDetails.map((detail, i) => (
+                              <p key={i} className={`${styles.unstableHint} ${styles.suspectHint}`}>
+                                {suspectMessage(detail, t)}
+                              </p>
+                            ))
+                          ) : (
+                            <p className={`${styles.unstableHint} ${styles.suspectHint}`}>
+                              {t('income.summary.costPerKmSuspect')}
+                            </p>
+                          ))}
                         <div className={breakdownStyles.monthDetailRow}>
                           <span>{t('income.summary.netPerHour')}</span>
                           <span className={breakdownStyles.value}>
