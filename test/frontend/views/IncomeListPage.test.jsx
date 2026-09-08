@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, within, fireEvent, act } from '@testing-library/react';
+import { render, screen, within, fireEvent, act, waitFor } from '@testing-library/react';
 import IncomeListPage from '@/views/IncomeListPage';
 
 const mockLang = vi.fn().mockReturnValue('en');
@@ -428,9 +428,8 @@ describe('IncomeListPage — month breakdown', () => {
       costPerKmSamples: 0,
       costPerKmFlags: [],
     });
-    await act(async () => {
-      render(<IncomeListPage />);
-    });
+    render(<IncomeListPage />);
+    await screen.findByText('income.summary.fuelCostWork');
     expect(screen.getByText('income.summary.fuelCostWork')).toBeInTheDocument();
     expect(screen.getByText('income.summary.fuelExplainerSplit')).toBeInTheDocument();
     expect(screen.getByText('income.summary.howCalculated')).toBeInTheDocument();
@@ -455,10 +454,8 @@ describe('IncomeListPage — month breakdown', () => {
       costPerKmSamples: 0,
       costPerKmFlags: [],
     });
-    await act(async () => {
-      render(<IncomeListPage />);
-    });
-    expect(screen.getByText('income.summary.fuelExplainerNoSplit')).toBeInTheDocument();
+    render(<IncomeListPage />);
+    expect(await screen.findByText('income.summary.fuelExplainerNoSplit')).toBeInTheDocument();
   });
 });
 
@@ -487,10 +484,8 @@ describe('IncomeListPage — income form tips field', () => {
   });
 
   it('submits tips alongside km/deliveries in shift mode', async () => {
-    await act(async () => {
-      render(<IncomeListPage />);
-    });
-    fireEvent.click(screen.getByText(/common\.new/));
+    render(<IncomeListPage />);
+    fireEvent.click(await screen.findByText(/common\.new/));
     fireEvent.click(screen.getByLabelText('income.fields.shiftMode'));
     fireEvent.change(screen.getByLabelText('income.fields.amount'), {
       target: { value: '200' },
@@ -498,10 +493,10 @@ describe('IncomeListPage — income form tips field', () => {
     fireEvent.change(screen.getByLabelText('income.fields.tips'), {
       target: { value: '20' },
     });
-    await act(async () => {
-      fireEvent.click(screen.getByText('common.save'));
+    fireEvent.click(screen.getByText('common.save'));
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ tips: 20 }));
     });
-    expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ tips: 20 }));
   });
 });
 
