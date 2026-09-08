@@ -2,10 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import { AuthProvider, useAuth } from '@/context/AuthContext.jsx';
 
-vi.mock('posthog-js', () => ({
-  default: { identify: vi.fn(), reset: vi.fn() },
-}));
-
 vi.mock('@/services/apiService.js', () => ({
   authApi: {
     updateCurrency: vi.fn(),

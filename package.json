@@ -38,6 +38,8 @@
   "homepage": "https://github.com/rafaabc/norevify#readme",
   "dependencies": {
     "@sentry/nextjs": "^10.71.0",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "@zxcvbn-ts/core": "^4.1.2",
     "@zxcvbn-ts/language-common": "^4.1.2",
     "@zxcvbn-ts/language-en": "^4.1.1",
@@ -53,7 +55,6 @@
     "next": "16.3.0",
     "pdfkit": "^0.19.1",
     "pino": "^10.3.1",
-    "posthog-js": "^1.427.1",
     "prop-types": "^15.8.1",
     "react": "19.2.7",
     "react-dom": "19.2.7",

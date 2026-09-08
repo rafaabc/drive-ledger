@@ -27,7 +27,6 @@ export default defineConfig({
         'components/charts/**',
         'components/UpdatePrompt.jsx',
         'components/GoogleSignInButton.jsx',
-        'components/PostHogProvider.jsx',
         '**/*.module.css',
       ],
     },

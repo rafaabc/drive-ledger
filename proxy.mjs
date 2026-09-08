@@ -19,12 +19,12 @@ function buildCspHeader(nonce) {
     // GoogleSignInButton's document.createElement('script')) load without being
     // individually nonce'd — the host allowlist stays as a fallback for browsers
     // that don't support strict-dynamic.
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${isDev ? "'unsafe-eval' " : ''}accounts.google.com eu-assets.i.posthog.com`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${isDev ? "'unsafe-eval' " : ''}accounts.google.com`,
     "style-src 'self' 'unsafe-inline' fonts.googleapis.com accounts.google.com",
     "font-src 'self' fonts.gstatic.com",
     "img-src 'self' data: blob:",
     "worker-src 'self' blob:",
-    "connect-src 'self' accounts.google.com *.sentry.io eu.i.posthog.com eu-assets.i.posthog.com",
+    "connect-src 'self' accounts.google.com *.sentry.io",
     'frame-src accounts.google.com',
     "base-uri 'self'",
     "form-action 'self'",

@@ -67,7 +67,7 @@ Interactive API documentation: **[`/api-docs`](https://app.norevify.com/api-docs
 | Payments             | Stripe (Checkout, Customer Portal, webhooks)                                                       |
 | Email                | Resend                                                                                             |
 | Internationalisation | react-i18next                                                                                      |
-| Monitoring           | Sentry, PostHog                                                                                    |
+| Monitoring           | Sentry, Vercel Analytics & Speed Insights                                                          |
 | Testing              | Playwright (E2E), Vitest (frontend unit), Mocha + Supertest (API), Node test runner (backend unit) |
 | CI                   | GitHub Actions                                                                                     |
 | Hosting              | Vercel Fluid Compute                                                                               |

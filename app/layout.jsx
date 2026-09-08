@@ -3,7 +3,8 @@ import '@/styles/globals.css';
 import { AuthProvider } from '@/context/AuthContext.jsx';
 import I18nProvider from '@/components/I18nProvider.jsx';
 import PWAUpdater from '@/components/PWAUpdater.jsx';
-import PostHogProvider from '@/components/PostHogProvider.jsx';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { LANG_COOKIE } from '@/utils/languageCookie.js';
 
 const SUPPORTED_LANGUAGES = ['pt-BR', 'en'];
@@ -45,14 +46,14 @@ export default async function RootLayout({ children }) {
         />
       </head>
       <body suppressHydrationWarning>
-        <PostHogProvider>
-          <I18nProvider initialLanguage={lang}>
-            <AuthProvider>
-              <PWAUpdater />
-              {children}
-            </AuthProvider>
-          </I18nProvider>
-        </PostHogProvider>
+        <I18nProvider initialLanguage={lang}>
+          <AuthProvider>
+            <PWAUpdater />
+            {children}
+          </AuthProvider>
+        </I18nProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
