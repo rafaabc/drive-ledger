@@ -163,6 +163,20 @@ describe('IncomeListPage — shift time blocks', () => {
     expect(submitted.startTime).toBeUndefined();
     expect(submitted.endTime).toBeUndefined();
   });
+
+  it('submits tips alongside km/deliveries in shift mode', async () => {
+    await openNewIncomeForm();
+    fireEvent.change(screen.getByLabelText('income.fields.amount'), {
+      target: { value: '200' },
+    });
+    fireEvent.change(screen.getByLabelText('income.fields.tips'), {
+      target: { value: '20' },
+    });
+    fireEvent.click(screen.getByText('common.save'));
+    await waitFor(() => {
+      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ tips: 20 }));
+    });
+  });
 });
 
 describe('IncomeListPage — decimal separator regression', () => {
@@ -462,47 +476,6 @@ describe('IncomeListPage — month breakdown', () => {
     });
     render(<IncomeListPage />);
     expect(await screen.findByText('income.summary.fuelExplainerNoSplit')).toBeInTheDocument();
-  });
-});
-
-describe('IncomeListPage — income form tips field', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockLang.mockReturnValue('en');
-    mockList.mockResolvedValue([]);
-    mockSummary.mockResolvedValue({
-      totalIncome: 0,
-      fuelCost: null,
-      netEarnings: null,
-      netPerHour: null,
-      hours: null,
-      workKm: null,
-      costPerKm: null,
-      costPerKmSamples: 0,
-    });
-    mockVehiclesList.mockResolvedValue([]);
-    mockCreate.mockResolvedValue({});
-    try {
-      window.localStorage.clear();
-    } catch {
-      /* not available in this environment */
-    }
-  });
-
-  it('submits tips alongside km/deliveries in shift mode', async () => {
-    render(<IncomeListPage />);
-    fireEvent.click(await screen.findByText(/common\.new/));
-    fireEvent.click(screen.getByLabelText('income.fields.shiftMode'));
-    fireEvent.change(screen.getByLabelText('income.fields.amount'), {
-      target: { value: '200' },
-    });
-    fireEvent.change(screen.getByLabelText('income.fields.tips'), {
-      target: { value: '20' },
-    });
-    fireEvent.click(screen.getByText('common.save'));
-    await waitFor(() => {
-      expect(mockCreate).toHaveBeenCalledWith(expect.objectContaining({ tips: 20 }));
-    });
   });
 });
 
