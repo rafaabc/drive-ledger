@@ -1,7 +1,15 @@
 import { Page, expect } from '@playwright/test';
 
 export async function setLanguage(page: Page, lang: string) {
-  await page.evaluate((l) => localStorage.setItem('i18nextLng', l), lang);
+  // Also set the 'lang' cookie the app mirrors client-side (utils/languageCookie.js) so
+  // SSR renders the target language immediately on reload — setting localStorage alone
+  // leaves the cookie stale/absent, so the server-rendered HTML briefly shows the wrong
+  // language until the client's post-hydration migration effect corrects it, which is a
+  // race real returning visitors (whose cookie is already in sync) never hit.
+  await page.evaluate((l) => {
+    localStorage.setItem('i18nextLng', l);
+    document.cookie = `lang=${l}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+  }, lang);
   await page.reload();
 }
 

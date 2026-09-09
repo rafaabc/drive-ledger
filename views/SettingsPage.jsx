@@ -45,6 +45,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const {
+    authLoading,
     username,
     currency,
     updateCurrency,
@@ -61,6 +62,23 @@ export default function SettingsPage() {
   } = useAuth();
   const [selected, setSelected] = useState(currency);
   const [selectedLang, setSelectedLang] = useState(language);
+
+  useEffect(() => {
+    // currency/language read the JWT synchronously, but the token itself only
+    // loads from localStorage in an effect (SSR-safe), so the first render
+    // sees the AuthContext fallback defaults, not the real account values —
+    // this seeds `selected`/`selectedLang` from that fallback. Re-seed once
+    // the real values are known, or a Save button stays wrongly enabled (or
+    // stuck disabled, when the selection happens to match the fallback) until
+    // the user touches the field. Keyed on authLoading, not currency/language,
+    // so it fires exactly once and never clobbers an in-progress selection.
+    if (!authLoading) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- re-seeding from context is the sync itself, not a derivable render value
+      setSelected(currency);
+      setSelectedLang(language);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- must only re-seed on the auth-hydration transition, not on every currency/language change
+  }, [authLoading]);
   const [targetInput, setTargetInput] = useState(
     targetHourlyRate == null ? '' : String(targetHourlyRate),
   );
