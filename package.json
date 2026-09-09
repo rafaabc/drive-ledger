@@ -94,7 +94,7 @@
     "prettier": "^3.9.4",
     "serwist": "^9.5.11",
     "supertest": "^7.2.2",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.11"
   },
   "overrides": {
     "@types/react": "19.2.17",
