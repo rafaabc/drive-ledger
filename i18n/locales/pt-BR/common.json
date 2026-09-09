@@ -365,7 +365,8 @@
       "blockCount_other": "{{count}} blocos",
       "km": "Distância on-task e off-task (do app de entregas)",
       "deliveries": "Entregas",
-      "tips": "Gorjetas"
+      "tips": "Gorjetas",
+      "tipsIncluded": "+{{value}} de gorjetas incluídas"
     },
     "sources": {
       "Other": "Outro"

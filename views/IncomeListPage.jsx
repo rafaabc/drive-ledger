@@ -768,7 +768,7 @@ function IncomeListPageInner() {
                           ` (${t('income.fields.blockCount', { count: segs.length })})`}
                         {i.km != null && ` · ${i.km} km`}
                         {i.tips != null &&
-                          ` · +${formatCurrency(i.tips, currency)} ${t('income.fields.tips')}`}
+                          ` · ${t('income.fields.tipsIncluded', { value: formatCurrency(i.tips, currency) })}`}
                         {i.note && ` · ${i.note}`}
                       </div>
                     </div>
