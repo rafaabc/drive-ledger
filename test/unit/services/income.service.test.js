@@ -288,25 +288,44 @@ describe('incomeService.getProfitSummary() monthly breakdown', () => {
     assert.strictEqual(summary.months, undefined);
   });
 
-  it('returns 12 rows with zeroed/null fields for empty months', async () => {
+  it('returns one row per month from the first income month, with zeroed/null fields for gap months', async () => {
     const u = await proUser('breakdown3');
     await incomeService.createIncome(u, { date: TODAY, amount: 500, source: 'Uber' });
     const summary = await incomeService.getProfitSummary(u, {
       year: String(YEAR),
       breakdown: 'monthly',
     });
-    assert.strictEqual(summary.months.length, 12);
     const thisMonth = new Date(TODAY).getUTCMonth() + 1;
-    for (const row of summary.months) {
-      assert.strictEqual(row.month >= 1 && row.month <= 12, true);
-      if (row.month !== thisMonth) {
-        assert.strictEqual(row.totalIncome, 0);
-        assert.strictEqual(row.netEarnings, null);
-        assert.strictEqual(row.hours, null);
-      }
-    }
-    const currentRow = summary.months.find((r) => r.month === thisMonth);
-    assert.strictEqual(currentRow.totalIncome, 500);
+    assert.strictEqual(summary.months.length, 1);
+    assert.strictEqual(summary.months[0].month, thisMonth);
+    assert.strictEqual(summary.months[0].totalIncome, 500);
+  });
+
+  it('keeps a zero-income gap month inside the working period, without dropping its expenses from the yearly total', async () => {
+    const currentMonth = new Date(TODAY).getUTCMonth() + 1;
+    if (currentMonth < 3) return; // need a first-income month and a gap month before today
+
+    const u = await proUser('breakdown-gap');
+    const firstMonth = currentMonth - 2;
+    const gapMonth = currentMonth - 1;
+    const firstDate = `${YEAR}-${String(firstMonth).padStart(2, '0')}-05`;
+    const gapDate = `${YEAR}-${String(gapMonth).padStart(2, '0')}-05`;
+
+    await incomeService.createIncome(u, { date: firstDate, amount: 200, source: 'Uber' });
+    await expensesService.createExpense(u, { date: firstDate, category: 'Parking', amount: 50 });
+    // Gap month: no income, but still inside the working period — its expenses must still count.
+    await expensesService.createExpense(u, { date: gapDate, category: 'Parking', amount: 30 });
+    await incomeService.createIncome(u, { date: TODAY, amount: 300, source: 'Uber' });
+
+    const summary = await incomeService.getProfitSummary(u, {
+      year: String(YEAR),
+      breakdown: 'monthly',
+    });
+    const gapRow = summary.months.find((r) => r.month === gapMonth);
+    assert.ok(gapRow, 'gap month row must be present');
+    assert.strictEqual(gapRow.totalIncome, 0);
+    assert.strictEqual(gapRow.netEarnings, null);
+    assert.strictEqual(summary.totalExpenses, 80);
   });
 
   it('anchors each month cost-per-km on the last fill before that month', async () => {
@@ -337,6 +356,94 @@ describe('incomeService.getProfitSummary() monthly breakdown', () => {
     assert.strictEqual(febRow.costPerKm, 0.5);
     assert.strictEqual(febRow.fuelCost, 50);
     assert.strictEqual(febRow.netEarnings, 450);
+  });
+
+  it('excludes fuel bought before the first income month from the yearly fuelSpend/net', async () => {
+    const currentMonth = new Date(TODAY).getUTCMonth() + 1;
+    if (currentMonth === 1) return; // no earlier month this year to prove exclusion against
+
+    const u = await proUser('breakdown-preexisting-fuel');
+    // Every month before the current one: expenses-only "ideation" period.
+    for (let m = 1; m < currentMonth; m++) {
+      await expensesService.createExpense(u, {
+        date: `${YEAR}-${String(m).padStart(2, '0')}-15`,
+        category: 'Fuel',
+        litres: 40,
+        price_per_litre: 10,
+      });
+    }
+    // Current month: first delivery income, no odometer logged yet either.
+    await incomeService.createIncome(u, { date: TODAY, amount: 400, source: 'Uber' });
+    await expensesService.createExpense(u, {
+      date: TODAY,
+      category: 'Fuel',
+      litres: 20,
+      price_per_litre: 10,
+    });
+
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.strictEqual(summary.fuelSpend, 200);
+    assert.strictEqual(summary.netEarnings, 200);
+  });
+
+  it('divides profitPerDay by the clamped window, not the full year', async () => {
+    const u = await proUser('breakdown-profitperday');
+    await incomeService.createIncome(u, { date: TODAY, amount: 100, source: 'Uber' });
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    const now = new Date();
+    const currentMonth = new Date(TODAY).getUTCMonth();
+    const periodStart = new Date(Date.UTC(YEAR, currentMonth, 1));
+    const periodEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+    const expectedDays = (periodEnd - periodStart) / 86_400_000;
+    assert.strictEqual(
+      summary.profitPerDay,
+      Math.round((summary.profit / expectedDays) * 100) / 100,
+    );
+  });
+
+  it('falls back to the full calendar year when the user has no income at all', async () => {
+    const u = await proUser('breakdown-noincome');
+    await expensesService.createExpense(u, {
+      date: `${YEAR}-06-01`,
+      category: 'Parking',
+      amount: 10,
+    });
+    const summary = await incomeService.getProfitSummary(u, {
+      year: String(YEAR),
+      breakdown: 'monthly',
+    });
+    assert.strictEqual(summary.months.length, 12);
+    assert.strictEqual(summary.totalExpenses, 10);
+  });
+
+  it('falls back to the full calendar year when requesting a year before the user’s first income', async () => {
+    const u = await proUser('breakdown-earlieryear');
+    await expensesService.createExpense(u, {
+      date: `${YEAR - 1}-06-01`,
+      category: 'Parking',
+      amount: 10,
+    });
+    await incomeService.createIncome(u, { date: `${YEAR}-09-01`, amount: 100, source: 'Uber' });
+    const summary = await incomeService.getProfitSummary(u, {
+      year: String(YEAR - 1),
+      breakdown: 'monthly',
+    });
+    assert.strictEqual(summary.months.length, 12);
+    assert.strictEqual(summary.totalExpenses, 10);
+  });
+
+  it('leaves the yearly summary unchanged when the first income is in January (regression lock)', async () => {
+    const u = await proUser('breakdown-january-anchor');
+    await incomeService.createIncome(u, { date: `${YEAR}-01-15`, amount: 500, source: 'Uber' });
+    await expensesService.createExpense(u, {
+      date: `${YEAR}-01-10`,
+      category: 'Parking',
+      amount: 50,
+    });
+    const summary = await incomeService.getProfitSummary(u, { year: String(YEAR) });
+    assert.strictEqual(summary.totalIncome, 500);
+    assert.strictEqual(summary.totalExpenses, 50);
+    assert.strictEqual(summary.profit, 450);
   });
 });
 

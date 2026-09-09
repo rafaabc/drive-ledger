@@ -365,7 +365,8 @@
       "blockCount_other": "{{count}} blocks",
       "km": "Distance on- and off-task (from the delivery app)",
       "deliveries": "Deliveries",
-      "tips": "Tips"
+      "tips": "Tips",
+      "tipsIncluded": "+{{value}} Tips included"
     },
     "sources": {
       "Other": "Other"
