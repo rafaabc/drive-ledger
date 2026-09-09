@@ -324,6 +324,36 @@ describe('IncomeListPage — month breakdown', () => {
     expect(breakdown.getByText('March')).toBeInTheDocument();
   });
 
+  it('renders a shorter breakdown when the backend returns fewer than 12 months (clamped window)', async () => {
+    mockSummary.mockResolvedValue({
+      totalIncome: 500,
+      fuelCost: 50,
+      netEarnings: 450,
+      netPerHour: 45,
+      hours: 10,
+      workKm: 100,
+      costPerKm: 0.5,
+      costPerKmSamples: 3,
+      months: [
+        {
+          month: 9,
+          totalIncome: 500,
+          fuelCost: 50,
+          netEarnings: 450,
+          netPerHour: 45,
+          hours: 10,
+          workKm: 100,
+        },
+      ],
+    });
+    await act(async () => {
+      render(<IncomeListPage />);
+    });
+    const breakdown = within(screen.getByTestId('income-month-breakdown'));
+    expect(breakdown.getByText('September')).toBeInTheDocument();
+    expect(breakdown.queryByText('January')).not.toBeInTheDocument();
+  });
+
   it('hides the breakdown section once a month is selected', async () => {
     mockSummary.mockResolvedValue({
       totalIncome: 0,
